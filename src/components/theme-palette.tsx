@@ -20,7 +20,7 @@ export function ThemePalette() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="pointer-events-none fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
+    <div className="pointer-events-none fixed right-[calc(env(safe-area-inset-right)+1rem)] top-[calc(env(safe-area-inset-top)+1rem)] z-50 sm:right-[calc(env(safe-area-inset-right)+1.5rem)] sm:top-auto sm:bottom-[calc(env(safe-area-inset-bottom)+1.5rem)]">
       <div className="pointer-events-auto flex flex-col items-end gap-3">
         {isOpen ? (
           <div className="w-[min(88vw,340px)] rounded-[26px] border border-white/65 bg-white/86 p-4 shadow-[0_24px_60px_rgba(8,47,73,0.18)] backdrop-blur-xl">
@@ -88,7 +88,7 @@ export function ThemePalette() {
           type="button"
           aria-label="打开主题调色板"
           onClick={() => setIsOpen((current) => !current)}
-          className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/88 px-4 py-3 text-sm font-semibold text-slate-900 shadow-[0_18px_40px_rgba(8,47,73,0.18)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-cyan-300 hover:text-cyan-700"
+          className="inline-flex items-center gap-2 rounded-full border border-cyan-200/80 bg-white/95 px-4 py-3 text-sm font-semibold text-slate-900 shadow-[0_20px_50px_rgba(8,47,73,0.22)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-cyan-400 hover:text-cyan-700"
         >
           <span aria-hidden="true">🎨</span>
           <span>调色板</span>

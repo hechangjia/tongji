@@ -145,20 +145,24 @@ export async function toggleBannerQuoteStatusAction(formData: FormData) {
 export async function importHitokotoBannerAction() {
   await requireAdminSession();
 
+  let draft;
+
   try {
-    const draft = await fetchHitokotoBannerDraft();
+    draft = await fetchHitokotoBannerDraft();
     await createBannerQuote(draft);
-    revalidatePath("/admin/banners");
-    redirect(
-      `/admin/banners?notice=${encodeURIComponent(
-        "已从 hitokoto 导入一条文案，默认停用，请确认后启用",
-      )}`,
-    );
-  } catch {
+  } catch (error) {
+    console.error("Failed to import hitokoto banner", error);
     redirect(
       `/admin/banners?notice=${encodeURIComponent(
         "hitokoto 导入失败，请稍后重试",
       )}`,
     );
   }
+
+  revalidatePath("/admin/banners");
+  redirect(
+    `/admin/banners?notice=${encodeURIComponent(
+      "已从 hitokoto 导入一条文案，默认停用，请确认后启用",
+    )}`,
+  );
 }

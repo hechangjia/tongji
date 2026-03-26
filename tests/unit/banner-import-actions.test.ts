@@ -59,7 +59,7 @@ describe("banner import action", () => {
     });
 
     await expect(importHitokotoBannerAction()).rejects.toThrow(
-      "redirect:/admin/banners?notice=",
+      "redirect:/admin/banners?notice=%E5%B7%B2%E4%BB%8E%20hitokoto%20%E5%AF%BC%E5%85%A5%E4%B8%80%E6%9D%A1%E6%96%87%E6%A1%88%EF%BC%8C%E9%BB%98%E8%AE%A4%E5%81%9C%E7%94%A8%EF%BC%8C%E8%AF%B7%E7%A1%AE%E8%AE%A4%E5%90%8E%E5%90%AF%E7%94%A8",
     );
 
     expect(createBannerQuoteMock).toHaveBeenCalledWith({
