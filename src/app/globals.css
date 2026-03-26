@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+:root {
+  --background: #effcff;
+  --foreground: #082032;
+  --maika-ink: #082f49;
+  --maika-surface: rgba(255, 255, 255, 0.82);
+  --maika-accent: #67e8f9;
+  --maika-accent-strong: #0f766e;
+  --maika-ring: #bae6fd;
+  --maika-muted: #5a6f7f;
+  --font-maika-sans: "Avenir Next", "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei UI", sans-serif;
+  --font-maika-display: "Iowan Old Style", "Noto Serif SC", "Songti SC",
+    serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-maika-ink: var(--maika-ink);
+  --color-maika-accent: var(--maika-accent);
+  --font-sans: var(--font-maika-sans);
+  --font-display: var(--font-maika-display);
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+@keyframes maika-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+html {
+  min-height: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  background-image:
+    radial-gradient(circle at top left, rgba(103, 232, 249, 0.28), transparent 30%),
+    radial-gradient(circle at top right, rgba(14, 165, 233, 0.16), transparent 24%),
+    linear-gradient(180deg, #f0fdfa 0%, #dbeafe 42%, #ecfeff 100%);
+  font-family: var(--font-maika-sans), "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei UI", sans-serif;
+  min-height: 100%;
+}
+
+* {
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.35);
+  color: #082032;
+}
+
+.font-display {
+  font-family: var(--font-maika-display), "STSong", "Songti SC", serif;
+}
+
+.maika-fade-up {
+  animation: maika-fade-up 0.42s ease-out both;
+}
+
+.maika-glass {
+  background: var(--maika-surface);
+  backdrop-filter: blur(18px);
+}
+
+.maika-grid {
+  background-image:
+    linear-gradient(rgba(8, 47, 73, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(8, 47, 73, 0.04) 1px, transparent 1px);
+  background-position: center;
+  background-size: 22px 22px;
+}

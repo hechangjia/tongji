@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MEMBER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ContentStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum BannerSourceType {
+  BUILTIN
+  CUSTOM
+}
+
+enum BannerDisplayMode {
+  RANDOM
+  ROTATE
+}
+
+model User {
+  id              String           @id @default(cuid())
+  username        String           @unique
+  passwordHash    String
+  name            String
+  phone           String?
+  role            Role
+  status          UserStatus       @default(ACTIVE)
+  salesRecords    SalesRecord[]
+  commissionRules CommissionRule[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@map("users")
+}
+
+model SalesRecord {
+  id        String   @id @default(cuid())
+  userId    String
+  saleDate  DateTime @db.Date
+  count40   Int      @default(0)
+  count60   Int      @default(0)
+  remark    String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, saleDate])
+  @@index([saleDate])
+  @@map("sales_records")
+}
+
+model CommissionRule {
+  id             String   @id @default(cuid())
+  userId         String
+  price40        Decimal  @db.Decimal(10, 2)
+  price60        Decimal  @db.Decimal(10, 2)
+  effectiveStart DateTime @db.Date
+  effectiveEnd   DateTime? @db.Date
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId, effectiveStart, effectiveEnd])
+  @@map("commission_rules")
+}
+
+model BannerQuote {
+  id         String           @id @default(cuid())
+  content    String
+  author     String?
+  sourceType BannerSourceType @default(CUSTOM)
+  status     ContentStatus    @default(ACTIVE)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@map("banner_quotes")
+}
+
+model BannerSettings {
+  id          String            @id
+  isEnabled   Boolean           @default(true)
+  displayMode BannerDisplayMode @default(RANDOM)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@map("banner_settings")
+}
+
+model Announcement {
+  id        String        @id @default(cuid())
+  title     String
+  content   String
+  isPinned  Boolean       @default(false)
+  status    ContentStatus @default(ACTIVE)
+  publishAt DateTime      @default(now())
+  expireAt  DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([status, publishAt, expireAt, isPinned])
+  @@map("announcements")
+}
