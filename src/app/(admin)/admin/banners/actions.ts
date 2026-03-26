@@ -10,6 +10,7 @@ import {
   toggleBannerQuoteStatus,
   updateBannerSettings,
 } from "@/server/services/banner-service";
+import { fetchHitokotoBannerDraft } from "@/server/services/hitokoto-service";
 import {
   bannerQuoteSchema,
   bannerSettingsSchema,
@@ -139,4 +140,25 @@ export async function toggleBannerQuoteStatusAction(formData: FormData) {
       parsedInput.status === "ACTIVE" ? "横幅已启用" : "横幅已停用",
     )}`,
   );
+}
+
+export async function importHitokotoBannerAction() {
+  await requireAdminSession();
+
+  try {
+    const draft = await fetchHitokotoBannerDraft();
+    await createBannerQuote(draft);
+    revalidatePath("/admin/banners");
+    redirect(
+      `/admin/banners?notice=${encodeURIComponent(
+        "已从 hitokoto 导入一条文案，默认停用，请确认后启用",
+      )}`,
+    );
+  } catch {
+    redirect(
+      `/admin/banners?notice=${encodeURIComponent(
+        "hitokoto 导入失败，请稍后重试",
+      )}`,
+    );
+  }
 }

@@ -3,10 +3,8 @@ import { ensureDefaultUsers } from "@/server/services/default-user-seed";
 
 describe("ensureDefaultUsers", () => {
   test("creates default accounts only when they do not exist", async () => {
-    const findUnique = vi
-      .fn()
-      .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce(null);
+    const findFirst = vi.fn().mockResolvedValueOnce(null);
+    const findUnique = vi.fn().mockResolvedValueOnce(null);
     const create = vi
       .fn()
       .mockResolvedValueOnce({ id: "admin-id" })
@@ -15,6 +13,7 @@ describe("ensureDefaultUsers", () => {
     const users = await ensureDefaultUsers(
       {
         user: {
+          findFirst,
           findUnique,
           create,
         },
@@ -25,7 +24,12 @@ describe("ensureDefaultUsers", () => {
       },
     );
 
-    expect(findUnique).toHaveBeenCalledTimes(2);
+    expect(findFirst).toHaveBeenCalledWith({
+      where: { role: "ADMIN" },
+      select: { id: true },
+      orderBy: { createdAt: "asc" },
+    });
+    expect(findUnique).toHaveBeenCalledTimes(1);
     expect(create).toHaveBeenCalledTimes(2);
     expect(create).toHaveBeenNthCalledWith(1, {
       data: {
@@ -58,15 +62,14 @@ describe("ensureDefaultUsers", () => {
   });
 
   test("keeps existing accounts unchanged when seed runs again", async () => {
-    const findUnique = vi
-      .fn()
-      .mockResolvedValueOnce({ id: "existing-admin-id" })
-      .mockResolvedValueOnce({ id: "existing-member-id" });
+    const findFirst = vi.fn().mockResolvedValueOnce({ id: "existing-admin-id" });
+    const findUnique = vi.fn().mockResolvedValueOnce({ id: "existing-member-id" });
     const create = vi.fn();
 
     const users = await ensureDefaultUsers(
       {
         user: {
+          findFirst,
           findUnique,
           create,
         },
@@ -81,6 +84,44 @@ describe("ensureDefaultUsers", () => {
     expect(users).toEqual({
       admin: { id: "existing-admin-id" },
       member: { id: "existing-member-id" },
+    });
+  });
+
+  test("does not recreate default admin after the admin username was customized", async () => {
+    const findFirst = vi.fn().mockResolvedValueOnce({ id: "custom-admin-id" });
+    const findUnique = vi.fn().mockResolvedValueOnce(null);
+    const create = vi.fn().mockResolvedValueOnce({ id: "member-id" });
+
+    const users = await ensureDefaultUsers(
+      {
+        user: {
+          findFirst,
+          findUnique,
+          create,
+        },
+      },
+      {
+        adminPasswordHash: "admin-hash",
+        memberPasswordHash: "member-hash",
+      },
+    );
+
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(create).toHaveBeenCalledWith({
+      data: {
+        username: "member01",
+        passwordHash: "member-hash",
+        name: "示例成员",
+        role: "MEMBER",
+        status: "ACTIVE",
+      },
+      select: {
+        id: true,
+      },
+    });
+    expect(users).toEqual({
+      admin: { id: "custom-admin-id" },
+      member: { id: "member-id" },
     });
   });
 });

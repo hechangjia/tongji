@@ -27,7 +27,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <main className="relative flex min-h-dvh items-center overflow-hidden px-4 py-10 sm:px-6 lg:px-8">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.2),transparent_25%),radial-gradient(circle_at_bottom_right,rgba(103,232,249,0.22),transparent_28%),linear-gradient(135deg,#082f49_0%,#0f766e_55%,#67e8f9_100%)]" />
+      <div className="maika-login-backdrop pointer-events-none absolute inset-0" />
       <div className="relative mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(380px,460px)] lg:items-center">
         <section className="maika-fade-up relative overflow-hidden rounded-[32px] border border-white/12 bg-white/8 p-7 text-white shadow-[0_28px_90px_rgba(8,47,73,0.28)] backdrop-blur-xl sm:p-8 lg:min-h-[560px] lg:p-10">
           <div className="absolute -left-10 -top-12 h-36 w-36 rounded-full bg-white/14 blur-3xl" />

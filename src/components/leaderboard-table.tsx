@@ -41,7 +41,7 @@ export function LeaderboardTable({
                 key={`${row.userName}-${row.rank}`}
                 className={`rounded-[26px] border px-5 py-5 shadow-[0_18px_42px_rgba(8,47,73,0.08)] ${
                   index === 0
-                    ? "border-cyan-300/50 bg-[linear-gradient(135deg,#082f49_0%,#0f766e_100%)] text-white"
+                    ? "maika-podium-surface border-cyan-300/50 text-white"
                     : "border-white/70 bg-white/82 text-slate-950"
                 }`}
               >

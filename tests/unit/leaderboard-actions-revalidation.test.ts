@@ -9,6 +9,7 @@ const redirectMock = vi.hoisted(() =>
 const saveSalesRecordForUserMock = vi.hoisted(() => vi.fn());
 const refreshLeaderboardCachesMock = vi.hoisted(() => vi.fn());
 const salesRecordUpdateMock = vi.hoisted(() => vi.fn());
+const userFindUniqueMock = vi.hoisted(() => vi.fn());
 const userUpdateMock = vi.hoisted(() => vi.fn());
 const revalidatePathMock = vi.hoisted(() => vi.fn());
 
@@ -45,6 +46,7 @@ vi.mock("@/lib/db", () => ({
       update: salesRecordUpdateMock,
     },
     user: {
+      findUnique: userFindUniqueMock,
       update: userUpdateMock,
     },
   },
@@ -115,9 +117,11 @@ describe("leaderboard cache revalidation on writes", () => {
       },
     });
     userUpdateMock.mockResolvedValue({});
+    userFindUniqueMock.mockResolvedValue(null);
 
     const formData = new FormData();
     formData.set("id", "member-1");
+    formData.set("username", "member_renamed");
     formData.set("name", "新的名字");
     formData.set("status", "ACTIVE");
     formData.set("password", "");

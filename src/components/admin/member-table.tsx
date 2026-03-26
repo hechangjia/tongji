@@ -60,6 +60,22 @@ export function MemberTable({
                       <input type="hidden" name="id" value={row.id} />
                       <div className="space-y-1">
                         <label
+                          htmlFor={`username-${row.id}`}
+                          className="text-xs font-medium text-slate-500"
+                        >
+                          登录账号
+                        </label>
+                        <input
+                          id={`username-${row.id}`}
+                          name="username"
+                          type="text"
+                          defaultValue={row.username}
+                          className="w-full min-w-[160px] rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition duration-200 focus:border-cyan-400 focus:bg-cyan-50/40"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label
                           htmlFor={`name-${row.id}`}
                           className="text-xs font-medium text-slate-500"
                         >

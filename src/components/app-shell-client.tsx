@@ -84,11 +84,11 @@ export function AppShellClient({
 
   return (
     <div className="relative min-h-dvh overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(103,232,249,0.3),transparent_28%),radial-gradient(circle_at_top_right,rgba(14,165,233,0.18),transparent_24%),linear-gradient(180deg,#f0fdfa_0%,#dbeafe_45%,#ecfeff_100%)]" />
+      <div className="maika-shell-backdrop pointer-events-none absolute inset-0" />
 
       <div className="relative mx-auto flex min-h-dvh w-full max-w-[1600px] gap-0 px-3 py-3 sm:px-4 lg:gap-6 lg:px-6 lg:py-6">
         <aside className="maika-fade-up hidden w-[288px] shrink-0 lg:flex">
-          <div className="flex min-h-full w-full flex-col rounded-[30px] border border-white/10 bg-slate-950/94 p-6 text-white shadow-[0_28px_80px_rgba(8,47,73,0.28)]">
+          <div className="maika-sidebar-surface flex min-h-full w-full flex-col rounded-[30px] border border-white/10 p-6 text-white shadow-[0_28px_80px_rgba(8,47,73,0.28)]">
             <div className="relative overflow-hidden rounded-[26px] border border-white/8 bg-white/6 p-5">
               <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-cyan-300/30 blur-2xl" />
               <p className="relative text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-cyan-200/90">

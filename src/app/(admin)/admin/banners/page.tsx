@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
 import { AppShell } from "@/components/app-shell";
 import { BannerForm } from "@/components/admin/banner-form";
+import { BannerImportCard } from "@/components/admin/banner-import-card";
 import { BannerSettingsForm } from "@/components/admin/banner-settings-form";
 import { BannerTable } from "@/components/admin/banner-table";
 import { MetricCard } from "@/components/metric-card";
@@ -69,6 +70,7 @@ export default async function AdminBannersPage({
         <div className="grid gap-6 xl:grid-cols-[minmax(320px,360px)_minmax(0,1fr)]">
           <div className="space-y-6">
             <BannerForm />
+            <BannerImportCard />
             <BannerSettingsForm
               initialValues={{
                 displayMode: settings.displayMode,

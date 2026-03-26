@@ -16,7 +16,7 @@ export function PageHeader({
   children,
 }: PageHeaderProps) {
   return (
-    <section className="overflow-hidden rounded-[28px] border border-white/60 bg-[linear-gradient(145deg,rgba(255,255,255,0.92)_0%,rgba(236,254,255,0.88)_52%,rgba(219,234,254,0.92)_100%)] px-5 py-6 shadow-[0_22px_60px_rgba(8,47,73,0.08)] backdrop-blur-xl sm:px-6 lg:px-7">
+    <section className="maika-page-header-surface overflow-hidden rounded-[28px] border border-white/60 px-5 py-6 shadow-[0_22px_60px_rgba(8,47,73,0.08)] backdrop-blur-xl sm:px-6 lg:px-7">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-3xl">
           {eyebrow ? (

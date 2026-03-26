@@ -6,6 +6,17 @@ type SeedUserReference = {
 
 type UserSeedClient = {
   user: {
+    findFirst(args: {
+      where: {
+        role: Role;
+      };
+      select: {
+        id: true;
+      };
+      orderBy: {
+        createdAt: "asc";
+      };
+    }): Promise<SeedUserReference | null>;
     findUnique(args: {
       where: {
         username: string;
@@ -55,17 +66,37 @@ async function ensureDefaultUser(
   });
 }
 
+async function ensureDefaultAdmin(
+  prisma: UserSeedClient,
+  passwordHash: string,
+): Promise<SeedUserReference> {
+  const existingAdmin = await prisma.user.findFirst({
+    where: { role: Role.ADMIN },
+    select: { id: true },
+    orderBy: { createdAt: "asc" },
+  });
+
+  if (existingAdmin) {
+    return existingAdmin;
+  }
+
+  return prisma.user.create({
+    data: {
+      username: "admin",
+      passwordHash,
+      name: "系统管理员",
+      role: Role.ADMIN,
+      status: UserStatus.ACTIVE,
+    },
+    select: { id: true },
+  });
+}
+
 export async function ensureDefaultUsers(
   prisma: UserSeedClient,
   { adminPasswordHash, memberPasswordHash }: EnsureDefaultUsersInput,
 ) {
-  const admin = await ensureDefaultUser(prisma, {
-    username: "admin",
-    passwordHash: adminPasswordHash,
-    name: "系统管理员",
-    role: Role.ADMIN,
-    status: UserStatus.ACTIVE,
-  });
+  const admin = await ensureDefaultAdmin(prisma, adminPasswordHash);
 
   const member = await ensureDefaultUser(prisma, {
     username: "member01",

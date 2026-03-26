@@ -27,7 +27,7 @@ function BannerRotatorInner({ banner }: { banner: Exclude<ShellBannerData, null>
   const activeItem = banner.items[activeIndex] ?? banner.items[0];
 
   return (
-    <section className="overflow-hidden rounded-[26px] border border-cyan-300/30 bg-[linear-gradient(135deg,#082f49_0%,#0f766e_100%)] px-5 py-5 text-white shadow-[0_20px_50px_rgba(8,47,73,0.22)]">
+    <section className="maika-banner-surface overflow-hidden rounded-[26px] border border-cyan-300/30 px-5 py-5 text-white shadow-[0_20px_50px_rgba(8,47,73,0.22)]">
       <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-cyan-100/90">
         Today Banner
       </p>

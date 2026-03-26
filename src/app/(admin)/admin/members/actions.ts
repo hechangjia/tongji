@@ -107,6 +107,7 @@ export async function updateMemberAction(formData: FormData) {
   const session = await requireAdminSession();
   const parsedInput = memberUpdateSchema.parse({
     id: formData.get("id"),
+    username: formData.get("username"),
     name: formData.get("name"),
     status: formData.get("status"),
     password: formData.get("password"),
@@ -116,9 +117,19 @@ export async function updateMemberAction(formData: FormData) {
     redirect("/admin/members?notice=不能停用当前登录管理员");
   }
 
+  const existingUser = await db.user.findUnique({
+    where: { username: parsedInput.username },
+    select: { id: true },
+  });
+
+  if (existingUser && existingUser.id !== parsedInput.id) {
+    redirect("/admin/members?notice=该账号已存在，请更换后重试");
+  }
+
   await db.user.update({
     where: { id: parsedInput.id },
     data: {
+      username: parsedInput.username,
       name: parsedInput.name,
       status:
         parsedInput.status === "ACTIVE" ? UserStatus.ACTIVE : UserStatus.INACTIVE,
