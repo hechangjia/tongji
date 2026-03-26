@@ -3,9 +3,7 @@ import { AppShell } from "@/components/app-shell";
 import { LeaderboardTable } from "@/components/leaderboard-table";
 import { MetricCard } from "@/components/metric-card";
 import { PageHeader } from "@/components/page-header";
-import {
-  getDailyLeaderboard,
-} from "@/server/services/leaderboard-service";
+import { getCachedDailyLeaderboard } from "@/server/services/leaderboard-cache";
 import { getTodaySaleDateValue, type DateValue } from "@/server/services/sales-service";
 
 type DailyLeaderboardPageProps = {
@@ -25,7 +23,7 @@ export default async function DailyLeaderboardPage({
   const params = searchParams ? await searchParams : undefined;
   const dateParam = Array.isArray(params?.date) ? params?.date[0] : params?.date;
   const selectedDate = isDateValue(dateParam) ? dateParam : getTodaySaleDateValue();
-  const rows = await getDailyLeaderboard(selectedDate);
+  const rows = await getCachedDailyLeaderboard(selectedDate);
   const champion = rows[0]?.total ?? 0;
 
   const content = (

@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
 import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
+import { refreshLeaderboardCaches } from "@/server/services/leaderboard-cache";
 import {
   memberResetPasswordSchema,
   memberSchema,
@@ -130,6 +131,7 @@ export async function updateMemberAction(formData: FormData) {
   });
 
   revalidatePath("/admin/members");
+  refreshLeaderboardCaches();
   redirect("/admin/members?notice=成员信息已更新");
 }
 

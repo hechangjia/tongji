@@ -4,7 +4,7 @@ import { AppShell } from "@/components/app-shell";
 import { LeaderboardTable } from "@/components/leaderboard-table";
 import { MetricCard } from "@/components/metric-card";
 import { PageHeader } from "@/components/page-header";
-import { getRangeLeaderboard } from "@/server/services/leaderboard-service";
+import { getCachedRangeLeaderboard } from "@/server/services/leaderboard-cache";
 import { getTodaySaleDateValue, type DateValue } from "@/server/services/sales-service";
 
 type RangeLeaderboardPageProps = {
@@ -32,7 +32,7 @@ export default async function RangeLeaderboardPage({
   const today = getTodaySaleDateValue();
   const startDate = isDateValue(startDateParam) ? startDateParam : today;
   const endDate = isDateValue(endDateParam) ? endDateParam : today;
-  const rows = await getRangeLeaderboard(startDate, endDate);
+  const rows = await getCachedRangeLeaderboard(startDate, endDate);
   const champion = rows[0]?.total ?? 0;
   const exportHref = `/api/export/range?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
 

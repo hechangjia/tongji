@@ -1,0 +1,131 @@
+import { beforeEach, describe, expect, test, vi } from "vitest";
+
+const authMock = vi.hoisted(() => vi.fn());
+const redirectMock = vi.hoisted(() =>
+  vi.fn((target: string) => {
+    throw new Error(`redirect:${target}`);
+  }),
+);
+const saveSalesRecordForUserMock = vi.hoisted(() => vi.fn());
+const refreshLeaderboardCachesMock = vi.hoisted(() => vi.fn());
+const salesRecordUpdateMock = vi.hoisted(() => vi.fn());
+const userUpdateMock = vi.hoisted(() => vi.fn());
+const revalidatePathMock = vi.hoisted(() => vi.fn());
+
+vi.mock("@/lib/auth", () => ({
+  auth: authMock,
+}));
+
+vi.mock("next/navigation", () => ({
+  redirect: redirectMock,
+}));
+
+vi.mock("next/cache", () => ({
+  revalidatePath: revalidatePathMock,
+}));
+
+vi.mock("@/server/services/sales-service", async () => {
+  const actual = await vi.importActual<typeof import("@/server/services/sales-service")>(
+    "@/server/services/sales-service",
+  );
+
+  return {
+    ...actual,
+    saveSalesRecordForUser: saveSalesRecordForUserMock,
+  };
+});
+
+vi.mock("@/server/services/leaderboard-cache", () => ({
+  refreshLeaderboardCaches: refreshLeaderboardCachesMock,
+}));
+
+vi.mock("@/lib/db", () => ({
+  db: {
+    salesRecord: {
+      update: salesRecordUpdateMock,
+    },
+    user: {
+      update: userUpdateMock,
+    },
+  },
+}));
+
+import { saveSalesEntryAction } from "@/app/(member)/entry/actions";
+import { updateSalesRecordAction } from "@/app/(admin)/admin/sales/actions";
+import { updateMemberAction } from "@/app/(admin)/admin/members/actions";
+
+describe("leaderboard cache revalidation on writes", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test("refreshes leaderboard caches after a member saves sales", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "member-1",
+        role: "MEMBER",
+      },
+    });
+    saveSalesRecordForUserMock.mockResolvedValue({
+      saleDate: new Date("2026-03-26T00:00:00.000Z"),
+      count40: 1,
+      count60: 2,
+      remark: "",
+    });
+
+    const formData = new FormData();
+    formData.set("saleDate", "2026-03-26");
+    formData.set("count40", "1");
+    formData.set("count60", "2");
+    formData.set("remark", "");
+
+    await saveSalesEntryAction(undefined, formData);
+
+    expect(refreshLeaderboardCachesMock).toHaveBeenCalledTimes(1);
+  });
+
+  test("refreshes leaderboard caches after admin edits a sales record", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "admin-1",
+        role: "ADMIN",
+      },
+    });
+    salesRecordUpdateMock.mockResolvedValue({});
+
+    const formData = new FormData();
+    formData.set("id", "record-1");
+    formData.set("count40", "3");
+    formData.set("count60", "4");
+    formData.set("remark", "ok");
+    formData.set("returnTo", "/admin/sales");
+
+    await expect(updateSalesRecordAction(formData)).rejects.toThrow(
+      "redirect:/admin/sales?notice=",
+    );
+
+    expect(refreshLeaderboardCachesMock).toHaveBeenCalledTimes(1);
+  });
+
+  test("refreshes leaderboard caches after admin updates member profile data", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "admin-1",
+        role: "ADMIN",
+      },
+    });
+    userUpdateMock.mockResolvedValue({});
+
+    const formData = new FormData();
+    formData.set("id", "member-1");
+    formData.set("name", "新的名字");
+    formData.set("status", "ACTIVE");
+    formData.set("password", "");
+
+    await expect(updateMemberAction(formData)).rejects.toThrow(
+      "redirect:/admin/members?notice=",
+    );
+
+    expect(refreshLeaderboardCachesMock).toHaveBeenCalledTimes(1);
+  });
+});

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { canAccessMemberArea } from "@/lib/permissions";
+import { refreshLeaderboardCaches } from "@/server/services/leaderboard-cache";
 import { saveSalesRecordForUser } from "@/server/services/sales-service";
 import type { SalesEntryFormState } from "@/app/(member)/entry/form-state";
 
@@ -26,6 +27,7 @@ export async function saveSalesEntryAction(
     });
 
     revalidatePath("/entry");
+    refreshLeaderboardCaches();
 
     return {
       status: "success",
