@@ -107,7 +107,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               </div>
 
               <div className="mt-8">
-                <RegisterForm />
+                <RegisterForm callbackUrl={callbackUrl} />
               </div>
             </section>
           </div>

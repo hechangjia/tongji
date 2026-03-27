@@ -14,6 +14,7 @@ export const registerSchema = z.object({
     .max(24, "账号不能超过 24 个字符")
     .regex(/^[a-zA-Z0-9_]+$/, "账号仅支持字母、数字和下划线"),
   password: z.string().min(8, "密码至少需要 8 个字符"),
+  callbackUrl: z.string().optional(),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;

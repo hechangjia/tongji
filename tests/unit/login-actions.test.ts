@@ -5,6 +5,17 @@ const userFindUniqueMock = vi.hoisted(() => vi.fn());
 const userCreateMock = vi.hoisted(() => vi.fn());
 const hashPasswordMock = vi.hoisted(() => vi.fn());
 const signInMock = vi.hoisted(() => vi.fn());
+const authErrorClassMock = vi.hoisted(
+  () =>
+    class AuthError extends Error {
+      type: string;
+
+      constructor(type = "CredentialsSignin") {
+        super(type);
+        this.type = type;
+      }
+    },
+);
 const redirectMock = vi.hoisted(() =>
   vi.fn((target: string) => {
     throw new Error(`redirect:${target}`);
@@ -16,14 +27,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("next-auth", () => ({
-  AuthError: class AuthError extends Error {
-    type: string;
-
-    constructor(type = "CredentialsSignin") {
-      super(type);
-      this.type = type;
-    }
-  },
+  AuthError: authErrorClassMock,
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -55,20 +59,21 @@ describe("login register actions", () => {
     vi.clearAllMocks();
   });
 
-  test("registerMemberAction creates an active member account and redirects to entry", async () => {
+  test("registerMemberAction signs in and redirects to callback target after creating active member", async () => {
     userFindUniqueMock.mockResolvedValue(null);
     userCreateMock.mockResolvedValue({});
     hashPasswordMock.mockResolvedValue("hashed-password");
     signInMock.mockImplementation(() => {
-      throw new Error("redirect:/entry");
+      throw new Error("redirect:/records");
     });
 
     const formData = new FormData();
     formData.set("username", "member09");
     formData.set("password", "member123456");
+    formData.set("callbackUrl", "/records");
 
     await expect(registerMemberAction(initialState, formData)).rejects.toThrow(
-      "redirect:/entry",
+      "redirect:/records",
     );
     expect(userFindUniqueMock).toHaveBeenCalledWith({
       where: { username: "member09" },
@@ -87,7 +92,7 @@ describe("login register actions", () => {
     expect(signInMock).toHaveBeenCalledWith("credentials", {
       username: "member09",
       password: "member123456",
-      redirectTo: "/entry",
+      redirectTo: "/records",
     });
   });
 
@@ -104,5 +109,20 @@ describe("login register actions", () => {
       error: "该账号已存在，请更换后重试",
     });
     expect(signInMock).not.toHaveBeenCalled();
+  });
+
+  test("registerMemberAction returns recoverable error when auto-login fails", async () => {
+    userFindUniqueMock.mockResolvedValue(null);
+    userCreateMock.mockResolvedValue({});
+    hashPasswordMock.mockResolvedValue("hashed-password");
+    signInMock.mockRejectedValue(new authErrorClassMock("CallbackRouteError"));
+
+    const formData = new FormData();
+    formData.set("username", "member09");
+    formData.set("password", "member123456");
+
+    await expect(registerMemberAction(initialState, formData)).resolves.toEqual({
+      error: "注册成功，请使用新账号登录",
+    });
   });
 });

@@ -63,6 +63,7 @@ export async function registerMemberAction(
   const parsedInput = registerSchema.safeParse({
     username: formData.get("username"),
     password: formData.get("password"),
+    callbackUrl: formData.get("callbackUrl") ?? undefined,
   });
 
   if (!parsedInput.success) {
@@ -73,7 +74,7 @@ export async function registerMemberAction(
     };
   }
 
-  const { username, password } = parsedInput.data;
+  const { username, password, callbackUrl } = parsedInput.data;
   const existingUser = await db.user.findUnique({
     where: { username },
     select: { id: true },
@@ -110,11 +111,24 @@ export async function registerMemberAction(
     throw error;
   }
 
-  await signIn("credentials", {
-    username,
-    password,
-    redirectTo: getDefaultRedirectPath(Role.MEMBER),
-  });
+  const defaultMemberTarget = getDefaultRedirectPath(Role.MEMBER);
+  const redirectTo = sanitizeCallbackUrl(callbackUrl ?? defaultMemberTarget);
+
+  try {
+    await signIn("credentials", {
+      username,
+      password,
+      redirectTo,
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return {
+        error: "注册成功，请使用新账号登录",
+      };
+    }
+
+    throw error;
+  }
 
   return {
     error: null,

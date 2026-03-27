@@ -24,7 +24,7 @@ function SubmitButton() {
   );
 }
 
-export function RegisterForm() {
+export function RegisterForm({ callbackUrl }: { callbackUrl: string }) {
   const [state, formAction] = useActionState(
     registerMemberAction,
     initialRegisterFormState,
@@ -32,6 +32,8 @@ export function RegisterForm() {
 
   return (
     <form action={formAction} className="space-y-5">
+      <input type="hidden" name="callbackUrl" value={callbackUrl} />
+
       <div className="grid gap-4">
         <div className="space-y-2">
           <label
