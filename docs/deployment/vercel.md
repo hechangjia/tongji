@@ -2,6 +2,11 @@
 
 ## 当前预部署检查结果
 
+说明：
+
+- `build` 脚本现在会先执行 `prisma generate`，再执行 `next build`。
+- 这是为了避免 Vercel 在依赖缓存命中时继续使用旧的 Prisma Client 类型，导致 schema 已更新但构建仍按旧类型报错。
+
 已完成：
 
 - `npm run lint`
