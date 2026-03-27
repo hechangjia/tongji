@@ -56,4 +56,14 @@ describe("prisma schema", () => {
     expect(schema).toMatch(/finalTotal\s+Int/);
     expect(schema).toMatch(/status\s+ReminderStatus/);
   });
+
+  test("locks group and leader foundation in Prisma schema", () => {
+    const schema = readFileSync("prisma/schema.prisma", "utf8");
+
+    expect(schema).toContain("enum Role");
+    expect(schema).toContain("LEADER");
+    expect(schema).toContain("model Group");
+    expect(schema).toMatch(/remark\s+String\?/);
+    expect(schema).toMatch(/groupId\s+String\?/);
+  });
 });

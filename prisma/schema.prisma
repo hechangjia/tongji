@@ -9,6 +9,7 @@ datasource db {
 
 enum Role {
   MEMBER
+  LEADER
   ADMIN
 }
 
@@ -56,8 +57,12 @@ model User {
   passwordHash        String
   name                String
   phone               String?
+  remark              String?
+  groupId             String?
   role                Role
   status              UserStatus       @default(ACTIVE)
+  group               Group?           @relation("GroupMembers", fields: [groupId], references: [id], onDelete: SetNull)
+  ledGroup            Group?           @relation("GroupLeader")
   salesRecords        SalesRecord[]
   commissionRules     CommissionRule[]
   dailyTargets        DailyTarget[]
@@ -68,6 +73,20 @@ model User {
   updatedAt           DateTime         @updatedAt
 
   @@map("users")
+}
+
+model Group {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  slogan       String?
+  remark       String?
+  leaderUserId String?  @unique
+  leader       User?    @relation("GroupLeader", fields: [leaderUserId], references: [id], onDelete: SetNull)
+  members      User[]   @relation("GroupMembers")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("groups")
 }
 
 model SalesRecord {
