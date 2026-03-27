@@ -140,4 +140,5 @@ export function refreshLeaderboardCaches() {
   revalidatePath("/leaderboard/daily");
   revalidatePath("/leaderboard/range");
   revalidatePath("/admin");
+  revalidatePath("/admin/sales");
 }

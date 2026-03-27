@@ -1,11 +1,22 @@
-import { describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { getTodaySaleDateValue } from "@/server/services/sales-service";
+const salesRecordFindManyMock = vi.hoisted(() => vi.fn());
+
+vi.mock("@/lib/db", () => ({
+  db: {
+    salesRecord: {
+      findMany: salesRecordFindManyMock,
+    },
+  },
+}));
+
 import {
   buildAdminDailyRhythmSummary,
   buildAdminTodaySalesRows,
   buildFormalTop3,
   buildMemberDailyRhythmSummary,
   buildTemporaryTop3,
+  getAdminTodaySalesRows,
   type DailyRhythmSourceRow,
 } from "@/server/services/daily-rhythm-service";
 
@@ -35,6 +46,10 @@ function createRow(
 }
 
 describe("daily rhythm service pure helpers", () => {
+  beforeEach(() => {
+    salesRecordFindManyMock.mockReset();
+  });
+
   test("buildTemporaryTop3 keeps only visible members for the current Asia/Shanghai business day, excludes rejected rows, and uses submission/id tie-breakers", () => {
     const todaySaleDate = getTodaySaleDateValue(new Date("2026-03-27T00:30:00+08:00"));
     const rows: DailyRhythmSourceRow[] = [
@@ -195,6 +210,43 @@ describe("daily rhythm service pure helpers", () => {
       message: "今天的提交已收到，等待管理员审核",
       isTemporaryTop3: true,
       isFormalTop3: false,
+    });
+  });
+
+  test("buildMemberDailyRhythmSummary deterministically chooses the earliest current-user row if bad duplicate rows exist", () => {
+    expect(
+      buildMemberDailyRhythmSummary({
+        rows: [
+          createRow({
+            id: "self-later",
+            userId: "member-1",
+            userName: "我",
+            reviewStatus: "APPROVED",
+            lastSubmittedAt: new Date("2026-03-26T16:05:00.000Z"),
+          }),
+          createRow({
+            id: "self-earlier",
+            userId: "member-1",
+            userName: "我",
+            reviewStatus: "PENDING",
+            lastSubmittedAt: new Date("2026-03-26T16:01:00.000Z"),
+          }),
+          createRow({
+            id: "approved-1",
+            userId: "member-2",
+            userName: "成员2",
+            reviewStatus: "APPROVED",
+            lastSubmittedAt: new Date("2026-03-26T16:02:00.000Z"),
+          }),
+        ],
+        currentUserId: "member-1",
+        todaySaleDate: "2026-03-27",
+      }),
+    ).toMatchObject({
+      state: "PENDING_REVIEW",
+      reviewStatus: "PENDING",
+      temporaryRank: 1,
+      formalRank: null,
     });
   });
 
@@ -495,5 +547,93 @@ describe("daily rhythm service pure helpers", () => {
         isFormalTop3: true,
       }),
     ]);
+  });
+
+  test("getAdminTodaySalesRows maps database rows into the admin DTO shape", async () => {
+    salesRecordFindManyMock.mockResolvedValueOnce([
+      {
+        id: "record-1",
+        saleDate: new Date("2026-03-27T00:00:00.000Z"),
+        count40: 2,
+        count60: 1,
+        remark: "地推",
+        reviewStatus: "APPROVED",
+        lastSubmittedAt: new Date("2026-03-26T16:01:00.000Z"),
+        reviewedAt: new Date("2026-03-26T17:00:00.000Z"),
+        reviewNote: "通过",
+        user: {
+          id: "member-1",
+          name: "",
+          username: "fallback-user",
+          role: "MEMBER",
+          status: "ACTIVE",
+        },
+      },
+      {
+        id: "record-2",
+        saleDate: new Date("2026-03-27T00:00:00.000Z"),
+        count40: 1,
+        count60: 0,
+        remark: null,
+        reviewStatus: "PENDING",
+        lastSubmittedAt: new Date("2026-03-26T16:02:00.000Z"),
+        reviewedAt: null,
+        reviewNote: null,
+        user: {
+          id: "member-2",
+          name: "实名成员",
+          username: "named-user",
+          role: "MEMBER",
+          status: "ACTIVE",
+        },
+      },
+    ]);
+
+    await expect(
+      getAdminTodaySalesRows({
+        todaySaleDate: "2026-03-27",
+      }),
+    ).resolves.toEqual([
+      expect.objectContaining({
+        id: "record-1",
+        userId: "member-1",
+        userName: "fallback-user",
+        saleDate: "2026-03-27",
+        reviewStatus: "APPROVED",
+        lastSubmittedAt: new Date("2026-03-26T16:01:00.000Z"),
+        reviewedAt: new Date("2026-03-26T17:00:00.000Z"),
+        reviewNote: "通过",
+        isTemporaryTop3: true,
+        isFormalTop3: true,
+      }),
+      expect.objectContaining({
+        id: "record-2",
+        userId: "member-2",
+        userName: "实名成员",
+        saleDate: "2026-03-27",
+        reviewStatus: "PENDING",
+        lastSubmittedAt: new Date("2026-03-26T16:02:00.000Z"),
+        reviewedAt: null,
+        reviewNote: null,
+        isTemporaryTop3: true,
+        isFormalTop3: false,
+      }),
+    ]);
+    expect(salesRecordFindManyMock).toHaveBeenCalledWith({
+      where: {
+        saleDate: new Date("2026-03-27T00:00:00.000Z"),
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            role: true,
+            status: true,
+          },
+        },
+      },
+    });
   });
 });

@@ -178,11 +178,18 @@ export function buildMemberDailyRhythmSummary({
   todaySaleDate: DateValue;
 }): MemberDailyRhythmSummary {
   const todayRows = filterCurrentBusinessDayRows(rows, todaySaleDate);
-  const currentRow = todayRows.find((row) => row.userId === currentUserId);
   const top3Status = buildDailyTop3Status(todayRows, todaySaleDate);
-  const temporaryRank =
-    top3Status.temporaryTop3.find((row) => row.userId === currentUserId)?.rank ?? null;
-  const formalRank = top3Status.formalTop3.find((row) => row.userId === currentUserId)?.rank ?? null;
+  // If bad legacy data creates multiple rows for the same user/day, use the earliest
+  // submission so the member summary stays deterministic.
+  const currentRow = todayRows
+    .filter((row) => row.userId === currentUserId)
+    .sort(compareBySubmissionOrder)[0];
+  const temporaryRank = currentRow
+    ? top3Status.temporaryTop3.find((row) => row.id === currentRow.id)?.rank ?? null
+    : null;
+  const formalRank = currentRow
+    ? top3Status.formalTop3.find((row) => row.id === currentRow.id)?.rank ?? null
+    : null;
 
   if (!currentRow) {
     return {
