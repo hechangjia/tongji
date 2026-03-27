@@ -26,7 +26,6 @@ function isDateValue(value?: string): value is DateValue {
 export default async function RangeLeaderboardPage({
   searchParams,
 }: RangeLeaderboardPageProps) {
-  const session = await auth();
   const params = searchParams ? await searchParams : undefined;
   const startDateParam = Array.isArray(params?.startDate)
     ? params?.startDate[0]
@@ -39,6 +38,10 @@ export default async function RangeLeaderboardPage({
   const startDate = isDateValue(startDateParam) ? startDateParam : defaultRange.startDate;
   const endDate = isDateValue(endDateParam) ? endDateParam : today;
   const rows = await getCachedRangeLeaderboard(startDate, endDate);
+  const champion = rows[0]?.total ?? 0;
+  const exportHref = `/api/export/range?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
+
+  const session = await auth();
   const cumulativeRanking = session?.user
     ? await getCachedMemberCumulativeRanking({
         startDate,
@@ -46,8 +49,6 @@ export default async function RangeLeaderboardPage({
         currentUserId: session.user.id,
       })
     : null;
-  const champion = rows[0]?.total ?? 0;
-  const exportHref = `/api/export/range?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
 
   const content = (
     <section className="space-y-6">

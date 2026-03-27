@@ -1,4 +1,3 @@
-import { auth } from "@/lib/auth";
 import { AppShell } from "@/components/app-shell";
 import { DailyTop3Strip } from "@/components/daily-top3-strip";
 import { LeaderboardTable } from "@/components/leaderboard-table";
@@ -23,7 +22,6 @@ function isDateValue(value?: string): value is DateValue {
 export default async function DailyLeaderboardPage({
   searchParams,
 }: DailyLeaderboardPageProps) {
-  const session = await auth();
   const params = searchParams ? await searchParams : undefined;
   const dateParam = Array.isArray(params?.date) ? params?.date[0] : params?.date;
   const selectedDate = isDateValue(dateParam) ? dateParam : getTodaySaleDateValue();
@@ -81,21 +79,9 @@ export default async function DailyLeaderboardPage({
     </section>
   );
 
-  if (!session?.user?.role) {
-    return (
-      <main className="min-h-screen bg-slate-100 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto w-full max-w-6xl">{content}</div>
-      </main>
-    );
-  }
-
   return (
-    <AppShell
-      role={session.user.role}
-      userName={session.user.name ?? session.user.username}
-      currentPath="/leaderboard/daily"
-    >
-      {content}
-    </AppShell>
+    <main className="min-h-screen bg-slate-100 px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-6xl">{content}</div>
+    </main>
   );
 }
