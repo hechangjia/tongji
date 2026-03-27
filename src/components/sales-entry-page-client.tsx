@@ -19,6 +19,20 @@ function focusSaleDateField(inputRef: RefObject<HTMLInputElement | null>) {
   inputRef.current?.focus();
 }
 
+export function mergeDisplayedDailyRhythmSummary(
+  initialSummary: EntryDailyRhythmSummaryData,
+  actionSummary: EntryDailyRhythmSummaryData | null | undefined,
+) {
+  if (!actionSummary) {
+    return initialSummary;
+  }
+
+  return {
+    ...actionSummary,
+    lastSubmittedAtIso: actionSummary.lastSubmittedAtIso ?? initialSummary.lastSubmittedAtIso,
+  } satisfies EntryDailyRhythmSummaryData;
+}
+
 export function SalesEntryPageClient({
   initialValues,
   hasExistingRecord,
@@ -42,7 +56,10 @@ export function SalesEntryPageClient({
   const [state, formAction, pending] = useActionState(saveSalesEntryAction, initialState);
   const summaryKey = state.summary?.savedAtIso ?? null;
   const showSummary = Boolean(state.summary && dismissedSummaryKey !== summaryKey);
-  const dailyRhythmSummary = state.summary?.dailyRhythm ?? initialDailyRhythmSummary;
+  const dailyRhythmSummary = mergeDisplayedDailyRhythmSummary(
+    initialDailyRhythmSummary,
+    state.summary?.dailyRhythm,
+  );
   const statusValue = pending
     ? "提交中"
     : state.summary
