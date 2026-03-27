@@ -1,6 +1,10 @@
 import { Role, UserStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import {
+  buildSuggestedDailyTarget,
+  upsertDailyTargetForUser,
+} from "@/server/services/daily-target-service";
+import {
   getTodaySaleDateValue,
   saleDateToValue,
   saleDateValueToDate,
@@ -155,6 +159,57 @@ function buildOverview(cards: AdminInsightMemberCard[], remindersSentCount: numb
   };
 }
 
+async function ensureTodayTargetForMember(
+  user: {
+    id: string;
+    salesRecords: Array<{
+      saleDate: Date;
+      count40: number;
+      count60: number;
+      reviewStatus: string;
+    }>;
+    dailyTargets: Array<{
+      id: string;
+      suggestedTotal: number;
+      finalTotal: number;
+      suggestionReason: string;
+    }>;
+  },
+  todaySaleDate: DateValue,
+) {
+  const existingTarget = user.dailyTargets[0];
+
+  if (existingTarget) {
+    return existingTarget;
+  }
+
+  const todayRecord = user.salesRecords.find(
+    (record) => saleDateToValue(record.saleDate) === todaySaleDate,
+  );
+  const historyRecords = user.salesRecords.filter(
+    (record) => saleDateToValue(record.saleDate) !== todaySaleDate,
+  );
+  const recentAverageTotal =
+    historyRecords.length === 0
+      ? getRecordTotal(todayRecord ?? { count40: 0, count60: 0 })
+      : historyRecords.reduce((sum, record) => sum + getRecordTotal(record), 0) / historyRecords.length;
+  const recentRejectedCount = historyRecords.filter(
+    (record) => record.reviewStatus === "REJECTED",
+  ).length;
+  const suggestion = buildSuggestedDailyTarget({
+    recentAverageTotal,
+    recentLateSubmissionCount: 0,
+    recentRejectedCount,
+  });
+
+  return upsertDailyTargetForUser({
+    userId: user.id,
+    targetDate: todaySaleDate,
+    suggestedTotal: suggestion.suggestedTotal,
+    suggestionReason: suggestion.suggestionReason,
+  });
+}
+
 export async function getAdminInsightsData({
   todaySaleDate,
   now = new Date(),
@@ -218,9 +273,18 @@ export async function getAdminInsightsData({
       },
     }),
   ]);
+  const ensuredTargets = new Map(
+    await Promise.all(
+      users.map(async (user) => {
+        const target = await ensureTodayTargetForMember(user, resolvedTodaySaleDate);
+        return [user.id, target] as const;
+      }),
+    ),
+  );
 
   const memberCards = users
     .map((user) => {
+      const ensuredTarget = ensuredTargets.get(user.id);
       const todayRecord = user.salesRecords.find(
         (record) => saleDateToValue(record.saleDate) === resolvedTodaySaleDate,
       );
@@ -235,12 +299,12 @@ export async function getAdminInsightsData({
         (record) => record.reviewStatus === "REJECTED",
       ).length;
       const currentTotal = todayRecord ? getRecordTotal(todayRecord) : 0;
-      const targetTotal = user.dailyTargets[0]?.finalTotal ?? 0;
+      const targetTotal = ensuredTarget?.finalTotal ?? 0;
 
       return buildAdminInsightMemberCard({
         userId: user.id,
         userName: user.name || user.username,
-        targetId: user.dailyTargets[0]?.id ?? null,
+        targetId: ensuredTarget?.id ?? null,
         targetTotal,
         currentTotal,
         recentAverageTotal,

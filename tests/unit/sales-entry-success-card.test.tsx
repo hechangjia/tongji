@@ -17,6 +17,19 @@ describe("sales entry success card", () => {
           savedAtIso: "2026-03-26T08:15:00.000Z",
           isUpdate: true,
           recoveredFromError: false,
+          targetFeedback: {
+            targetTotal: 7,
+            currentTotal: 7,
+            gap: 0,
+            completionRate: 100,
+            status: "ON_TRACK",
+          },
+          selfTrend: {
+            direction: "FLAT",
+            label: "接近近 7 天常态",
+            message: "今天的完成度与最近几天的平均水平接近。",
+          },
+          recentReminders: [],
           dailyRhythm: {
             state: "PENDING_REVIEW",
             title: "当日节奏摘要",

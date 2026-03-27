@@ -156,6 +156,19 @@ describe("sales entry action", () => {
             savedAtIso: "2026-03-27T07:30:45.000Z",
             isUpdate: true,
             recoveredFromError: false,
+            targetFeedback: {
+              targetTotal: 5,
+              currentTotal: 5,
+              gap: 0,
+              completionRate: 100,
+              status: "ON_TRACK",
+            },
+            selfTrend: {
+              direction: "FLAT",
+              label: "接近近 7 天常态",
+              message: "今天的完成度与最近几天的平均水平接近。",
+            },
+            recentReminders: [],
             dailyRhythm: {
               state: "PENDING_REVIEW",
               title: "当日节奏摘要",
@@ -201,12 +214,15 @@ describe("sales entry action", () => {
         lastSubmittedAtIso: expect.any(String),
         isUpdate: false,
         recoveredFromError: false,
-        targetFeedback: {
-          targetTotal: 8,
-        },
-        recentReminders: [
-          {
-            title: "今日目标仍有差距",
+            targetFeedback: {
+              targetTotal: 8,
+            },
+            selfTrend: {
+              direction: "DOWN",
+            },
+            recentReminders: [
+              {
+                title: "今日目标仍有差距",
           },
         ],
         dailyRhythm: {

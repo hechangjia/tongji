@@ -36,6 +36,25 @@
 - 当前实现基于 Auth.js v5 的 host trust 方案，Vercel 上通常不需要额外设置 `NEXTAUTH_URL`
 - `AUTH_SECRET` 必须使用新的随机值，不要复用本地开发值
 
+## 本次上线前必须确认的数据库变更
+
+本轮新增了以下数据表 / 能力：
+
+- `daily_targets`
+- `member_reminders`
+- `/admin/insights` 管理端诊断与提醒
+- `/entry` 目标 / 趋势 / 提醒反馈
+
+如果目标数据库还没有这些表，`/entry` 和 `/admin/insights` 会直接报 Prisma 缺表错误。
+
+上线前至少完成其一：
+
+```bash
+npx prisma db push
+```
+
+或按团队迁移策略执行等价的 migration SQL。
+
 ## 推荐部署流程
 
 ### 1. 登录 Vercel
@@ -109,6 +128,7 @@ npx vercel
 ### 管理员页面
 
 - `/admin`
+- `/admin/insights`
 - `/admin/members`
 - `/admin/sales`
 - `/admin/commission-rules`
@@ -125,13 +145,15 @@ npx vercel
 ## 推荐线上冒烟顺序
 
 1. 用管理员账号登录：`admin / admin123456`
-2. 打开 `/admin/settlements`
-3. 生成一个日期范围结算
-4. 从总榜页导出 Excel
-5. 从结算页导出 Excel
-6. 用成员账号登录：`member01 / member123456`
-7. 打开 `/entry` 并更新一条记录
-8. 打开 `/records` 确认能看到更新后的历史记录
+2. 打开 `/admin/insights`
+3. 调整一名成员的今日目标，并发送一条提醒
+4. 用成员账号登录：`member01 / member123456`
+5. 打开 `/entry`，确认看到目标差距、趋势摘要和刚发送的提醒
+6. 更新一条今日记录
+7. 打开 `/admin/settlements`
+8. 生成一个日期范围结算
+9. 从总榜页导出 Excel
+10. 从结算页导出 Excel
 
 ## 数据库准备
 
@@ -158,3 +180,4 @@ npx prisma db seed
 - 本地 `.env` 只用于开发验证，不应直接复制到线上。
 - Preview 部署尚未真正执行，因此这份文档中的线上验证步骤仍需要手动完成一次。
 - 默认管理员与示例成员仅在账号不存在时由 seed 创建；后续再次执行 `npx prisma db seed` 不会覆盖已存在账号的姓名或密码。
+- 当前共享开发库若尚未同步新 schema，直接用它跑 `/entry` 或 Playwright 会报 `member_reminders` / `daily_targets` 缺表错误。

@@ -53,6 +53,9 @@ describe("admin insights page", () => {
         {
           userId: "member-1",
           userName: "成员1",
+          targetId: "target-1",
+          targetTotal: 8,
+          currentTotal: 3,
           riskLevel: "HIGH",
           reasonTags: ["结果下滑", "目标偏差过大"],
           recommendedActions: ["ADJUST_TARGET", "SEND_REMINDER"],
@@ -71,5 +74,17 @@ describe("admin insights page", () => {
     expect(screen.getByText("成员1")).toBeInTheDocument();
     expect(screen.getByText("调整今日目标")).toBeInTheDocument();
     expect(screen.getByText("发送提醒")).toBeInTheDocument();
+  });
+
+  test("renders action notice from search params", async () => {
+    render(
+      await AdminInsightsPage({
+        searchParams: Promise.resolve({
+          notice: "今日目标已更新",
+        }),
+      }),
+    );
+
+    expect(screen.getByText("今日目标已更新")).toBeInTheDocument();
   });
 });

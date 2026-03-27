@@ -9,6 +9,9 @@ const redirectMock = vi.hoisted(() =>
 const saveSalesRecordForUserMock = vi.hoisted(() => vi.fn());
 const refreshLeaderboardCachesMock = vi.hoisted(() => vi.fn());
 const getMemberDailyRhythmSummaryMock = vi.hoisted(() => vi.fn());
+const getMemberDailyTargetFeedbackMock = vi.hoisted(() => vi.fn());
+const getMemberSelfTrendSummaryMock = vi.hoisted(() => vi.fn());
+const getMemberRecentRemindersMock = vi.hoisted(() => vi.fn());
 const salesRecordUpdateMock = vi.hoisted(() => vi.fn());
 const dailyTargetUpdateMock = vi.hoisted(() => vi.fn());
 const memberReminderCreateMock = vi.hoisted(() => vi.fn());
@@ -44,10 +47,13 @@ vi.mock("@/server/services/leaderboard-cache", () => ({
 }));
 
 vi.mock("@/server/services/daily-target-service", () => ({
+  getMemberDailyTargetFeedback: getMemberDailyTargetFeedbackMock,
+  getMemberSelfTrendSummary: getMemberSelfTrendSummaryMock,
   updateFinalDailyTarget: dailyTargetUpdateMock,
 }));
 
 vi.mock("@/server/services/member-reminder-service", () => ({
+  getMemberRecentReminders: getMemberRecentRemindersMock,
   createMemberReminder: memberReminderCreateMock,
 }));
 
@@ -109,6 +115,19 @@ describe("leaderboard cache revalidation on writes", () => {
         },
       ],
     });
+    getMemberDailyTargetFeedbackMock.mockResolvedValue({
+      targetTotal: 6,
+      currentTotal: 3,
+      gap: 3,
+      completionRate: 50,
+      status: "BEHIND",
+    });
+    getMemberSelfTrendSummaryMock.mockResolvedValue({
+      direction: "FLAT",
+      label: "接近近 7 天常态",
+      message: "今天的完成度与最近几天的平均水平接近。",
+    });
+    getMemberRecentRemindersMock.mockResolvedValue([]);
   });
 
   test("refreshes leaderboard caches after a member saves sales", async () => {

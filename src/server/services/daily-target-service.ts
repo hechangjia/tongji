@@ -1,5 +1,10 @@
 import { db } from "@/lib/db";
-import { saleDateValueToDate, type DateValue } from "@/server/services/sales-service";
+import {
+  getTodaySaleDateValue,
+  saleDateToValue,
+  saleDateValueToDate,
+  type DateValue,
+} from "@/server/services/sales-service";
 
 export type TargetSuggestionInput = {
   recentAverageTotal: number;
@@ -19,6 +24,13 @@ export type MemberSelfTrendSummary = {
   direction: "UP" | "FLAT" | "DOWN";
   label: string;
   message: string;
+};
+
+type TargetSuggestionSourceRecord = {
+  saleDate: Date;
+  count40: number;
+  count60: number;
+  reviewStatus: string;
 };
 
 export function buildSuggestedDailyTarget(input: TargetSuggestionInput) {
@@ -114,19 +126,85 @@ function getRecordTotal(record: { count40: number; count60: number }) {
   return record.count40 + record.count60;
 }
 
+function buildTargetSuggestionFromRecentRecords(
+  records: TargetSuggestionSourceRecord[],
+  todaySaleDate: DateValue,
+) {
+  const todayRecord = records.find((record) => saleDateToValue(record.saleDate) === todaySaleDate);
+  const historyRecords = records.filter((record) => saleDateToValue(record.saleDate) !== todaySaleDate);
+  const recentAverageTotal =
+    historyRecords.length === 0
+      ? getRecordTotal(todayRecord ?? { count40: 0, count60: 0 })
+      : historyRecords.reduce((sum, record) => sum + getRecordTotal(record), 0) / historyRecords.length;
+  const recentRejectedCount = historyRecords.filter(
+    (record) => record.reviewStatus === "REJECTED",
+  ).length;
+
+  return buildSuggestedDailyTarget({
+    recentAverageTotal,
+    recentLateSubmissionCount: 0,
+    recentRejectedCount,
+  });
+}
+
+export async function ensureDailyTargetForUser(input: {
+  userId: string;
+  todaySaleDate: DateValue;
+  recentRecords?: TargetSuggestionSourceRecord[];
+}) {
+  const targetDate = saleDateValueToDate(input.todaySaleDate);
+  const existingTarget = await db.dailyTarget.findUnique({
+    where: {
+      userId_targetDate: {
+        userId: input.userId,
+        targetDate,
+      },
+    },
+  });
+
+  if (existingTarget) {
+    return existingTarget;
+  }
+
+  const recentRecords =
+    input.recentRecords ??
+    (await db.salesRecord.findMany({
+      where: {
+        userId: input.userId,
+        saleDate: {
+          lte: targetDate,
+        },
+      },
+      select: {
+        saleDate: true,
+        count40: true,
+        count60: true,
+        reviewStatus: true,
+      },
+      orderBy: [{ saleDate: "desc" }],
+      take: 7,
+    }));
+
+  const suggestion = buildTargetSuggestionFromRecentRecords(recentRecords, input.todaySaleDate);
+
+  return upsertDailyTargetForUser({
+    userId: input.userId,
+    targetDate: input.todaySaleDate,
+    suggestedTotal: suggestion.suggestedTotal,
+    suggestionReason: suggestion.suggestionReason,
+  });
+}
+
 export async function getMemberDailyTargetFeedback(input: {
   userId: string;
   todaySaleDate?: DateValue;
 }): Promise<MemberDailyTargetFeedback> {
-  const targetDate = saleDateValueToDate(input.todaySaleDate ?? new Date().toISOString().slice(0, 10));
+  const todaySaleDate = input.todaySaleDate ?? getTodaySaleValue();
+  const targetDate = saleDateValueToDate(todaySaleDate);
   const [target, record] = await Promise.all([
-    db.dailyTarget.findUnique({
-      where: {
-        userId_targetDate: {
-          userId: input.userId,
-          targetDate,
-        },
-      },
+    ensureDailyTargetForUser({
+      userId: input.userId,
+      todaySaleDate,
     }),
     db.salesRecord.findUnique({
       where: {
@@ -163,7 +241,7 @@ export async function getMemberSelfTrendSummary(input: {
   userId: string;
   todaySaleDate?: DateValue;
 }): Promise<MemberSelfTrendSummary> {
-  const todaySaleDate = input.todaySaleDate ?? (new Date().toISOString().slice(0, 10) as DateValue);
+  const todaySaleDate = input.todaySaleDate ?? getTodaySaleValue();
   const todayDate = saleDateValueToDate(todaySaleDate);
   const records = await db.salesRecord.findMany({
     where: {
@@ -202,4 +280,8 @@ export async function getMemberSelfTrendSummary(input: {
     label: "接近近 7 天常态",
     message: "今天的完成度与最近几天的平均水平接近。",
   };
+}
+
+function getTodaySaleValue() {
+  return getTodaySaleDateValue();
 }

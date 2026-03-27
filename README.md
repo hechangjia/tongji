@@ -286,26 +286,29 @@ npm run build
 
 1. 登录系统
 2. 打开 `/entry`
-3. 录入当天 `40` / `60` 套餐数量和备注
-4. 再次提交同一天数据时，会直接覆盖当天记录
-5. 在 `/records` 查看历史记录
+3. 查看系统自动生成的今日目标、自我趋势和最近提醒
+4. 录入当天 `40` / `60` 套餐数量和备注
+5. 再次提交同一天数据时，会直接覆盖当天记录，并刷新目标差距与趋势反馈
+6. 在 `/records` 查看历史记录
 
 补充说明：
 
 - `/leaderboard/daily` 与 `/leaderboard/range` 当前启用了 30 秒服务端缓存。
 - 当成员录入、管理员修改销售记录、管理员修改成员显示姓名后，榜单缓存会自动刷新。
+- 如果管理员当天已发送提醒，成员会在 `/entry` 顶部直接看到最近提醒列表。
 
 ### 管理员流程
 
 1. 登录系统
 2. 在 `/admin` 查看管理入口总览
 3. 在 `/admin/members` 创建或维护成员账号，也可以修改自己的显示姓名和登录密码
-4. 在 `/admin/sales` 查看和修改销售记录
-5. 在 `/admin/commission-rules` 维护卡酬规则
-6. 在 `/admin/settlements` 生成结算结果
-7. 在 `/admin/banners` 维护横幅一言与展示模式
-8. 在 `/admin/announcements` 发布或置顶全体公告
-9. 在总榜或结算页点击“导出 Excel”
+4. 在 `/admin/insights` 查看今日经营诊断、系统自动生成的成员目标，并直接调整目标或发送站内提醒
+5. 在 `/admin/sales` 查看和修改销售记录
+6. 在 `/admin/commission-rules` 维护卡酬规则
+7. 在 `/admin/settlements` 生成结算结果
+8. 在 `/admin/banners` 维护横幅一言与展示模式
+9. 在 `/admin/announcements` 发布或置顶全体公告
+10. 在总榜或结算页点击“导出 Excel”
 
 ## 线上监控
 
@@ -355,10 +358,11 @@ npx vercel
 
 - Next.js 会提示 workspace root warning，因为 `/home/chia/package-lock.json` 与项目内 `package-lock.json` 并存；当前不阻塞运行和构建。
 - `.env` 是本地文件，不应提交。
-- 预览部署尚未实际执行，线上环境变量与数据库连通性还需要最终确认。
+- 当前共享 Neon 库如果尚未同步 `DailyTarget` / `MemberReminder` 新表，`/entry` 与 `/admin/insights` 会直接报 Prisma 缺表错误；部署前必须先同步 schema。
+- 本轮 E2E 是在隔离的本地 PostgreSQL 临时库中验证通过，不建议直接拿共享开发库跑 Playwright。
 
 ## 下一步建议
 
 1. 使用 `npx vercel` 完成 Preview 部署
-2. 在 Vercel 中配置 `DATABASE_URL`、`AUTH_SECRET`、`AUTH_TRUST_HOST`
-3. 线上验证 `/login`、`/entry`、`/admin/settlements` 和 3 个导出接口
+2. 在 Vercel 中配置 `DATABASE_URL`、`AUTH_SECRET`、`AUTH_TRUST_HOST`，并先同步最新 Prisma schema
+3. 线上验证 `/login`、`/entry`、`/admin/insights`、`/admin/settlements` 和 3 个导出接口

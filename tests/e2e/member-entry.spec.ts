@@ -19,6 +19,9 @@ test("member can create or update a daily record", async ({ page }) => {
 
   await expect(page).toHaveURL(/\/entry$/);
   await expect(page.getByText("每日行动面板")).toBeVisible();
+  await expect(page.getByText("今日目标")).toBeVisible();
+  await expect(page.getByText("自我趋势")).toBeVisible();
+  await expect(page.getByText("最近提醒")).toBeVisible();
 
   await page.getByLabel("日期").fill(freshSaleDate);
   await page.getByLabel("40 套餐").fill("5");
@@ -31,6 +34,8 @@ test("member can create or update a daily record", async ({ page }) => {
   await expect(page.getByText("总数", { exact: true })).toBeVisible();
   await expect(page.getByText("最后提交时间")).toBeVisible();
   await expect(page.getByText("当前审核状态")).toBeVisible();
+  await expect(page.getByText(/还差 \d+ 单|今天目标已完成/)).toBeVisible();
+  await expect(page.getByText(/高于近 7 天常态|接近近 7 天常态|低于近 7 天常态/)).toBeVisible();
   await expect(page.getByText("待审核")).toBeVisible();
   await expect(page.locator("dd").filter({ hasText: /^\d{2}\/\d{2} \d{2}:\d{2}:\d{2}$/ }).first()).toBeVisible();
 

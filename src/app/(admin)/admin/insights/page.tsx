@@ -6,9 +6,22 @@ import { AdminInsightMemberCard } from "@/components/admin/admin-insight-member-
 import { AdminInsightsOverview } from "@/components/admin/admin-insights-overview";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
+import { StatusCallout } from "@/components/status-callout";
 import { getAdminInsightsData } from "@/server/services/admin-insights-service";
 
-export default async function AdminInsightsPage() {
+type AdminInsightsPageProps = {
+  searchParams?: Promise<{
+    notice?: string | string[];
+  }>;
+};
+
+function pickQueryValue(value?: string | string[]) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function AdminInsightsPage({
+  searchParams,
+}: AdminInsightsPageProps = {}) {
   const session = await auth();
 
   if (!session?.user) {
@@ -19,6 +32,8 @@ export default async function AdminInsightsPage() {
     redirect(getDefaultRedirectPath(session.user.role));
   }
 
+  const params = searchParams ? await searchParams : undefined;
+  const notice = pickQueryValue(params?.notice) ?? null;
   const insights = await getAdminInsightsData({});
 
   return (
@@ -41,6 +56,12 @@ export default async function AdminInsightsPage() {
             </Link>
           }
         />
+
+        {notice ? (
+          <StatusCallout tone="success" title="操作结果">
+            {notice}
+          </StatusCallout>
+        ) : null}
 
         <AdminInsightsOverview
           overview={insights.overview}
