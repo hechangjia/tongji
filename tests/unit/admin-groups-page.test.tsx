@@ -31,16 +31,6 @@ vi.mock("@/components/admin/group-form", () => ({
   GroupForm: () => <div>create-group-form</div>,
 }));
 
-vi.mock("@/components/admin/group-table", () => ({
-  GroupTable: ({ rows }: { rows: Array<{ id: string; name: string }> }) => (
-    <div>
-      {rows.map((row) => (
-        <span key={row.id}>{row.name}</span>
-      ))}
-    </div>
-  ),
-}));
-
 import AdminGroupsPage from "@/app/(admin)/admin/groups/page";
 
 describe("admin groups page", () => {
@@ -75,5 +65,19 @@ describe("admin groups page", () => {
     expect(screen.getByText("小组管理")).toBeInTheDocument();
     expect(screen.getByText("create-group-form")).toBeInTheDocument();
     expect(screen.getByText("一组")).toBeInTheDocument();
+  });
+
+  test("remark and leader forms avoid hidden stale field copies", async () => {
+    render(await AdminGroupsPage());
+
+    const remarkForm = screen.getByRole("button", { name: "保存备注" }).closest("form");
+    const leaderForm = screen.getByRole("button", { name: "保存组长" }).closest("form");
+
+    expect(remarkForm?.querySelector("input[type='hidden'][name='name']")).toBeNull();
+    expect(remarkForm?.querySelector("input[type='hidden'][name='slogan']")).toBeNull();
+    expect(remarkForm?.querySelector("input[type='hidden'][name='leaderUserId']")).toBeNull();
+    expect(leaderForm?.querySelector("input[type='hidden'][name='name']")).toBeNull();
+    expect(leaderForm?.querySelector("input[type='hidden'][name='slogan']")).toBeNull();
+    expect(leaderForm?.querySelector("input[type='hidden'][name='remark']")).toBeNull();
   });
 });

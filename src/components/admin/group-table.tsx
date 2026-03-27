@@ -108,9 +108,6 @@ export function GroupTable({
                 <td className="px-5 py-5">
                   <form action={updateGroupAction} className="space-y-3">
                     <input type="hidden" name="id" value={row.id} />
-                    <input type="hidden" name="name" value={row.name} />
-                    <input type="hidden" name="slogan" value={row.slogan ?? ""} />
-                    <input type="hidden" name="leaderUserId" value={row.leaderUserId ?? ""} />
                     <label htmlFor={`remark-${row.id}`} className="text-xs font-medium text-slate-500">
                       小组备注
                     </label>
@@ -132,9 +129,6 @@ export function GroupTable({
                 <td className="px-5 py-5">
                   <form action={updateGroupAction} className="space-y-3">
                     <input type="hidden" name="id" value={row.id} />
-                    <input type="hidden" name="name" value={row.name} />
-                    <input type="hidden" name="slogan" value={row.slogan ?? ""} />
-                    <input type="hidden" name="remark" value={row.remark ?? ""} />
                     <label
                       htmlFor={`leader-${row.id}`}
                       className="text-xs font-medium text-slate-500"
