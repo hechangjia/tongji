@@ -4,7 +4,16 @@ import { UserStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { verifyPassword } from "@/lib/password";
+import type { SessionRole } from "@/lib/permissions";
 import { loginSchema } from "@/lib/validators/auth";
+
+type AuthUser = {
+  id: string;
+  name: string;
+  username: string;
+  role: SessionRole;
+  status: "ACTIVE" | "INACTIVE";
+};
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: env.AUTH_SECRET,
@@ -21,7 +30,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         username: { label: "账号", type: "text" },
         password: { label: "密码", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials): Promise<AuthUser | null> {
         const parsedCredentials = loginSchema.safeParse(credentials);
 
         if (!parsedCredentials.success) {
@@ -67,7 +76,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.role = token.role as "ADMIN" | "MEMBER";
+        session.user.role = token.role as SessionRole;
         session.user.status = token.status as "ACTIVE" | "INACTIVE";
         session.user.username = token.username as string;
       }
@@ -76,4 +85,3 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
 });
-

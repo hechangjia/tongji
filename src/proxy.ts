@@ -3,8 +3,10 @@ import { auth } from "@/lib/auth";
 import {
   buildLoginRedirect,
   canAccessAdmin,
+  canAccessLeader,
   getDefaultRedirectPath,
   isAdminPath,
+  isLeaderPath,
   isProtectedPath,
 } from "@/lib/permissions";
 
@@ -35,6 +37,12 @@ export const proxy = auth((request) => {
     );
   }
 
+  if (isLeaderPath(pathname) && !canAccessLeader(user)) {
+    return NextResponse.redirect(
+      new URL(getDefaultRedirectPath(user.role), request.url),
+    );
+  }
+
   return NextResponse.next();
 });
 
@@ -45,6 +53,8 @@ export const config = {
     "/entry/:path*",
     "/records",
     "/records/:path*",
+    "/leader",
+    "/leader/:path*",
     "/admin",
     "/admin/:path*",
   ],

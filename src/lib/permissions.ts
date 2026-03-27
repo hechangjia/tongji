@@ -1,6 +1,6 @@
 import type { Session } from "next-auth";
 
-export type SessionRole = "ADMIN" | "MEMBER";
+export type SessionRole = "ADMIN" | "LEADER" | "MEMBER";
 
 type SessionLike = {
   role: SessionRole;
@@ -10,12 +10,24 @@ export function canAccessAdmin(session: SessionLike) {
   return session?.role === "ADMIN";
 }
 
+export function canAccessLeader(session: SessionLike) {
+  return session?.role === "ADMIN" || session?.role === "LEADER";
+}
+
 export function canAccessMemberArea(session: SessionLike) {
   return session?.role === "ADMIN" || session?.role === "MEMBER";
 }
 
 export function getDefaultRedirectPath(role: SessionRole) {
-  return role === "ADMIN" ? "/admin" : "/entry";
+  if (role === "ADMIN") {
+    return "/admin";
+  }
+
+  if (role === "LEADER") {
+    return "/leader/group";
+  }
+
+  return "/entry";
 }
 
 export function sanitizeCallbackUrl(callbackUrl?: string | null) {
@@ -47,11 +59,14 @@ export function isMemberPath(pathname: string) {
   );
 }
 
+export function isLeaderPath(pathname: string) {
+  return pathname === "/leader" || pathname.startsWith("/leader/");
+}
+
 export function isProtectedPath(pathname: string) {
-  return isAdminPath(pathname) || isMemberPath(pathname);
+  return isAdminPath(pathname) || isLeaderPath(pathname) || isMemberPath(pathname);
 }
 
 export function getSessionUser(session: Session | null) {
   return session?.user ?? null;
 }
-
