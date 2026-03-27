@@ -4,6 +4,11 @@ import {
   getMemberCumulativeRanking,
 } from "@/server/services/cumulative-sales-stats-service";
 import {
+  getAdminDailyRhythmSummary,
+  getDailyTop3Status,
+  getMemberDailyRhythmSummary,
+} from "@/server/services/daily-rhythm-service";
+import {
   getDailyLeaderboard,
   getRangeLeaderboard,
 } from "@/server/services/leaderboard-service";
@@ -56,6 +61,38 @@ const cachedAdminCumulativeTrend = unstable_cache(
   },
 );
 
+const cachedMemberDailyRhythmSummary = unstable_cache(
+  async (input: {
+    currentUserId: string;
+    todaySaleDate?: DateValue;
+  }) => getMemberDailyRhythmSummary(input),
+  ["leaderboard-member-daily-rhythm-summary"],
+  {
+    tags: [LEADERBOARD_CACHE_TAG],
+    revalidate: LEADERBOARD_CACHE_REVALIDATE_SECONDS,
+  },
+);
+
+const cachedAdminDailyRhythmSummary = unstable_cache(
+  async (input: {
+    todaySaleDate?: DateValue;
+  }) => getAdminDailyRhythmSummary(input),
+  ["leaderboard-admin-daily-rhythm-summary"],
+  {
+    tags: [LEADERBOARD_CACHE_TAG],
+    revalidate: LEADERBOARD_CACHE_REVALIDATE_SECONDS,
+  },
+);
+
+const cachedDailyTop3Status = unstable_cache(
+  async (todaySaleDate: DateValue) => getDailyTop3Status(todaySaleDate),
+  ["leaderboard-daily-top3-status"],
+  {
+    tags: [LEADERBOARD_CACHE_TAG],
+    revalidate: LEADERBOARD_CACHE_REVALIDATE_SECONDS,
+  },
+);
+
 export function getCachedDailyLeaderboard(date: DateValue) {
   return cachedDailyLeaderboard(date);
 }
@@ -79,8 +116,26 @@ export function getCachedAdminCumulativeTrend(input: {
   return cachedAdminCumulativeTrend(input);
 }
 
+export function getCachedMemberDailyRhythmSummary(input: {
+  currentUserId: string;
+  todaySaleDate?: DateValue;
+}) {
+  return cachedMemberDailyRhythmSummary(input);
+}
+
+export function getCachedAdminDailyRhythmSummary(input: {
+  todaySaleDate?: DateValue;
+}) {
+  return cachedAdminDailyRhythmSummary(input);
+}
+
+export function getCachedDailyTop3Status(todaySaleDate: DateValue) {
+  return cachedDailyTop3Status(todaySaleDate);
+}
+
 export function refreshLeaderboardCaches() {
   updateTag(LEADERBOARD_CACHE_TAG);
+  revalidatePath("/entry");
   revalidatePath("/leaderboard/daily");
   revalidatePath("/leaderboard/range");
   revalidatePath("/admin");

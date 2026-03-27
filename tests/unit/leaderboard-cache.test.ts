@@ -9,6 +9,9 @@ const getDailyLeaderboardMock = vi.hoisted(() => vi.fn());
 const getRangeLeaderboardMock = vi.hoisted(() => vi.fn());
 const getMemberCumulativeRankingMock = vi.hoisted(() => vi.fn());
 const getAdminCumulativeTrendMock = vi.hoisted(() => vi.fn());
+const getMemberDailyRhythmSummaryMock = vi.hoisted(() => vi.fn());
+const getAdminDailyRhythmSummaryMock = vi.hoisted(() => vi.fn());
+const getDailyTop3StatusMock = vi.hoisted(() => vi.fn());
 
 vi.mock("next/cache", () => ({
   unstable_cache: unstableCacheMock,
@@ -26,12 +29,21 @@ vi.mock("@/server/services/cumulative-sales-stats-service", () => ({
   getAdminCumulativeTrend: getAdminCumulativeTrendMock,
 }));
 
+vi.mock("@/server/services/daily-rhythm-service", () => ({
+  getMemberDailyRhythmSummary: getMemberDailyRhythmSummaryMock,
+  getAdminDailyRhythmSummary: getAdminDailyRhythmSummaryMock,
+  getDailyTop3Status: getDailyTop3StatusMock,
+}));
+
 import {
   LEADERBOARD_CACHE_REVALIDATE_SECONDS,
   LEADERBOARD_CACHE_TAG,
   getCachedAdminCumulativeTrend,
+  getCachedAdminDailyRhythmSummary,
   getCachedDailyLeaderboard,
+  getCachedDailyTop3Status,
   getCachedMemberCumulativeRanking,
+  getCachedMemberDailyRhythmSummary,
   getCachedRangeLeaderboard,
   refreshLeaderboardCaches,
 } from "@/server/services/leaderboard-cache";
@@ -44,10 +56,13 @@ describe("leaderboard cache", () => {
     getRangeLeaderboardMock.mockClear();
     getMemberCumulativeRankingMock.mockClear();
     getAdminCumulativeTrendMock.mockClear();
+    getMemberDailyRhythmSummaryMock.mockClear();
+    getAdminDailyRhythmSummaryMock.mockClear();
+    getDailyTop3StatusMock.mockClear();
   });
 
   test("wraps leaderboard readers in Next cache with shared tag", () => {
-    expect(unstableCacheMock).toHaveBeenCalledTimes(4);
+    expect(unstableCacheMock).toHaveBeenCalledTimes(7);
     expect(unstableCacheMock).toHaveBeenNthCalledWith(
       1,
       expect.any(Function),
@@ -84,6 +99,33 @@ describe("leaderboard cache", () => {
         revalidate: LEADERBOARD_CACHE_REVALIDATE_SECONDS,
       },
     );
+    expect(unstableCacheMock).toHaveBeenNthCalledWith(
+      5,
+      expect.any(Function),
+      ["leaderboard-member-daily-rhythm-summary"],
+      {
+        tags: [LEADERBOARD_CACHE_TAG],
+        revalidate: LEADERBOARD_CACHE_REVALIDATE_SECONDS,
+      },
+    );
+    expect(unstableCacheMock).toHaveBeenNthCalledWith(
+      6,
+      expect.any(Function),
+      ["leaderboard-admin-daily-rhythm-summary"],
+      {
+        tags: [LEADERBOARD_CACHE_TAG],
+        revalidate: LEADERBOARD_CACHE_REVALIDATE_SECONDS,
+      },
+    );
+    expect(unstableCacheMock).toHaveBeenNthCalledWith(
+      7,
+      expect.any(Function),
+      ["leaderboard-daily-top3-status"],
+      {
+        tags: [LEADERBOARD_CACHE_TAG],
+        revalidate: LEADERBOARD_CACHE_REVALIDATE_SECONDS,
+      },
+    );
   });
 
   test("delegates cached leaderboard reads to the underlying service", async () => {
@@ -91,6 +133,12 @@ describe("leaderboard cache", () => {
     getRangeLeaderboardMock.mockResolvedValueOnce([{ userName: "B" }]);
     getMemberCumulativeRankingMock.mockResolvedValueOnce([{ userName: "C" }]);
     getAdminCumulativeTrendMock.mockResolvedValueOnce({ series: [{ userName: "D" }] });
+    getMemberDailyRhythmSummaryMock.mockResolvedValueOnce({ state: "PENDING_REVIEW" });
+    getAdminDailyRhythmSummaryMock.mockResolvedValueOnce({ pendingCount: 1 });
+    getDailyTop3StatusMock.mockResolvedValueOnce({
+      temporaryTop3: [{ userName: "E" }],
+      formalTop3: [{ userName: "F" }],
+    });
 
     await expect(getCachedDailyLeaderboard("2026-03-26")).resolves.toEqual([
       { userName: "A" },
@@ -118,14 +166,39 @@ describe("leaderboard cache", () => {
         metric: "TOTAL",
       }),
     ).resolves.toEqual({ series: [{ userName: "D" }] });
+    await expect(
+      getCachedMemberDailyRhythmSummary({
+        currentUserId: "member-1",
+        todaySaleDate: "2026-03-27",
+      }),
+    ).resolves.toEqual({ state: "PENDING_REVIEW" });
+    await expect(
+      getCachedAdminDailyRhythmSummary({
+        todaySaleDate: "2026-03-27",
+      }),
+    ).resolves.toEqual({ pendingCount: 1 });
+    await expect(getCachedDailyTop3Status("2026-03-27")).resolves.toEqual({
+      temporaryTop3: [{ userName: "E" }],
+      formalTop3: [{ userName: "F" }],
+    });
+
+    expect(getMemberDailyRhythmSummaryMock).toHaveBeenCalledWith({
+      currentUserId: "member-1",
+      todaySaleDate: "2026-03-27",
+    });
+    expect(getAdminDailyRhythmSummaryMock).toHaveBeenCalledWith({
+      todaySaleDate: "2026-03-27",
+    });
+    expect(getDailyTop3StatusMock).toHaveBeenCalledWith("2026-03-27");
   });
 
   test("refreshes the shared leaderboard tag and leaderboard/admin pages", () => {
     refreshLeaderboardCaches();
 
     expect(updateTagMock).toHaveBeenCalledWith(LEADERBOARD_CACHE_TAG);
+    expect(revalidatePathMock).toHaveBeenCalledWith("/entry");
+    expect(revalidatePathMock).toHaveBeenCalledWith("/admin");
     expect(revalidatePathMock).toHaveBeenCalledWith("/leaderboard/daily");
     expect(revalidatePathMock).toHaveBeenCalledWith("/leaderboard/range");
-    expect(revalidatePathMock).toHaveBeenCalledWith("/admin");
   });
 });
