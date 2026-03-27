@@ -24,6 +24,7 @@ const memberNavItems = [
   { label: "我的记录", href: "/records" },
   { label: "日榜", href: "/leaderboard/daily" },
   { label: "总榜", href: "/leaderboard/range" },
+  { label: "小组榜单", href: "/leaderboard/groups" },
 ] as const;
 
 const adminNavItems = [

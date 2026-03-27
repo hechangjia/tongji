@@ -12,22 +12,18 @@ vi.mock("@/server/services/banner-service", () => ({
 }));
 
 test("shows grouped member navigation and mobile trigger", () => {
+  expect(buildNavSections("MEMBER")[0]?.items).toEqual(
+    expect.arrayContaining([
+      { label: "小组榜单", href: "/leaderboard/groups" },
+    ]),
+  );
+
   render(
     <AppShellClient
       role="MEMBER"
       userName="member01"
       currentPath="/entry"
-      navSections={[
-        {
-          title: "成员区",
-          items: [
-            { label: "今日录入", href: "/entry" },
-            { label: "我的记录", href: "/records" },
-            { label: "日榜", href: "/leaderboard/daily" },
-            { label: "总榜", href: "/leaderboard/range" },
-          ],
-        },
-      ]}
+      navSections={buildNavSections("MEMBER")}
       banner={null}
       announcements={[]}
     >
@@ -39,6 +35,7 @@ test("shows grouped member navigation and mobile trigger", () => {
   expect(screen.getByRole("link", { name: "今日录入" })).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "日榜" })).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "总榜" })).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "小组榜单" })).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "打开导航菜单" })).toBeInTheDocument();
 });
 
@@ -105,4 +102,21 @@ test("builds leader navigation without member-only links", () => {
   expect(screen.getByRole("link", { name: "小组看板" })).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "小组销售" })).toBeInTheDocument();
   expect(screen.queryByRole("link", { name: "今日录入" })).not.toBeInTheDocument();
+});
+
+test("shows leader-specific fallback identity copy", () => {
+  render(
+    <AppShellClient
+      role="LEADER"
+      currentPath="/leader/group"
+      navSections={buildNavSections("LEADER")}
+      banner={null}
+      announcements={[]}
+    >
+      内容
+    </AppShellClient>,
+  );
+
+  expect(screen.getAllByText("组长")).not.toHaveLength(0);
+  expect(screen.getByText("组长带队模式")).toBeInTheDocument();
 });

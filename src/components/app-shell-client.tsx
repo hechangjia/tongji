@@ -30,6 +30,27 @@ type AppShellClientProps = PropsWithChildren<{
   topSlot?: ReactNode;
 }>;
 
+function getRolePresentation(role: SessionRole) {
+  if (role === "ADMIN") {
+    return {
+      fallbackName: "管理员",
+      description: "管理员权限已启用",
+    };
+  }
+
+  if (role === "LEADER") {
+    return {
+      fallbackName: "组长",
+      description: "组长带队模式",
+    };
+  }
+
+  return {
+    fallbackName: "成员",
+    description: "成员录入模式",
+  };
+}
+
 function isActivePath(currentPath: string | undefined, href: string) {
   return currentPath === href || currentPath?.startsWith(`${href}/`);
 }
@@ -80,7 +101,8 @@ export function AppShellClient({
   children,
 }: AppShellClientProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const displayName = userName ?? (role === "ADMIN" ? "管理员" : "成员");
+  const rolePresentation = getRolePresentation(role);
+  const displayName = userName ?? rolePresentation.fallbackName;
 
   return (
     <div className="relative min-h-dvh overflow-hidden">
@@ -110,7 +132,7 @@ export function AppShellClient({
                 <div>
                   <p className="text-base font-semibold text-white">{displayName}</p>
                   <p className="mt-1 text-xs text-slate-400">
-                    {role === "ADMIN" ? "管理员权限已启用" : "成员录入模式"}
+                    {rolePresentation.description}
                   </p>
                 </div>
                 <span className="rounded-full bg-cyan-300 px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.2em] text-slate-950">

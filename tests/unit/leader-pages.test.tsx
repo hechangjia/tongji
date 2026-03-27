@@ -34,7 +34,9 @@ vi.mock("@/server/services/leaderboard-cache", () => ({
 }));
 
 vi.mock("@/components/app-shell", () => ({
-  AppShell: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  AppShell: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="app-shell">{children}</div>
+  ),
 }));
 
 vi.mock("@/components/page-header", () => ({
@@ -165,6 +167,33 @@ describe("leader task pages", () => {
     expect(screen.getByText("组员人数")).toBeInTheDocument();
   });
 
+  test("leader group page redirects guests to login", async () => {
+    authMock.mockResolvedValue(null);
+    const { default: LeaderGroupPage } = await importPageFromWorkspace(
+      "src/app/(leader)/leader/group/page.tsx",
+    );
+
+    await expect(LeaderGroupPage()).rejects.toThrow(
+      "redirect:/login?callbackUrl=%2Fleader%2Fgroup",
+    );
+  });
+
+  test("leader group page redirects members back to their default home", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "member-1",
+        role: "MEMBER",
+        username: "member01",
+        name: "成员一号",
+      },
+    });
+    const { default: LeaderGroupPage } = await importPageFromWorkspace(
+      "src/app/(leader)/leader/group/page.tsx",
+    );
+
+    await expect(LeaderGroupPage()).rejects.toThrow("redirect:/entry");
+  });
+
   test("leader sales page shows a later-phase placeholder", async () => {
     const { default: LeaderSalesPage } = await importPageFromWorkspace(
       "src/app/(leader)/leader/sales/page.tsx",
@@ -185,5 +214,18 @@ describe("leader task pages", () => {
 
     expect(screen.getByText("小组榜单")).toBeInTheDocument();
     expect(screen.getByText(/建设中/)).toBeInTheDocument();
+  });
+
+  test("shared group leaderboard renders without shell for anonymous visitors", async () => {
+    authMock.mockResolvedValue(null);
+    const { default: GroupLeaderboardPage } = await importPageFromWorkspace(
+      "src/app/(shared)/leaderboard/groups/page.tsx",
+    );
+
+    render(await GroupLeaderboardPage());
+
+    expect(screen.getByText("小组榜单")).toBeInTheDocument();
+    expect(screen.queryByTestId("app-shell")).not.toBeInTheDocument();
+    expect(redirectMock).not.toHaveBeenCalled();
   });
 });
