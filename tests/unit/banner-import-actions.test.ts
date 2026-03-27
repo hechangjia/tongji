@@ -6,7 +6,11 @@ const redirectMock = vi.hoisted(() =>
     throw new Error(`redirect:${target}`);
   }),
 );
+const unstableCacheMock = vi.hoisted(() =>
+  vi.fn((callback: (...args: unknown[]) => unknown) => callback),
+);
 const revalidatePathMock = vi.hoisted(() => vi.fn());
+const updateTagMock = vi.hoisted(() => vi.fn());
 const createBannerQuoteMock = vi.hoisted(() => vi.fn());
 const fetchHitokotoBannerDraftMock = vi.hoisted(() => vi.fn());
 
@@ -19,6 +23,8 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("next/cache", () => ({
+  unstable_cache: unstableCacheMock,
+  updateTag: updateTagMock,
   revalidatePath: revalidatePathMock,
 }));
 
@@ -68,6 +74,7 @@ describe("banner import action", () => {
       sourceType: "CUSTOM",
       status: "INACTIVE",
     });
+    expect(updateTagMock).toHaveBeenCalledWith("shell-content");
     expect(revalidatePathMock).toHaveBeenCalledWith("/admin/banners");
   });
 });

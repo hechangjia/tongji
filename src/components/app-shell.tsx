@@ -8,8 +8,10 @@ import {
   AppShellClient,
   type ShellNavSection,
 } from "@/components/app-shell-client";
-import { getVisibleAnnouncements } from "@/server/services/announcement-service";
-import { getBannerShellData } from "@/server/services/banner-service";
+import {
+  getCachedBannerShellData,
+  getCachedVisibleAnnouncements,
+} from "@/server/services/shell-content-cache";
 
 type AppShellProps = PropsWithChildren<{
   role: SessionRole;
@@ -82,10 +84,16 @@ export async function AppShell({
   announcements,
   children,
 }: AppShellProps) {
-  const resolvedBanner =
-    banner === undefined ? await getBannerShellData() : banner;
-  const resolvedAnnouncements =
-    announcements === undefined ? await getVisibleAnnouncements() : announcements;
+  const bannerPromise =
+    banner === undefined ? getCachedBannerShellData() : Promise.resolve(banner);
+  const announcementsPromise =
+    announcements === undefined
+      ? getCachedVisibleAnnouncements()
+      : Promise.resolve(announcements);
+  const [resolvedBanner, resolvedAnnouncements] = await Promise.all([
+    bannerPromise,
+    announcementsPromise,
+  ]);
 
   return (
     <AppShellClient

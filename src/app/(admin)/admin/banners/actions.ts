@@ -11,6 +11,7 @@ import {
   updateBannerSettings,
 } from "@/server/services/banner-service";
 import { fetchHitokotoBannerDraft } from "@/server/services/hitokoto-service";
+import { refreshShellContent } from "@/server/services/shell-content-cache";
 import {
   bannerQuoteSchema,
   bannerSettingsSchema,
@@ -68,6 +69,7 @@ export async function createBannerQuoteAction(
   }
 
   await createBannerQuote(parsedInput.data);
+  refreshShellContent();
   revalidatePath("/admin/banners");
 
   return {
@@ -111,6 +113,7 @@ export async function updateBannerSettingsAction(
   }
 
   await updateBannerSettings(parsedInput.data);
+  refreshShellContent();
   revalidatePath("/admin/banners");
 
   return {
@@ -134,6 +137,7 @@ export async function toggleBannerQuoteStatusAction(formData: FormData) {
   });
 
   await toggleBannerQuoteStatus(parsedInput.id, parsedInput.status);
+  refreshShellContent();
   revalidatePath("/admin/banners");
   redirect(
     `/admin/banners?notice=${encodeURIComponent(
@@ -150,6 +154,7 @@ export async function importHitokotoBannerAction() {
   try {
     draft = await fetchHitokotoBannerDraft();
     await createBannerQuote(draft);
+    refreshShellContent();
   } catch (error) {
     console.error("Failed to import hitokoto banner", error);
     redirect(

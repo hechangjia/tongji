@@ -12,6 +12,7 @@ import {
 } from "@/server/services/announcement-service";
 import { announcementSchema } from "@/lib/validators/announcement";
 import type { AnnouncementFormState } from "@/app/(admin)/admin/announcements/form-state";
+import { refreshShellContent } from "@/server/services/shell-content-cache";
 
 async function requireAdminSession() {
   const session = await auth();
@@ -67,6 +68,7 @@ export async function createAnnouncementAction(
   }
 
   await createAnnouncement(parsedInput.data);
+  refreshShellContent();
   revalidatePath("/admin/announcements");
 
   return {
@@ -97,6 +99,7 @@ export async function toggleAnnouncementStatusAction(formData: FormData) {
   });
 
   await toggleAnnouncementStatus(parsedInput.id, parsedInput.status);
+  refreshShellContent();
   revalidatePath("/admin/announcements");
   redirect(
     `/admin/announcements?notice=${encodeURIComponent(
@@ -119,6 +122,7 @@ export async function toggleAnnouncementPinAction(formData: FormData) {
   });
 
   await toggleAnnouncementPin(parsedInput.id, parsedInput.isPinned);
+  refreshShellContent();
   revalidatePath("/admin/announcements");
   redirect(
     `/admin/announcements?notice=${encodeURIComponent(
