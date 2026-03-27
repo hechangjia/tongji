@@ -5,6 +5,7 @@ import {
   sanitizeCallbackUrl,
 } from "@/lib/permissions";
 import { LoginForm } from "@/components/login-form";
+import { RegisterForm } from "@/components/register-form";
 
 type LoginPageProps = {
   searchParams?: Promise<{
@@ -80,18 +81,35 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         </section>
 
         <div className="maika-fade-up rounded-[32px] border border-white/55 bg-white/82 p-8 shadow-[0_28px_90px_rgba(8,47,73,0.2)] backdrop-blur-xl sm:p-10">
-          <div className="space-y-3">
-            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-cyan-700">
-              Secure Access
-            </p>
-            <h2 className="font-display text-3xl text-slate-950">账号登录</h2>
-            <p className="text-sm leading-7 text-slate-600">
-              使用管理员或成员账号进入系统。登录后会根据角色自动进入对应工作区。
-            </p>
-          </div>
+          <div className="space-y-8">
+            <section>
+              <div className="space-y-3">
+                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-cyan-700">
+                  Secure Access
+                </p>
+                <h2 className="font-display text-3xl text-slate-950">账号登录</h2>
+                <p className="text-sm leading-7 text-slate-600">
+                  使用已有账号进入系统。登录后会根据角色自动进入对应工作区。
+                </p>
+              </div>
 
-          <div className="mt-8">
-            <LoginForm callbackUrl={callbackUrl} />
+              <div className="mt-8">
+                <LoginForm callbackUrl={callbackUrl} />
+              </div>
+            </section>
+
+            <section className="border-t border-slate-200/80 pt-8">
+              <div className="space-y-3">
+                <h2 className="font-display text-3xl text-slate-950">成员注册</h2>
+                <p className="text-sm leading-7 text-slate-600">
+                  新成员可直接注册账号，系统会自动创建并激活成员身份。
+                </p>
+              </div>
+
+              <div className="mt-8">
+                <RegisterForm />
+              </div>
+            </section>
           </div>
         </div>
       </div>

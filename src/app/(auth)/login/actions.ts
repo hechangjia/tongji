@@ -1,13 +1,14 @@
 "use server";
 
+import { Role, UserStatus } from "@prisma/client";
+import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
 import { signIn } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { hashPassword } from "@/lib/password";
 import { sanitizeCallbackUrl } from "@/lib/permissions";
-import { loginSchema } from "@/lib/validators/auth";
-
-export type LoginFormState = {
-  error: string | null;
-};
+import { loginSchema, registerSchema } from "@/lib/validators/auth";
+import type { LoginFormState, RegisterFormState } from "@/app/(auth)/login/form-state";
 
 export async function loginAction(
   _previousState: LoginFormState,
@@ -54,4 +55,46 @@ export async function loginAction(
   return {
     error: null,
   };
+}
+
+export async function registerMemberAction(
+  _previousState: RegisterFormState,
+  formData: FormData,
+): Promise<RegisterFormState> {
+  const parsedInput = registerSchema.safeParse({
+    username: formData.get("username"),
+    password: formData.get("password"),
+  });
+
+  if (!parsedInput.success) {
+    const fieldErrors = parsedInput.error.flatten().fieldErrors;
+
+    return {
+      error: fieldErrors.username?.[0] ?? fieldErrors.password?.[0] ?? "请检查注册信息",
+    };
+  }
+
+  const { username, password } = parsedInput.data;
+  const existingUser = await db.user.findUnique({
+    where: { username },
+    select: { id: true },
+  });
+
+  if (existingUser) {
+    return {
+      error: "该账号已存在，请更换后重试",
+    };
+  }
+
+  await db.user.create({
+    data: {
+      username,
+      name: username,
+      passwordHash: await hashPassword(password),
+      role: Role.MEMBER,
+      status: UserStatus.ACTIVE,
+    },
+  });
+
+  redirect("/entry");
 }

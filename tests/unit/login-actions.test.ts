@@ -1,0 +1,85 @@
+import { beforeEach, describe, expect, test, vi } from "vitest";
+import { Role, UserStatus } from "@prisma/client";
+
+const userFindUniqueMock = vi.hoisted(() => vi.fn());
+const userCreateMock = vi.hoisted(() => vi.fn());
+const hashPasswordMock = vi.hoisted(() => vi.fn());
+const signInMock = vi.hoisted(() => vi.fn());
+const redirectMock = vi.hoisted(() =>
+  vi.fn((target: string) => {
+    throw new Error(`redirect:${target}`);
+  }),
+);
+
+vi.mock("next/navigation", () => ({
+  redirect: redirectMock,
+}));
+
+vi.mock("next-auth", () => ({
+  AuthError: class AuthError extends Error {
+    type: string;
+
+    constructor(type = "CredentialsSignin") {
+      super(type);
+      this.type = type;
+    }
+  },
+}));
+
+vi.mock("@/lib/db", () => ({
+  db: {
+    user: {
+      findUnique: userFindUniqueMock,
+      create: userCreateMock,
+    },
+  },
+}));
+
+vi.mock("@/lib/password", () => ({
+  hashPassword: hashPasswordMock,
+}));
+
+vi.mock("@/lib/auth", () => ({
+  signIn: signInMock,
+}));
+
+import { registerMemberAction } from "@/app/(auth)/login/actions";
+import type { RegisterFormState } from "@/app/(auth)/login/form-state";
+
+describe("login register actions", () => {
+  const initialState: RegisterFormState = {
+    error: null,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test("registerMemberAction creates an active member account and redirects to entry", async () => {
+    userFindUniqueMock.mockResolvedValue(null);
+    userCreateMock.mockResolvedValue({});
+    hashPasswordMock.mockResolvedValue("hashed-password");
+
+    const formData = new FormData();
+    formData.set("username", "member09");
+    formData.set("password", "member123456");
+
+    await expect(registerMemberAction(initialState, formData)).rejects.toThrow(
+      "redirect:/entry",
+    );
+    expect(userFindUniqueMock).toHaveBeenCalledWith({
+      where: { username: "member09" },
+      select: { id: true },
+    });
+    expect(hashPasswordMock).toHaveBeenCalledWith("member123456");
+    expect(userCreateMock).toHaveBeenCalledWith({
+      data: {
+        username: "member09",
+        name: "member09",
+        passwordHash: "hashed-password",
+        role: Role.MEMBER,
+        status: UserStatus.ACTIVE,
+      },
+    });
+  });
+});
