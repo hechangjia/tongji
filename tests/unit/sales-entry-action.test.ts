@@ -9,7 +9,6 @@ const redirectMock = vi.hoisted(() =>
 );
 const saveSalesRecordForUserMock = vi.hoisted(() => vi.fn());
 const refreshLeaderboardCachesMock = vi.hoisted(() => vi.fn());
-const revalidatePathMock = vi.hoisted(() => vi.fn());
 const getMemberDailyRhythmSummaryMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/auth", () => ({
@@ -18,10 +17,6 @@ vi.mock("@/lib/auth", () => ({
 
 vi.mock("next/navigation", () => ({
   redirect: redirectMock,
-}));
-
-vi.mock("next/cache", () => ({
-  revalidatePath: revalidatePathMock,
 }));
 
 vi.mock("@/server/services/leaderboard-cache", () => ({
@@ -84,7 +79,7 @@ describe("sales entry action", () => {
     });
   });
 
-  test("keeps today summary timestamp aligned when saving a non-today record", async () => {
+  test("preserves the existing today summary timestamp when saving a non-today record", async () => {
     saveSalesRecordForUserMock.mockResolvedValue({
       isUpdate: false,
       record: {
@@ -104,7 +99,62 @@ describe("sales entry action", () => {
     formData.set("count60", "2");
     formData.set("remark", "地推");
 
-    await expect(saveSalesEntryAction(undefined, formData)).resolves.toMatchObject({
+    await expect(
+      saveSalesEntryAction(
+        {
+          status: "success",
+          message: "保存成功",
+          values: {
+            saleDate: getTodaySaleDateValue(),
+            count40: "4",
+            count60: "1",
+            remark: "",
+          },
+          summary: {
+            saleDate: getTodaySaleDateValue(),
+            count40: 4,
+            count60: 1,
+            total: 5,
+            remark: "",
+            reviewStatus: "PENDING",
+            lastSubmittedAtIso: "2026-03-27T07:30:45.000Z",
+            savedAtIso: "2026-03-27T07:30:45.000Z",
+            isUpdate: true,
+            recoveredFromError: false,
+            dailyRhythm: {
+              state: "PENDING_REVIEW",
+              title: "当日节奏摘要",
+              message: "今天的提交已收到，等待管理员审核",
+              reviewStatus: "PENDING",
+              reviewStatusLabel: "待审核",
+              reviewNote: null,
+              isTemporaryTop3: false,
+              isFormalTop3: false,
+              temporaryRank: null,
+              formalRank: null,
+              top3Label: null,
+              top3Message: null,
+              lastSubmittedAtIso: "2026-03-27T07:30:45.000Z",
+              primaryAction: {
+                href: "/leaderboard/daily",
+                label: "查看今日榜单",
+              },
+              secondaryActions: [
+                {
+                  href: "/entry",
+                  label: "继续填写今日记录",
+                },
+                {
+                  href: "/leaderboard/range",
+                  label: "查看总榜",
+                },
+              ],
+            },
+          },
+        },
+        formData,
+      ),
+    ).resolves.toMatchObject({
       status: "success",
       summary: {
         saleDate: "2026-03-26",
@@ -117,7 +167,7 @@ describe("sales entry action", () => {
         isUpdate: false,
         recoveredFromError: false,
         dailyRhythm: {
-          lastSubmittedAtIso: null,
+          lastSubmittedAtIso: "2026-03-27T07:30:45.000Z",
         },
       },
     });

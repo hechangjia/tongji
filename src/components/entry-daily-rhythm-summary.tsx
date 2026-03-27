@@ -8,6 +8,7 @@ export type EntryDailyRhythmSummaryData = MemberDailyRhythmSummary & {
 
 function formatSubmittedAt(value: string) {
   return new Intl.DateTimeFormat("zh-CN", {
+    timeZone: "Asia/Shanghai",
     hour12: false,
     month: "2-digit",
     day: "2-digit",
@@ -30,6 +31,9 @@ function getTone(summary: EntryDailyRhythmSummaryData) {
     case "NO_SUBMISSION":
       return "warning";
   }
+
+  const unreachableState: never = summary.state;
+  throw new Error(`Unhandled daily rhythm state: ${unreachableState}`);
 }
 
 function getTitle(summary: EntryDailyRhythmSummaryData) {

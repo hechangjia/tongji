@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { canAccessMemberArea } from "@/lib/permissions";
@@ -37,8 +36,6 @@ export async function saveSalesEntryAction(
       currentUserId: session.user.id,
       todaySaleDate,
     });
-
-    revalidatePath("/entry");
     refreshLeaderboardCaches();
 
     return {
@@ -63,7 +60,9 @@ export async function saveSalesEntryAction(
         recoveredFromError: previousState?.status === "error",
         dailyRhythm: {
           lastSubmittedAtIso:
-            saleDate === todaySaleDate ? lastSubmittedAt.toISOString() : null,
+            saleDate === todaySaleDate
+              ? lastSubmittedAt.toISOString()
+              : previousState?.summary?.dailyRhythm.lastSubmittedAtIso ?? null,
           ...dailyRhythm,
         },
       },

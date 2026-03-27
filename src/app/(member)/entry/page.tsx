@@ -56,7 +56,8 @@ export default async function EntryPage() {
         hasExistingRecord={Boolean(currentRecord)}
         todayTotal={todayTotal}
         initialDailyRhythmSummary={{
-          lastSubmittedAtIso: currentRecord?.lastSubmittedAt?.toISOString() ?? null,
+          lastSubmittedAtIso:
+            (currentRecord?.lastSubmittedAt ?? currentRecord?.updatedAt)?.toISOString() ?? null,
           ...dailyRhythmSummary,
         }}
       />
