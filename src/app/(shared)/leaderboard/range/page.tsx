@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
+import { hasAuthSessionCookie } from "@/lib/auth-session-cookie";
 import { AppShell } from "@/components/app-shell";
 import { CumulativeRankingChart } from "@/components/cumulative-ranking-chart";
 import { LeaderboardTable } from "@/components/leaderboard-table";
@@ -37,11 +38,14 @@ export default async function RangeLeaderboardPage({
   const today = getTodaySaleDateValue();
   const startDate = isDateValue(startDateParam) ? startDateParam : defaultRange.startDate;
   const endDate = isDateValue(endDateParam) ? endDateParam : today;
-  const rows = await getCachedRangeLeaderboard(startDate, endDate);
+  const rowsPromise = getCachedRangeLeaderboard(startDate, endDate);
+  const sessionPromise = hasAuthSessionCookie().then((hasSessionCookie) =>
+    hasSessionCookie ? auth() : null,
+  );
+  const rows = await rowsPromise;
   const champion = rows[0]?.total ?? 0;
   const exportHref = `/api/export/range?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
-
-  const session = await auth();
+  const session = await sessionPromise;
   const cumulativeRanking = session?.user
     ? await getCachedMemberCumulativeRanking({
         startDate,

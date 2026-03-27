@@ -39,6 +39,7 @@ function parseMetric(value?: string): CumulativeMetric {
 }
 
 export default async function AdminHomePage({ searchParams }: AdminHomePageProps) {
+  const paramsPromise = searchParams ?? Promise.resolve(undefined);
   const session = await auth();
 
   if (!session?.user) {
@@ -49,16 +50,18 @@ export default async function AdminHomePage({ searchParams }: AdminHomePageProps
     redirect(getDefaultRedirectPath(session.user.role));
   }
 
-  const params = searchParams ? await searchParams : undefined;
+  const params = await paramsPromise;
   const presetParam = Array.isArray(params?.preset) ? params?.preset[0] : params?.preset;
   const metricParam = Array.isArray(params?.metric) ? params?.metric[0] : params?.metric;
   const preset = parsePreset(presetParam);
   const metric = parseMetric(metricParam);
-  const cumulativeStats = await getCachedAdminCumulativeTrend({
-    preset,
-    metric,
-  });
-  const dailyReviewSummary = await getCachedAdminDailyRhythmSummary({});
+  const [cumulativeStats, dailyReviewSummary] = await Promise.all([
+    getCachedAdminCumulativeTrend({
+      preset,
+      metric,
+    }),
+    getCachedAdminDailyRhythmSummary({}),
+  ]);
 
   const cards = [
     {

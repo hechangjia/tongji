@@ -9,6 +9,8 @@ const redirectMock = vi.hoisted(() =>
 );
 const saveSalesRecordForUserMock = vi.hoisted(() => vi.fn());
 const refreshLeaderboardCachesMock = vi.hoisted(() => vi.fn());
+const refreshEntryInsightsCacheMock = vi.hoisted(() => vi.fn());
+const refreshMemberRecordsCacheMock = vi.hoisted(() => vi.fn());
 const getMemberDailyRhythmSummaryMock = vi.hoisted(() => vi.fn());
 const getMemberDailyTargetFeedbackMock = vi.hoisted(() => vi.fn());
 const getMemberSelfTrendSummaryMock = vi.hoisted(() => vi.fn());
@@ -24,6 +26,14 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/server/services/leaderboard-cache", () => ({
   refreshLeaderboardCaches: refreshLeaderboardCachesMock,
+}));
+
+vi.mock("@/server/services/entry-insights-cache", () => ({
+  refreshEntryInsightsCache: refreshEntryInsightsCacheMock,
+}));
+
+vi.mock("@/server/services/member-records-cache", () => ({
+  refreshMemberRecordsCache: refreshMemberRecordsCacheMock,
 }));
 
 vi.mock("@/server/services/daily-rhythm-service", () => ({

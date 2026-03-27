@@ -103,6 +103,15 @@ async function importPageFromWorkspace(relativePath: string) {
   return import(/* @vite-ignore */ moduleUrl);
 }
 
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((res) => {
+    resolve = res;
+  });
+
+  return { promise, resolve };
+}
+
 describe("leader task pages", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -153,6 +162,50 @@ describe("leader task pages", () => {
       "href",
       "/admin/groups",
     );
+  });
+
+  test("admin home page starts both dashboard reads before waiting on the trend response", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "admin-1",
+        role: "ADMIN",
+        username: "admin",
+        name: "管理员",
+      },
+    });
+    const cumulativeDeferred = createDeferred<{
+      granularity: "day";
+      series: [];
+    }>();
+    const calls: string[] = [];
+    getCachedAdminCumulativeTrendMock.mockImplementation(async () => {
+      calls.push("trend");
+      return cumulativeDeferred.promise;
+    });
+    getCachedAdminDailyRhythmSummaryMock.mockImplementation(async () => {
+      calls.push("summary");
+      return {};
+    });
+
+    const { default: AdminHomePage } = await import("@/app/(admin)/admin/page");
+    const pagePromise = AdminHomePage({
+      searchParams: Promise.resolve({}),
+    });
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(calls).toEqual(["trend", "summary"]);
+
+    cumulativeDeferred.resolve({
+      granularity: "day",
+      series: [],
+    });
+
+    render(await pagePromise);
+
+    expect(screen.getByText("admin-daily-review-summary")).toBeInTheDocument();
+    expect(screen.getByText("admin-cumulative-stats-panel")).toBeInTheDocument();
   });
 
   test("leader group page shows the current group overview", async () => {

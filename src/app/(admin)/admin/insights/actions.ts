@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
+import { refreshEntryInsightsCache } from "@/server/services/entry-insights-cache";
 import { refreshLeaderboardCaches } from "@/server/services/leaderboard-cache";
 import { dailyTargetAdjustSchema } from "@/lib/validators/target";
 import { memberReminderSchema } from "@/lib/validators/reminder";
@@ -46,6 +47,7 @@ export async function adjustDailyTargetAction(formData: FormData) {
 
   revalidatePath("/admin/insights");
   refreshLeaderboardCaches();
+  refreshEntryInsightsCache();
   redirect(appendNotice(parsedInput.returnTo, "今日目标已更新"));
 }
 
@@ -70,5 +72,6 @@ export async function sendMemberReminderAction(formData: FormData) {
 
   revalidatePath("/admin/insights");
   refreshLeaderboardCaches();
+  refreshEntryInsightsCache();
   redirect(appendNotice(parsedInput.returnTo, "提醒已发送"));
 }

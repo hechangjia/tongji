@@ -99,13 +99,19 @@ export async function getSalesRecordForUserOnDate(userId: string, saleDate: stri
 }
 
 export async function getSalesRecordsForUser(userId: string) {
-  const records = await db.salesRecord.findMany({
+  return db.salesRecord.findMany({
     where: {
       userId,
     },
+    select: {
+      id: true,
+      saleDate: true,
+      count40: true,
+      count60: true,
+      remark: true,
+    },
+    orderBy: [{ saleDate: "desc" }, { createdAt: "desc" }],
   });
-
-  return groupRecordsForMember(records);
 }
 
 export async function getAdminSalesRows(filters: AdminSalesFilters = {}) {

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { hasAuthSessionCookie } from "@/lib/auth-session-cookie";
 import {
   getDefaultRedirectPath,
   sanitizeCallbackUrl,
@@ -14,13 +15,16 @@ type LoginPageProps = {
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const session = await auth();
+  const sessionPromise = hasAuthSessionCookie().then((hasSessionCookie) =>
+    hasSessionCookie ? auth() : null,
+  );
+  const params = searchParams ? await searchParams : undefined;
+  const session = await sessionPromise;
 
   if (session?.user?.role) {
     redirect(getDefaultRedirectPath(session.user.role));
   }
 
-  const params = searchParams ? await searchParams : undefined;
   const callbackUrlValue = params?.callbackUrl;
   const callbackUrl =
     typeof callbackUrlValue === "string"

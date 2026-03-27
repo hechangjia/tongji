@@ -8,6 +8,8 @@ const redirectMock = vi.hoisted(() =>
 );
 const saveSalesRecordForUserMock = vi.hoisted(() => vi.fn());
 const refreshLeaderboardCachesMock = vi.hoisted(() => vi.fn());
+const refreshEntryInsightsCacheMock = vi.hoisted(() => vi.fn());
+const refreshMemberRecordsCacheMock = vi.hoisted(() => vi.fn());
 const getMemberDailyRhythmSummaryMock = vi.hoisted(() => vi.fn());
 const getMemberDailyTargetFeedbackMock = vi.hoisted(() => vi.fn());
 const getMemberSelfTrendSummaryMock = vi.hoisted(() => vi.fn());
@@ -45,6 +47,14 @@ vi.mock("@/server/services/sales-service", async () => {
 
 vi.mock("@/server/services/leaderboard-cache", () => ({
   refreshLeaderboardCaches: refreshLeaderboardCachesMock,
+}));
+
+vi.mock("@/server/services/entry-insights-cache", () => ({
+  refreshEntryInsightsCache: refreshEntryInsightsCacheMock,
+}));
+
+vi.mock("@/server/services/member-records-cache", () => ({
+  refreshMemberRecordsCache: refreshMemberRecordsCacheMock,
 }));
 
 vi.mock("@/server/services/daily-target-service", () => ({
@@ -164,6 +174,8 @@ describe("leaderboard cache revalidation on writes", () => {
     await saveSalesEntryAction(undefined, formData);
 
     expect(refreshLeaderboardCachesMock).toHaveBeenCalledTimes(1);
+    expect(refreshEntryInsightsCacheMock).toHaveBeenCalledTimes(1);
+    expect(refreshMemberRecordsCacheMock).toHaveBeenCalledTimes(1);
   });
 
   test("refreshes leaderboard caches after admin edits a sales record", async () => {
@@ -187,6 +199,8 @@ describe("leaderboard cache revalidation on writes", () => {
     );
 
     expect(refreshLeaderboardCachesMock).toHaveBeenCalledTimes(1);
+    expect(refreshEntryInsightsCacheMock).toHaveBeenCalledTimes(1);
+    expect(refreshMemberRecordsCacheMock).toHaveBeenCalledTimes(1);
   });
 
   test("refreshes leaderboard caches after admin reviews a sales record", async () => {
@@ -261,6 +275,7 @@ describe("leaderboard cache revalidation on writes", () => {
     );
 
     expect(refreshLeaderboardCachesMock).toHaveBeenCalledTimes(1);
+    expect(refreshEntryInsightsCacheMock).toHaveBeenCalledTimes(1);
   });
 
   test("refreshes leaderboard caches after admin sends a member reminder", async () => {
@@ -284,5 +299,6 @@ describe("leaderboard cache revalidation on writes", () => {
     );
 
     expect(refreshLeaderboardCachesMock).toHaveBeenCalledTimes(1);
+    expect(refreshEntryInsightsCacheMock).toHaveBeenCalledTimes(1);
   });
 });

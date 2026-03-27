@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { canAccessMemberArea } from "@/lib/permissions";
+import { refreshEntryInsightsCache } from "@/server/services/entry-insights-cache";
+import { refreshMemberRecordsCache } from "@/server/services/member-records-cache";
 import {
   getMemberDailyTargetFeedback,
   getMemberSelfTrendSummary,
@@ -53,6 +55,8 @@ export async function saveSalesEntryAction(
       getMemberRecentReminders(session.user.id),
     ]);
     refreshLeaderboardCaches();
+    refreshEntryInsightsCache();
+    refreshMemberRecordsCache();
 
     return {
       status: "success",

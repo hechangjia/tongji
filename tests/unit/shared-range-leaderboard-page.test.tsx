@@ -3,11 +3,16 @@ import { pathToFileURL } from "node:url";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 const authMock = vi.hoisted(() => vi.fn());
+const cookiesMock = vi.hoisted(() => vi.fn());
 const getCachedRangeLeaderboardMock = vi.hoisted(() => vi.fn());
 const getCachedMemberCumulativeRankingMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/auth", () => ({
   auth: authMock,
+}));
+
+vi.mock("next/headers", () => ({
+  cookies: cookiesMock,
 }));
 
 vi.mock("@/server/services/leaderboard-cache", () => ({
@@ -79,6 +84,9 @@ describe("shared range leaderboard page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
+    cookiesMock.mockResolvedValue({
+      has: vi.fn().mockReturnValue(false),
+    });
     getCachedRangeLeaderboardMock.mockResolvedValue([
       {
         rank: 1,
@@ -111,9 +119,40 @@ describe("shared range leaderboard page", () => {
     expect(screen.queryByText("cumulative-ranking-chart")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "导出 Excel" })).not.toBeInTheDocument();
     expect(screen.queryByTestId("app-shell")).not.toBeInTheDocument();
+    expect(authMock).not.toHaveBeenCalled();
+  });
+
+  test("checks auth when a session cookie candidate is present", async () => {
+    cookiesMock.mockResolvedValue({
+      has: vi
+        .fn()
+        .mockImplementation((name: string) => name === "authjs.session-token"),
+    });
+    authMock.mockResolvedValue({
+      user: {
+        id: "member-1",
+        role: "MEMBER",
+        username: "member01",
+        name: "成员一号",
+      },
+    });
+
+    const { default: RangeLeaderboardPage } = await importPageFromWorkspace(
+      "src/app/(shared)/leaderboard/range/page.tsx",
+    );
+
+    render(await RangeLeaderboardPage({}));
+
+    expect(authMock).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("cumulative-ranking-chart")).toBeInTheDocument();
   });
 
   test("renders personalized chart for signed-in members", async () => {
+    cookiesMock.mockResolvedValue({
+      has: vi
+        .fn()
+        .mockImplementation((name: string) => name === "authjs.session-token"),
+    });
     authMock.mockResolvedValue({
       user: {
         id: "member-1",
@@ -136,6 +175,11 @@ describe("shared range leaderboard page", () => {
   });
 
   test("renders export entry for admins", async () => {
+    cookiesMock.mockResolvedValue({
+      has: vi
+        .fn()
+        .mockImplementation((name: string) => name === "__Secure-authjs.session-token"),
+    });
     authMock.mockResolvedValue({
       user: {
         id: "admin-1",

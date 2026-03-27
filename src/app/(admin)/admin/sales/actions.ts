@@ -5,7 +5,9 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
+import { refreshEntryInsightsCache } from "@/server/services/entry-insights-cache";
 import { refreshLeaderboardCaches } from "@/server/services/leaderboard-cache";
+import { refreshMemberRecordsCache } from "@/server/services/member-records-cache";
 import { salesRecordUpdateSchema, salesReviewActionSchema } from "@/lib/validators/sales";
 
 function appendNotice(returnTo: string, notice: string) {
@@ -49,6 +51,8 @@ export async function updateSalesRecordAction(formData: FormData) {
 
   revalidatePath("/admin/sales");
   refreshLeaderboardCaches();
+  refreshEntryInsightsCache();
+  refreshMemberRecordsCache();
   redirect(appendNotice(parsedInput.returnTo, "销售记录已更新"));
 }
 

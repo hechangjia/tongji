@@ -5,7 +5,7 @@ import { AppShell } from "@/components/app-shell";
 import { MetricCard } from "@/components/metric-card";
 import { MyRecordsTable } from "@/components/my-records-table";
 import { PageHeader } from "@/components/page-header";
-import { getSalesRecordsForUser } from "@/server/services/sales-service";
+import { getCachedMemberRecords } from "@/server/services/member-records-cache";
 
 export default async function RecordsPage() {
   const session = await auth();
@@ -18,7 +18,7 @@ export default async function RecordsPage() {
     redirect("/login?callbackUrl=%2Frecords");
   }
 
-  const records = await getSalesRecordsForUser(session.user.id);
+  const records = await getCachedMemberRecords(session.user.id);
   const totalSales = records.reduce(
     (sum, record) => sum + record.count40 + record.count60,
     0,
