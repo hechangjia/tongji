@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import { getTodaySaleDateValue } from "@/server/services/sales-service";
 import {
   buildAdminDailyRhythmSummary,
+  buildAdminTodaySalesRows,
   buildFormalTop3,
   buildMemberDailyRhythmSummary,
   buildTemporaryTop3,
@@ -13,10 +14,12 @@ const sharedSubmittedAt = new Date("2026-03-27T00:30:00.000Z");
 function createRow(
   overrides: Partial<DailyRhythmSourceRow> & Pick<DailyRhythmSourceRow, "id" | "userId" | "userName">,
 ): DailyRhythmSourceRow {
+  const { id, userId, userName, ...rest } = overrides;
+
   return {
-    id: overrides.id,
-    userId: overrides.userId,
-    userName: overrides.userName,
+    id,
+    userId,
+    userName,
     role: "MEMBER",
     status: "ACTIVE",
     saleDate: "2026-03-27",
@@ -27,7 +30,7 @@ function createRow(
     lastSubmittedAt: sharedSubmittedAt,
     reviewedAt: null,
     reviewNote: null,
-    ...overrides,
+    ...rest,
   };
 }
 
@@ -149,7 +152,10 @@ describe("daily rhythm service pure helpers", () => {
       state: "NO_SUBMISSION",
       message: "今天还没有提交销售记录",
       primaryAction: { href: "/entry", label: "去填写今日记录" },
-      secondaryActions: [{ href: "/leaderboard/daily", label: "查看今日榜单" }],
+      secondaryActions: [
+        { href: "/leaderboard/daily", label: "查看今日榜单" },
+        { href: "/leaderboard/range", label: "查看总榜" },
+      ],
       isTemporaryTop3: false,
       isFormalTop3: false,
     });
@@ -269,10 +275,14 @@ describe("daily rhythm service pure helpers", () => {
       message: "今天的记录被退回，请尽快重新提交",
       reviewNote: "请补充备注",
       primaryAction: { href: "/entry", label: "重新提交今日记录" },
+      secondaryActions: [
+        { href: "/leaderboard/daily", label: "查看今日榜单" },
+        { href: "/leaderboard/range", label: "查看总榜" },
+      ],
     });
   });
 
-  test("buildAdminDailyRhythmSummary reports review progress for no submissions, approved-under-3, approved-with-pending, and all-rejected cases", () => {
+  test("buildAdminDailyRhythmSummary reports review progress for no submissions, pending-only, approved-under-3, approved-with-pending, and all-rejected cases", () => {
     expect(
       buildAdminDailyRhythmSummary({
         rows: [],
@@ -281,8 +291,43 @@ describe("daily rhythm service pure helpers", () => {
     ).toMatchObject({
       message: "今天还没有成员提交销售记录",
       pendingCount: 0,
-      top3Status: {
+      top3Status: "NOT_CONFIRMED",
+      top3Details: {
         temporaryCount: 0,
+        formalCount: 0,
+        isFormalTop3Complete: false,
+      },
+      secondaryActions: [
+        { href: "/leaderboard/range", label: "查看总榜" },
+        { href: "/admin/announcements", label: "管理公告" },
+      ],
+    });
+
+    expect(
+      buildAdminDailyRhythmSummary({
+        rows: [
+          createRow({
+            id: "pending-1",
+            userId: "member-1",
+            userName: "成员1",
+            reviewStatus: "PENDING",
+          }),
+          createRow({
+            id: "pending-2",
+            userId: "member-2",
+            userName: "成员2",
+            reviewStatus: "PENDING",
+            lastSubmittedAt: new Date("2026-03-26T16:01:00.000Z"),
+          }),
+        ],
+        todaySaleDate: "2026-03-27",
+      }),
+    ).toMatchObject({
+      message: "今天已有 2 条提交，等待管理员审核",
+      pendingCount: 2,
+      top3Status: "NOT_CONFIRMED",
+      top3Details: {
+        temporaryCount: 2,
         formalCount: 0,
         isFormalTop3Complete: false,
       },
@@ -310,7 +355,8 @@ describe("daily rhythm service pure helpers", () => {
     ).toMatchObject({
       message: "今日正式前三还差 1 人",
       pendingCount: 0,
-      top3Status: {
+      top3Status: "NOT_CONFIRMED",
+      top3Details: {
         temporaryCount: 2,
         formalCount: 2,
         isFormalTop3Complete: false,
@@ -353,7 +399,8 @@ describe("daily rhythm service pure helpers", () => {
     ).toMatchObject({
       message: "今日正式前三已确定，仍有 1 条待审核记录",
       pendingCount: 1,
-      top3Status: {
+      top3Status: "CONFIRMED",
+      top3Details: {
         temporaryCount: 3,
         formalCount: 3,
         isFormalTop3Complete: true,
@@ -382,11 +429,71 @@ describe("daily rhythm service pure helpers", () => {
     ).toMatchObject({
       message: "今天的提交已全部驳回，等待成员重新提交",
       pendingCount: 0,
-      top3Status: {
+      top3Status: "NOT_CONFIRMED",
+      top3Details: {
         temporaryCount: 0,
         formalCount: 0,
         isFormalTop3Complete: false,
       },
     });
+  });
+
+  test("buildAdminTodaySalesRows pre-annotates temporary and formal top3 flags", () => {
+    expect(
+      buildAdminTodaySalesRows(
+        [
+          createRow({
+            id: "pending-1",
+            userId: "member-1",
+            userName: "成员1",
+            reviewStatus: "PENDING",
+            lastSubmittedAt: new Date("2026-03-26T16:01:00.000Z"),
+          }),
+          createRow({
+            id: "approved-1",
+            userId: "member-2",
+            userName: "成员2",
+            reviewStatus: "APPROVED",
+            lastSubmittedAt: new Date("2026-03-26T16:02:00.000Z"),
+          }),
+          createRow({
+            id: "approved-2",
+            userId: "member-3",
+            userName: "成员3",
+            reviewStatus: "APPROVED",
+            lastSubmittedAt: new Date("2026-03-26T16:03:00.000Z"),
+          }),
+          createRow({
+            id: "approved-3",
+            userId: "member-4",
+            userName: "成员4",
+            reviewStatus: "APPROVED",
+            lastSubmittedAt: new Date("2026-03-26T16:04:00.000Z"),
+          }),
+        ],
+        "2026-03-27",
+      ),
+    ).toEqual([
+      expect.objectContaining({
+        id: "pending-1",
+        isTemporaryTop3: true,
+        isFormalTop3: false,
+      }),
+      expect.objectContaining({
+        id: "approved-1",
+        isTemporaryTop3: true,
+        isFormalTop3: true,
+      }),
+      expect.objectContaining({
+        id: "approved-2",
+        isTemporaryTop3: true,
+        isFormalTop3: true,
+      }),
+      expect.objectContaining({
+        id: "approved-3",
+        isTemporaryTop3: false,
+        isFormalTop3: true,
+      }),
+    ]);
   });
 });

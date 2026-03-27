@@ -6,6 +6,7 @@ import {
 import {
   getAdminDailyRhythmSummary,
   getDailyTop3Status,
+  type DailyTop3StatusInput,
   getMemberDailyRhythmSummary,
 } from "@/server/services/daily-rhythm-service";
 import {
@@ -85,7 +86,7 @@ const cachedAdminDailyRhythmSummary = unstable_cache(
 );
 
 const cachedDailyTop3Status = unstable_cache(
-  async (todaySaleDate: DateValue) => getDailyTop3Status(todaySaleDate),
+  async (input: DailyTop3StatusInput) => getDailyTop3Status(input),
   ["leaderboard-daily-top3-status"],
   {
     tags: [LEADERBOARD_CACHE_TAG],
@@ -129,8 +130,8 @@ export function getCachedAdminDailyRhythmSummary(input: {
   return cachedAdminDailyRhythmSummary(input);
 }
 
-export function getCachedDailyTop3Status(todaySaleDate: DateValue) {
-  return cachedDailyTop3Status(todaySaleDate);
+export function getCachedDailyTop3Status(input: DailyTop3StatusInput) {
+  return cachedDailyTop3Status(input);
 }
 
 export function refreshLeaderboardCaches() {

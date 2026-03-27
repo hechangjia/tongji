@@ -177,7 +177,11 @@ describe("leaderboard cache", () => {
         todaySaleDate: "2026-03-27",
       }),
     ).resolves.toEqual({ pendingCount: 1 });
-    await expect(getCachedDailyTop3Status("2026-03-27")).resolves.toEqual({
+    await expect(
+      getCachedDailyTop3Status({
+        todaySaleDate: "2026-03-27",
+      }),
+    ).resolves.toEqual({
       temporaryTop3: [{ userName: "E" }],
       formalTop3: [{ userName: "F" }],
     });
@@ -189,7 +193,9 @@ describe("leaderboard cache", () => {
     expect(getAdminDailyRhythmSummaryMock).toHaveBeenCalledWith({
       todaySaleDate: "2026-03-27",
     });
-    expect(getDailyTop3StatusMock).toHaveBeenCalledWith("2026-03-27");
+    expect(getDailyTop3StatusMock).toHaveBeenCalledWith({
+      todaySaleDate: "2026-03-27",
+    });
   });
 
   test("refreshes the shared leaderboard tag and leaderboard/admin pages", () => {

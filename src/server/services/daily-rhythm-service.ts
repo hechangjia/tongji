@@ -66,7 +66,8 @@ export type MemberDailyRhythmSummary = {
 export type AdminDailyRhythmSummary = {
   message: string;
   pendingCount: number;
-  top3Status: DailyTop3Status;
+  top3Status: "NOT_CONFIRMED" | "CONFIRMED";
+  top3Details: DailyTop3Status;
   primaryAction: DailyRhythmAction;
   secondaryActions: DailyRhythmAction[];
 };
@@ -87,6 +88,11 @@ export type AdminTodaySalesRow = Pick<
 > & {
   isTemporaryTop3: boolean;
   isFormalTop3: boolean;
+};
+
+export type DailyTop3StatusInput = {
+  todaySaleDate?: DateValue;
+  now?: Date;
 };
 
 function isVisibleMemberRow(row: Pick<DailyRhythmSourceRow, "role" | "status">) {
@@ -197,6 +203,10 @@ export function buildMemberDailyRhythmSummary({
           href: "/leaderboard/daily",
           label: "查看今日榜单",
         },
+        {
+          href: "/leaderboard/range",
+          label: "查看总榜",
+        },
       ],
     };
   }
@@ -219,6 +229,10 @@ export function buildMemberDailyRhythmSummary({
         {
           href: "/leaderboard/daily",
           label: "查看今日榜单",
+        },
+        {
+          href: "/leaderboard/range",
+          label: "查看总榜",
         },
       ],
     };
@@ -243,6 +257,10 @@ export function buildMemberDailyRhythmSummary({
           href: "/entry",
           label: "继续填写今日记录",
         },
+        {
+          href: "/leaderboard/range",
+          label: "查看总榜",
+        },
       ],
     };
   }
@@ -266,6 +284,10 @@ export function buildMemberDailyRhythmSummary({
           href: "/entry",
           label: "继续填写今日记录",
         },
+        {
+          href: "/leaderboard/range",
+          label: "查看总榜",
+        },
       ],
     };
   }
@@ -287,6 +309,10 @@ export function buildMemberDailyRhythmSummary({
       {
         href: "/entry",
         label: "继续填写今日记录",
+      },
+      {
+        href: "/leaderboard/range",
+        label: "查看总榜",
       },
     ],
   };
@@ -314,6 +340,8 @@ export function buildAdminDailyRhythmSummary({
     message = `今日正式前三已确定，仍有 ${pendingCount} 条待审核记录`;
   } else if (top3Status.isFormalTop3Complete) {
     message = "今日正式前三已确定";
+  } else if (pendingCount > 0 && approvedCount === 0) {
+    message = `今天已有 ${pendingCount} 条提交，等待管理员审核`;
   } else if (approvedCount > 0) {
     message = `今日正式前三还差 ${Math.max(3 - approvedCount, 0)} 人`;
   } else if (submittedCount === 0 && rejectedCount > 0) {
@@ -323,19 +351,20 @@ export function buildAdminDailyRhythmSummary({
   return {
     message,
     pendingCount,
-    top3Status,
+    top3Status: top3Status.isFormalTop3Complete ? "CONFIRMED" : "NOT_CONFIRMED",
+    top3Details: top3Status,
     primaryAction: {
       href: "/admin/sales",
       label: pendingCount > 0 ? "去审核今日记录" : "查看今日销售记录",
     },
     secondaryActions: [
       {
-        href: "/leaderboard/daily",
-        label: "查看今日榜单",
+        href: "/leaderboard/range",
+        label: "查看总榜",
       },
       {
-        href: "/admin",
-        label: "返回管理台",
+        href: "/admin/announcements",
+        label: "管理公告",
       },
     ],
   };
@@ -439,12 +468,14 @@ export async function getAdminDailyRhythmSummary({
   });
 }
 
-export async function getDailyTop3Status(
-  todaySaleDate: DateValue = getTodaySaleDateValue(),
-) {
-  const rows = await getTodayDailyRhythmRows(todaySaleDate);
+export async function getDailyTop3Status({
+  todaySaleDate,
+  now = new Date(),
+}: DailyTop3StatusInput = {}) {
+  const resolvedTodaySaleDate = todaySaleDate ?? getTodaySaleDateValue(now);
+  const rows = await getTodayDailyRhythmRows(resolvedTodaySaleDate);
 
-  return buildDailyTop3Status(rows, todaySaleDate);
+  return buildDailyTop3Status(rows, resolvedTodaySaleDate);
 }
 
 export async function getAdminTodaySalesRows({
