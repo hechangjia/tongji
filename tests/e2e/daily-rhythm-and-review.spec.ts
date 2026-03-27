@@ -38,9 +38,13 @@ test("admin reviews today's pending sales and sees formal top3 leaderboard", asy
   await page.waitForURL(/\/admin\/sales\?scope=today/, { timeout: 10000 });
   await expect(page.getByText("今日待审核")).toBeVisible();
 
+  const remarkInput = page
+    .locator('input[name="remark"]')
+    .filter({ has: page.locator(`[value="${uniqueRemark}"]`) })
+    .first();
   const pendingCard = page
     .locator("form")
-    .filter({ hasText: uniqueRemark })
+    .filter({ has: remarkInput })
     .filter({ has: page.getByRole("button", { name: "通过" }) })
     .first();
   await pendingCard.getByRole("button", { name: "通过" }).click();
