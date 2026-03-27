@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { getTodaySaleDateValue } from "@/server/services/sales-service";
 
 const authMock = vi.hoisted(() => vi.fn());
 const redirectMock = vi.hoisted(() =>
@@ -49,13 +50,17 @@ describe("sales entry action", () => {
     vi.clearAllMocks();
     getMemberDailyRhythmSummaryMock.mockResolvedValue({
       state: "PENDING_REVIEW",
+      title: "当日节奏摘要",
       message: "今天的提交已收到，等待管理员审核",
       reviewStatus: "PENDING",
+      reviewStatusLabel: "待审核",
       reviewNote: null,
       isTemporaryTop3: false,
       isFormalTop3: false,
       temporaryRank: null,
       formalRank: null,
+      top3Label: null,
+      top3Message: null,
       primaryAction: {
         href: "/leaderboard/daily",
         label: "查看今日榜单",
@@ -112,6 +117,10 @@ describe("sales entry action", () => {
         isUpdate: false,
         recoveredFromError: false,
       },
+    });
+    expect(getMemberDailyRhythmSummaryMock).toHaveBeenCalledWith({
+      currentUserId: "member-1",
+      todaySaleDate: getTodaySaleDateValue(),
     });
   });
 

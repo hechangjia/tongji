@@ -8,13 +8,17 @@ describe("entry daily rhythm summary", () => {
       <EntryDailyRhythmSummary
         summary={{
           state: "PENDING_REVIEW",
+          title: "当日节奏摘要",
           message: "今天的提交已收到，等待管理员审核",
           reviewStatus: "PENDING",
+          reviewStatusLabel: "待审核",
           reviewNote: null,
           isTemporaryTop3: true,
           isFormalTop3: false,
           temporaryRank: 2,
           formalRank: null,
+          top3Label: "临时前三",
+          top3Message: "当前处于临时第 2 名",
           lastSubmittedAtIso: "2026-03-27T08:15:00.000Z",
           primaryAction: {
             href: "/leaderboard/daily",
@@ -40,6 +44,7 @@ describe("entry daily rhythm summary", () => {
     expect(screen.getByText("临时前三")).toBeInTheDocument();
     expect(screen.getByText("当前处于临时第 2 名")).toBeInTheDocument();
     expect(screen.getByText("最后提交时间")).toBeInTheDocument();
+    expect(screen.getByText("03/27 16:15:00")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "查看今日榜单" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "继续填写今日记录" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "查看总榜" })).toBeInTheDocument();

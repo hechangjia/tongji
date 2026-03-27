@@ -19,13 +19,17 @@ describe("sales entry success card", () => {
           recoveredFromError: false,
           dailyRhythm: {
             state: "PENDING_REVIEW",
+            title: "当日节奏摘要",
             message: "今天的提交已收到，等待管理员审核",
             reviewStatus: "PENDING",
+            reviewStatusLabel: "待审核",
             reviewNote: null,
             isTemporaryTop3: false,
             isFormalTop3: false,
             temporaryRank: null,
             formalRank: null,
+            top3Label: null,
+            top3Message: null,
             lastSubmittedAtIso: "2026-03-26T08:15:00.000Z",
             primaryAction: {
               href: "/leaderboard/daily",

@@ -6,13 +6,6 @@ export type EntryDailyRhythmSummaryData = MemberDailyRhythmSummary & {
   lastSubmittedAtIso: string | null;
 };
 
-const reviewStatusLabels = {
-  NONE: "未提交",
-  PENDING: "待审核",
-  APPROVED: "已通过",
-  REJECTED: "已退回",
-} as const;
-
 function formatSubmittedAt(value: string) {
   return new Intl.DateTimeFormat("zh-CN", {
     hour12: false,
@@ -20,6 +13,7 @@ function formatSubmittedAt(value: string) {
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
+    second: "2-digit",
   }).format(new Date(value));
 }
 
@@ -39,26 +33,7 @@ function getTone(summary: EntryDailyRhythmSummaryData) {
 }
 
 function getTitle(summary: EntryDailyRhythmSummaryData) {
-  switch (summary.state) {
-    case "REJECTED":
-      return "当日节奏提醒";
-    case "PENDING_REVIEW":
-      return "当日节奏摘要";
-    case "FORMAL_TOP3":
-      return "当日节奏进展";
-    case "APPROVED_NOT_TOP3":
-      return "当日节奏进展";
-    case "NO_SUBMISSION":
-      return "当日节奏提醒";
-  }
-}
-
-function getTemporaryTop3Text(summary: EntryDailyRhythmSummaryData) {
-  if (summary.isTemporaryTop3 && summary.temporaryRank) {
-    return `当前处于临时第 ${summary.temporaryRank} 名`;
-  }
-
-  return null;
+  return summary.title;
 }
 
 export function EntryDailyRhythmSummary({
@@ -68,8 +43,6 @@ export function EntryDailyRhythmSummary({
   summary: EntryDailyRhythmSummaryData;
   className?: string;
 }) {
-  const temporaryTop3Text = getTemporaryTop3Text(summary);
-
   return (
     <StatusCallout tone={getTone(summary)} title={getTitle(summary)}>
       <div className={className ?? "space-y-4"}>
@@ -85,30 +58,21 @@ export function EntryDailyRhythmSummary({
             </div>
           ) : null}
 
-          {summary.reviewStatus !== "NONE" ? (
+          {summary.reviewStatusLabel ? (
             <div>
               <dt className="text-xs font-semibold uppercase tracking-[0.18em] opacity-70">
                 当前审核状态
               </dt>
-              <dd className="mt-1">{reviewStatusLabels[summary.reviewStatus]}</dd>
+              <dd className="mt-1">{summary.reviewStatusLabel}</dd>
             </div>
           ) : null}
 
-          {summary.isTemporaryTop3 && temporaryTop3Text ? (
+          {summary.top3Label && summary.top3Message ? (
             <div>
               <dt className="text-xs font-semibold uppercase tracking-[0.18em] opacity-70">
-                临时前三
+                {summary.top3Label}
               </dt>
-              <dd className="mt-1">{temporaryTop3Text}</dd>
-            </div>
-          ) : null}
-
-          {summary.isFormalTop3 && summary.formalRank ? (
-            <div>
-              <dt className="text-xs font-semibold uppercase tracking-[0.18em] opacity-70">
-                正式前三
-              </dt>
-              <dd className="mt-1">{`正式第 ${summary.formalRank} 名`}</dd>
+              <dd className="mt-1">{summary.top3Message}</dd>
             </div>
           ) : null}
         </dl>

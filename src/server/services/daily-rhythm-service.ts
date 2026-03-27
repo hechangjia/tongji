@@ -52,13 +52,17 @@ export type MemberDailyRhythmState =
 
 export type MemberDailyRhythmSummary = {
   state: MemberDailyRhythmState;
+  title: string;
   message: string;
   reviewStatus: SalesReviewStatus | "NONE";
+  reviewStatusLabel: string | null;
   reviewNote: string | null;
   isTemporaryTop3: boolean;
   isFormalTop3: boolean;
   temporaryRank: number | null;
   formalRank: number | null;
+  top3Label: string | null;
+  top3Message: string | null;
   primaryAction: DailyRhythmAction;
   secondaryActions: DailyRhythmAction[];
 };
@@ -194,13 +198,17 @@ export function buildMemberDailyRhythmSummary({
   if (!currentRow) {
     return {
       state: "NO_SUBMISSION",
+      title: "当日节奏提醒",
       message: "今天还没有提交销售记录",
       reviewStatus: "NONE",
+      reviewStatusLabel: null,
       reviewNote: null,
       isTemporaryTop3: false,
       isFormalTop3: false,
       temporaryRank: null,
       formalRank: null,
+      top3Label: null,
+      top3Message: null,
       primaryAction: {
         href: "/entry",
         label: "去填写今日记录",
@@ -221,13 +229,17 @@ export function buildMemberDailyRhythmSummary({
   if (currentRow.reviewStatus === "REJECTED") {
     return {
       state: "REJECTED",
+      title: "当日节奏提醒",
       message: "今天的记录被退回，请尽快重新提交",
       reviewStatus: currentRow.reviewStatus,
+      reviewStatusLabel: "已退回",
       reviewNote: currentRow.reviewNote,
       isTemporaryTop3: false,
       isFormalTop3: false,
       temporaryRank: null,
       formalRank: null,
+      top3Label: null,
+      top3Message: null,
       primaryAction: {
         href: "/entry",
         label: "重新提交今日记录",
@@ -248,13 +260,17 @@ export function buildMemberDailyRhythmSummary({
   if (currentRow.reviewStatus === "PENDING") {
     return {
       state: "PENDING_REVIEW",
+      title: "当日节奏摘要",
       message: "今天的提交已收到，等待管理员审核",
       reviewStatus: currentRow.reviewStatus,
+      reviewStatusLabel: "待审核",
       reviewNote: null,
       isTemporaryTop3: temporaryRank !== null,
       isFormalTop3: false,
       temporaryRank,
       formalRank: null,
+      top3Label: temporaryRank !== null ? "临时前三" : null,
+      top3Message: temporaryRank !== null ? `当前处于临时第 ${temporaryRank} 名` : null,
       primaryAction: {
         href: "/leaderboard/daily",
         label: "查看今日榜单",
@@ -275,13 +291,17 @@ export function buildMemberDailyRhythmSummary({
   if (formalRank !== null) {
     return {
       state: "FORMAL_TOP3",
+      title: "当日节奏进展",
       message: "今天的记录已通过审核，已进入正式前三",
       reviewStatus: currentRow.reviewStatus,
+      reviewStatusLabel: "已通过",
       reviewNote: null,
       isTemporaryTop3: temporaryRank !== null,
       isFormalTop3: true,
       temporaryRank,
       formalRank,
+      top3Label: "正式前三",
+      top3Message: `正式第 ${formalRank} 名`,
       primaryAction: {
         href: "/leaderboard/daily",
         label: "查看今日榜单",
@@ -301,13 +321,17 @@ export function buildMemberDailyRhythmSummary({
 
   return {
     state: "APPROVED_NOT_TOP3",
+    title: "当日节奏进展",
     message: "今天的记录已通过审核，继续保持",
     reviewStatus: currentRow.reviewStatus,
+    reviewStatusLabel: "已通过",
     reviewNote: null,
     isTemporaryTop3: false,
     isFormalTop3: false,
     temporaryRank: null,
     formalRank: null,
+    top3Label: null,
+    top3Message: null,
     primaryAction: {
       href: "/leaderboard/daily",
       label: "查看今日榜单",

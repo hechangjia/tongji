@@ -6,7 +6,11 @@ import { auth } from "@/lib/auth";
 import { canAccessMemberArea } from "@/lib/permissions";
 import { getMemberDailyRhythmSummary } from "@/server/services/daily-rhythm-service";
 import { refreshLeaderboardCaches } from "@/server/services/leaderboard-cache";
-import { saleDateToValue, saveSalesRecordForUser } from "@/server/services/sales-service";
+import {
+  getTodaySaleDateValue,
+  saleDateToValue,
+  saveSalesRecordForUser,
+} from "@/server/services/sales-service";
 import type { SalesEntryFormState } from "@/app/(member)/entry/form-state";
 
 export async function saveSalesEntryAction(
@@ -28,9 +32,10 @@ export async function saveSalesEntryAction(
     });
     const lastSubmittedAt = record.lastSubmittedAt ?? record.updatedAt;
     const saleDate = saleDateToValue(record.saleDate);
+    const todaySaleDate = getTodaySaleDateValue();
     const dailyRhythm = await getMemberDailyRhythmSummary({
       currentUserId: session.user.id,
-      todaySaleDate: saleDate,
+      todaySaleDate,
     });
 
     revalidatePath("/entry");

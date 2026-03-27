@@ -166,6 +166,7 @@ describe("daily rhythm service pure helpers", () => {
     ).toMatchObject({
       state: "NO_SUBMISSION",
       message: "今天还没有提交销售记录",
+      title: "当日节奏提醒",
       primaryAction: { href: "/entry", label: "去填写今日记录" },
       secondaryActions: [
         { href: "/leaderboard/daily", label: "查看今日榜单" },
@@ -173,6 +174,9 @@ describe("daily rhythm service pure helpers", () => {
       ],
       isTemporaryTop3: false,
       isFormalTop3: false,
+      reviewStatusLabel: null,
+      top3Label: null,
+      top3Message: null,
     });
   });
 
@@ -208,8 +212,12 @@ describe("daily rhythm service pure helpers", () => {
     ).toMatchObject({
       state: "PENDING_REVIEW",
       message: "今天的提交已收到，等待管理员审核",
+      title: "当日节奏摘要",
       isTemporaryTop3: true,
       isFormalTop3: false,
+      reviewStatusLabel: "待审核",
+      top3Label: "临时前三",
+      top3Message: "当前处于临时第 1 名",
     });
   });
 
