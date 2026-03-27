@@ -1,5 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
+import {
+  canAccessAdmin,
+  canAccessMemberArea,
+  getDefaultRedirectPath,
+} from "@/lib/permissions";
 
 describe("permissions", () => {
   test("member cannot access admin routes", () => {
@@ -16,5 +20,14 @@ describe("permissions", () => {
 
   test("default redirect sends leaders to the leader group page", () => {
     expect(getDefaultRedirectPath("LEADER")).toBe("/leader/group");
+  });
+
+  test("leader cannot access member routes", () => {
+    expect(canAccessMemberArea({ role: "LEADER" })).toBe(false);
+  });
+
+  test("member and admin can access member routes", () => {
+    expect(canAccessMemberArea({ role: "MEMBER" })).toBe(true);
+    expect(canAccessMemberArea({ role: "ADMIN" })).toBe(true);
   });
 });

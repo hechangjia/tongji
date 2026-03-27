@@ -4,9 +4,11 @@ import {
   buildLoginRedirect,
   canAccessAdmin,
   canAccessLeader,
+  canAccessMemberArea,
   getDefaultRedirectPath,
   isAdminPath,
   isLeaderPath,
+  isMemberPath,
   isProtectedPath,
 } from "@/lib/permissions";
 
@@ -38,6 +40,12 @@ export const proxy = auth((request) => {
   }
 
   if (isLeaderPath(pathname) && !canAccessLeader(user)) {
+    return NextResponse.redirect(
+      new URL(getDefaultRedirectPath(user.role), request.url),
+    );
+  }
+
+  if (isMemberPath(pathname) && !canAccessMemberArea(user)) {
     return NextResponse.redirect(
       new URL(getDefaultRedirectPath(user.role), request.url),
     );
