@@ -52,7 +52,8 @@ import type { RegisterFormState } from "@/app/(auth)/login/form-state";
 
 describe("login register actions", () => {
   const initialState: RegisterFormState = {
-    error: null,
+    status: "idle",
+    message: null,
   };
 
   beforeEach(() => {
@@ -106,7 +107,8 @@ describe("login register actions", () => {
     formData.set("password", "member123456");
 
     await expect(registerMemberAction(initialState, formData)).resolves.toEqual({
-      error: "该账号已存在，请更换后重试",
+      status: "error",
+      message: "该账号已存在，请更换后重试",
     });
     expect(signInMock).not.toHaveBeenCalled();
   });
@@ -122,7 +124,30 @@ describe("login register actions", () => {
     formData.set("password", "member123456");
 
     await expect(registerMemberAction(initialState, formData)).resolves.toEqual({
-      error: "注册成功，请使用新账号登录",
+      status: "manual_login",
+      message: "注册成功，请使用新账号登录",
+    });
+  });
+
+  test("registerMemberAction defaults to member entry target when callbackUrl is absent", async () => {
+    userFindUniqueMock.mockResolvedValue(null);
+    userCreateMock.mockResolvedValue({});
+    hashPasswordMock.mockResolvedValue("hashed-password");
+    signInMock.mockImplementation(() => {
+      throw new Error("redirect:/entry");
+    });
+
+    const formData = new FormData();
+    formData.set("username", "member10");
+    formData.set("password", "member123456");
+
+    await expect(registerMemberAction(initialState, formData)).rejects.toThrow(
+      "redirect:/entry",
+    );
+    expect(signInMock).toHaveBeenCalledWith("credentials", {
+      username: "member10",
+      password: "member123456",
+      redirectTo: "/entry",
     });
   });
 });

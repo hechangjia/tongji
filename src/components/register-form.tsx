@@ -7,7 +7,8 @@ import type { RegisterFormState } from "@/app/(auth)/login/form-state";
 import { StatusCallout } from "@/components/status-callout";
 
 const initialRegisterFormState: RegisterFormState = {
-  error: null,
+  status: "idle",
+  message: null,
 };
 
 function SubmitButton() {
@@ -24,7 +25,7 @@ function SubmitButton() {
   );
 }
 
-export function RegisterForm({ callbackUrl }: { callbackUrl: string }) {
+export function RegisterForm({ callbackUrl }: { callbackUrl?: string }) {
   const [state, formAction] = useActionState(
     registerMemberAction,
     initialRegisterFormState,
@@ -32,7 +33,9 @@ export function RegisterForm({ callbackUrl }: { callbackUrl: string }) {
 
   return (
     <form action={formAction} className="space-y-5">
-      <input type="hidden" name="callbackUrl" value={callbackUrl} />
+      {callbackUrl ? (
+        <input type="hidden" name="callbackUrl" value={callbackUrl} />
+      ) : null}
 
       <div className="grid gap-4">
         <div className="space-y-2">
@@ -74,9 +77,15 @@ export function RegisterForm({ callbackUrl }: { callbackUrl: string }) {
         </p>
       </div>
 
-      {state.error ? (
+      {state.status === "error" && state.message ? (
         <StatusCallout tone="error" title="注册失败">
-          <p role="alert">{state.error}</p>
+          <p role="alert">{state.message}</p>
+        </StatusCallout>
+      ) : null}
+
+      {state.status === "manual_login" && state.message ? (
+        <StatusCallout tone="success" title="注册成功">
+          <p role="status">{state.message}</p>
         </StatusCallout>
       ) : null}
 

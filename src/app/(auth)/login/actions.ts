@@ -70,7 +70,9 @@ export async function registerMemberAction(
     const fieldErrors = parsedInput.error.flatten().fieldErrors;
 
     return {
-      error: fieldErrors.username?.[0] ?? fieldErrors.password?.[0] ?? "请检查注册信息",
+      status: "error",
+      message:
+        fieldErrors.username?.[0] ?? fieldErrors.password?.[0] ?? "请检查注册信息",
     };
   }
 
@@ -82,7 +84,8 @@ export async function registerMemberAction(
 
   if (existingUser) {
     return {
-      error: "该账号已存在，请更换后重试",
+      status: "error",
+      message: "该账号已存在，请更换后重试",
     };
   }
 
@@ -104,7 +107,8 @@ export async function registerMemberAction(
       error.code === "P2002"
     ) {
       return {
-        error: "该账号已存在，请更换后重试",
+        status: "error",
+        message: "该账号已存在，请更换后重试",
       };
     }
 
@@ -112,7 +116,10 @@ export async function registerMemberAction(
   }
 
   const defaultMemberTarget = getDefaultRedirectPath(Role.MEMBER);
-  const redirectTo = sanitizeCallbackUrl(callbackUrl ?? defaultMemberTarget);
+  const redirectTo =
+    callbackUrl && callbackUrl.trim() !== ""
+      ? sanitizeCallbackUrl(callbackUrl)
+      : defaultMemberTarget;
 
   try {
     await signIn("credentials", {
@@ -123,7 +130,8 @@ export async function registerMemberAction(
   } catch (error) {
     if (error instanceof AuthError) {
       return {
-        error: "注册成功，请使用新账号登录",
+        status: "manual_login",
+        message: "注册成功，请使用新账号登录",
       };
     }
 
@@ -131,6 +139,7 @@ export async function registerMemberAction(
   }
 
   return {
-    error: null,
+    status: "idle",
+    message: null,
   };
 }

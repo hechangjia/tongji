@@ -22,7 +22,7 @@ vi.mock("@/components/login-form", () => ({
 }));
 
 vi.mock("@/components/register-form", () => ({
-  RegisterForm: ({ callbackUrl }: { callbackUrl: string }) => {
+  RegisterForm: ({ callbackUrl }: { callbackUrl?: string }) => {
     registerFormMock({ callbackUrl });
     return <div>register-form</div>;
   },
@@ -58,5 +58,15 @@ describe("login page", () => {
 
     expect(loginFormMock).toHaveBeenCalledWith({ callbackUrl: "/records" });
     expect(registerFormMock).toHaveBeenCalledWith({ callbackUrl: "/records" });
+  });
+
+  test("does not force callbackUrl into register form when search param is absent", async () => {
+    render(
+      await LoginPage({
+        searchParams: Promise.resolve({}),
+      }),
+    );
+
+    expect(registerFormMock).toHaveBeenCalledWith({ callbackUrl: undefined });
   });
 });

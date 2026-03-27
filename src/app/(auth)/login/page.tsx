@@ -22,9 +22,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   const params = searchParams ? await searchParams : undefined;
   const callbackUrlValue = params?.callbackUrl;
-  const callbackUrl = sanitizeCallbackUrl(
-    typeof callbackUrlValue === "string" ? callbackUrlValue : undefined,
-  );
+  const callbackUrl =
+    typeof callbackUrlValue === "string"
+      ? sanitizeCallbackUrl(callbackUrlValue)
+      : undefined;
+  const loginCallbackUrl = callbackUrl ?? "/";
 
   return (
     <main className="relative flex min-h-dvh items-center overflow-hidden px-4 py-10 sm:px-6 lg:px-8">
@@ -94,7 +96,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               </div>
 
               <div className="mt-8">
-                <LoginForm callbackUrl={callbackUrl} />
+                <LoginForm callbackUrl={loginCallbackUrl} />
               </div>
             </section>
 

@@ -3,5 +3,6 @@ export type LoginFormState = {
 };
 
 export type RegisterFormState = {
-  error: string | null;
+  status: "idle" | "error" | "manual_login";
+  message: string | null;
 };
