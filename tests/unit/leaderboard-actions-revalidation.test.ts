@@ -10,6 +10,8 @@ const saveSalesRecordForUserMock = vi.hoisted(() => vi.fn());
 const refreshLeaderboardCachesMock = vi.hoisted(() => vi.fn());
 const getMemberDailyRhythmSummaryMock = vi.hoisted(() => vi.fn());
 const salesRecordUpdateMock = vi.hoisted(() => vi.fn());
+const dailyTargetUpdateMock = vi.hoisted(() => vi.fn());
+const memberReminderCreateMock = vi.hoisted(() => vi.fn());
 const userFindUniqueMock = vi.hoisted(() => vi.fn());
 const userUpdateMock = vi.hoisted(() => vi.fn());
 const revalidatePathMock = vi.hoisted(() => vi.fn());
@@ -41,6 +43,14 @@ vi.mock("@/server/services/leaderboard-cache", () => ({
   refreshLeaderboardCaches: refreshLeaderboardCachesMock,
 }));
 
+vi.mock("@/server/services/daily-target-service", () => ({
+  updateFinalDailyTarget: dailyTargetUpdateMock,
+}));
+
+vi.mock("@/server/services/member-reminder-service", () => ({
+  createMemberReminder: memberReminderCreateMock,
+}));
+
 vi.mock("@/server/services/daily-rhythm-service", () => ({
   getMemberDailyRhythmSummary: getMemberDailyRhythmSummaryMock,
 }));
@@ -62,6 +72,10 @@ import {
   reviewSalesRecordAction,
   updateSalesRecordAction,
 } from "@/app/(admin)/admin/sales/actions";
+import {
+  adjustDailyTargetAction,
+  sendMemberReminderAction,
+} from "@/app/(admin)/admin/insights/actions";
 import { updateMemberAction } from "@/app/(admin)/admin/members/actions";
 
 describe("leaderboard cache revalidation on writes", () => {
@@ -192,6 +206,50 @@ describe("leaderboard cache revalidation on writes", () => {
 
     await expect(updateMemberAction(formData)).rejects.toThrow(
       "redirect:/admin/members?notice=",
+    );
+
+    expect(refreshLeaderboardCachesMock).toHaveBeenCalledTimes(1);
+  });
+
+  test("refreshes leaderboard caches after admin adjusts a daily target", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "admin-1",
+        role: "ADMIN",
+      },
+    });
+    dailyTargetUpdateMock.mockResolvedValue({});
+
+    const formData = new FormData();
+    formData.set("targetId", "target-1");
+    formData.set("finalTotal", "8");
+    formData.set("returnTo", "/admin/insights");
+
+    await expect(adjustDailyTargetAction(formData)).rejects.toThrow(
+      "redirect:/admin/insights?notice=",
+    );
+
+    expect(refreshLeaderboardCachesMock).toHaveBeenCalledTimes(1);
+  });
+
+  test("refreshes leaderboard caches after admin sends a member reminder", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "admin-1",
+        role: "ADMIN",
+      },
+    });
+    memberReminderCreateMock.mockResolvedValue({});
+
+    const formData = new FormData();
+    formData.set("userId", "member-1");
+    formData.set("template", "TARGET_GAP");
+    formData.set("title", "今日目标仍有差距");
+    formData.set("content", "你今天距离目标还差 3 单，请尽快跟进。");
+    formData.set("returnTo", "/admin/insights");
+
+    await expect(sendMemberReminderAction(formData)).rejects.toThrow(
+      "redirect:/admin/insights?notice=",
     );
 
     expect(refreshLeaderboardCachesMock).toHaveBeenCalledTimes(1);

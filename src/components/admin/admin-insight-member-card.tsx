@@ -1,4 +1,6 @@
 import type { AdminInsightMemberCard as AdminInsightMemberCardData } from "@/server/services/admin-insights-service";
+import { AdminReminderForm } from "@/components/admin/admin-reminder-form";
+import { AdminTargetAdjustForm } from "@/components/admin/admin-target-adjust-form";
 
 function getRiskTone(riskLevel: AdminInsightMemberCardData["riskLevel"]) {
   switch (riskLevel) {
@@ -35,19 +37,20 @@ export function AdminInsightMemberCard({ card }: { card: AdminInsightMemberCardD
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        <button
-          type="button"
-          className="inline-flex h-11 items-center justify-center rounded-[18px] bg-slate-950 px-4 text-sm font-semibold text-white"
-        >
-          调整今日目标
-        </button>
-        <button
-          type="button"
-          className="inline-flex h-11 items-center justify-center rounded-[18px] border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900"
-        >
-          发送提醒
-        </button>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <AdminTargetAdjustForm
+          targetId={card.targetId}
+          finalTotal={card.targetTotal}
+          returnTo="/admin/insights"
+        />
+        <AdminReminderForm
+          userId={card.userId}
+          userName={card.userName}
+          targetTotal={card.targetTotal}
+          currentTotal={card.currentTotal}
+          targetGap={card.targetGap}
+          returnTo="/admin/insights"
+        />
       </div>
     </article>
   );

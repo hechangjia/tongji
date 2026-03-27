@@ -23,6 +23,7 @@ export type AdminInsightRiskLevel = "HIGH" | "MEDIUM" | "LOW";
 export type AdminInsightMemberCardInput = {
   userId: string;
   userName: string;
+  targetId?: string | null;
   targetTotal: number;
   currentTotal: number;
   recentAverageTotal: number;
@@ -34,6 +35,9 @@ export type AdminInsightMemberCardInput = {
 export type AdminInsightMemberCard = {
   userId: string;
   userName: string;
+  targetId: string | null;
+  targetTotal: number;
+  currentTotal: number;
   riskScore: number;
   riskLevel: AdminInsightRiskLevel;
   reasonTags: AdminInsightReasonTag[];
@@ -110,6 +114,9 @@ export function buildAdminInsightMemberCard(
   return {
     userId: input.userId,
     userName: input.userName,
+    targetId: input.targetId ?? null,
+    targetTotal: input.targetTotal,
+    currentTotal: input.currentTotal,
     riskScore,
     riskLevel,
     reasonTags,
@@ -233,6 +240,7 @@ export async function getAdminInsightsData({
       return buildAdminInsightMemberCard({
         userId: user.id,
         userName: user.name || user.username,
+        targetId: user.dailyTargets[0]?.id ?? null,
         targetTotal,
         currentTotal,
         recentAverageTotal,

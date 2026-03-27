@@ -204,6 +204,7 @@ describe("leaderboard cache", () => {
     expect(updateTagMock).toHaveBeenCalledWith(LEADERBOARD_CACHE_TAG);
     expect(revalidatePathMock).toHaveBeenCalledWith("/entry");
     expect(revalidatePathMock).toHaveBeenCalledWith("/admin");
+    expect(revalidatePathMock).toHaveBeenCalledWith("/admin/insights");
     expect(revalidatePathMock).toHaveBeenCalledWith("/admin/sales");
     expect(revalidatePathMock).toHaveBeenCalledWith("/leaderboard/daily");
     expect(revalidatePathMock).toHaveBeenCalledWith("/leaderboard/range");
