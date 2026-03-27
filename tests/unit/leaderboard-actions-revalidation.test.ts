@@ -69,10 +69,14 @@ describe("leaderboard cache revalidation on writes", () => {
       },
     });
     saveSalesRecordForUserMock.mockResolvedValue({
-      saleDate: new Date("2026-03-26T00:00:00.000Z"),
-      count40: 1,
-      count60: 2,
-      remark: "",
+      isUpdate: true,
+      record: {
+        saleDate: new Date("2026-03-26T00:00:00.000Z"),
+        count40: 1,
+        count60: 2,
+        remark: "",
+        updatedAt: new Date("2026-03-26T08:00:00.000Z"),
+      },
     });
 
     const formData = new FormData();

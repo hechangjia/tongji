@@ -26,6 +26,11 @@ export type AdminSalesRow = {
   remark: string | null;
 };
 
+export type SaveSalesRecordResult = {
+  isUpdate: boolean;
+  record: Awaited<ReturnType<typeof db.salesRecord.upsert>>;
+};
+
 export function getTodaySaleDateValue(
   now = new Date(),
   timeZone = DEFAULT_TIME_ZONE,
@@ -136,8 +141,16 @@ export async function getAdminSalesRows(filters: AdminSalesFilters = {}) {
 export async function saveSalesRecordForUser(userId: string, input: SalesInput) {
   const payload = normalizeSalePayload(input);
   const saleDate = saleDateValueToDate(payload.saleDate);
+  const existing = await db.salesRecord.findUnique({
+    where: {
+      userId_saleDate: {
+        userId,
+        saleDate,
+      },
+    },
+  });
 
-  return db.salesRecord.upsert({
+  const record = await db.salesRecord.upsert({
     where: {
       userId_saleDate: {
         userId,
@@ -157,4 +170,9 @@ export async function saveSalesRecordForUser(userId: string, input: SalesInput) 
       remark: payload.remark,
     },
   });
+
+  return {
+    isUpdate: Boolean(existing),
+    record,
+  } satisfies SaveSalesRecordResult;
 }

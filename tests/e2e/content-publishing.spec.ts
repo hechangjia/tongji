@@ -28,7 +28,7 @@ test("admin can publish banner and announcement content that members can see", a
   await page.getByLabel("发布时间").fill("2026-03-26T10:00");
   await page.getByRole("button", { name: "保存公告" }).click();
   await expect(page.getByRole("status")).toContainText("公告已保存");
-  await expect(page.getByText(announcementTitle)).toBeVisible();
+  await expect(page.getByRole("heading", { name: announcementTitle }).first()).toBeVisible();
 
   await page.context().clearCookies();
 

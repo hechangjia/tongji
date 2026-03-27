@@ -2,45 +2,61 @@
 
 ## 当前目标
 
-- 暂停前的主目标已从“实现”切换为“线上验收”。
-- 当前应优先验证生产站 `https://tongji.662613.xyz` 上这三组新功能：
-  - 登录账号可修改
-  - `hitokoto` 导入到本地横幅池
-  - 前端调色板主题切换
+- 在新分支中完成第一轮体验增强：
+  - `/entry` 保存确认卡
+  - 成员端 `/leaderboard/range` 累计买卡排行
+  - 管理员首页累计买卡趋势面板
+- 完成后再进入完整验证与后续上线准备。
 
 ## 今天已完成内容
 
-- 将生产部署区域切到 `sin1`，线上域名已指向新加坡区域。
-- 完成并上线榜单性能优化：
-  - 日榜 / 总榜 30 秒服务端缓存
-  - 成员录入、管理员改销售、管理员改成员姓名后自动刷新榜单缓存
-- 将 Vercel Analytics import 对齐到官方推荐写法。
-- 完成并推送 `ad24d19 feat: add theme palette and content imports`：
-  - 管理员 / 成员登录账号可在成员管理页修改
-  - seed 改为按“是否已有管理员角色”判断，不再依赖默认用户名 `admin`
-  - 后台横幅页支持从 `hitokoto` 导入一条文案并保存到本地数据库
-  - 新增前端调色板，主题保存在当前浏览器 `localStorage`
-  - 登录页、壳层背景、横幅、榜单卡片等视觉改为走主题变量
-- 当前生产域名已指向最新 deployment：
-  - `https://tongji-9jjrcnv1p-changjia-hes-projects.vercel.app`
-  - 别名包含 `https://tongji.662613.xyz`
+- 已建立隔离 worktree：
+  - `/home/chia/Code/maika/.worktrees/entry-feedback-cumulative-stats`
+  - 分支：`feat/entry-feedback-cumulative-stats`
+- `/entry` 体验增强已实现：
+  - `saveSalesEntryAction` 现在返回结构化 `summary`
+  - `saveSalesRecordForUser` 现在返回 `isUpdate + record`
+  - 新增 `SalesEntrySuccessCard`
+  - 新增 `SalesEntryPageClient`
+  - 表单改为由页面层驱动 action state
+- 成员端累计统计已实现：
+  - 新增 `cumulative-sales-stats-service.ts`
+  - `/leaderboard/range` 默认区间改为“本月”
+  - 已接入累计买卡排行块
+- 管理员端累计统计已实现：
+  - 新增 `CumulativeTrendChart`
+  - 新增 `AdminCumulativeStatsPanel`
+  - `/admin` 已接入 `preset / metric` URL 驱动筛选
+- 已通过的阶段性验证：
+  - `tests/unit/sales-entry-action.test.ts`
+  - `tests/unit/sales-entry-success-card.test.tsx`
+  - `tests/e2e/member-entry.spec.ts`
+  - `tests/unit/cumulative-sales-stats-service.test.ts`
+  - `tests/unit/leaderboard-cache.test.ts`
+  - `tests/unit/cumulative-ranking-chart.test.tsx`
+  - `tests/e2e/cumulative-stats.spec.ts --grep member`
+  - `tests/unit/cumulative-trend-chart.test.tsx`
+  - `tests/e2e/cumulative-stats.spec.ts --grep admin`
 
 ## 当前进行中的内容
 
-- 无正在执行的代码任务。
-- 当前处于“等待用户查看线上效果并反馈”的状态。
+- 正在执行该分支的总验证与收尾。
+- 尚未跑完整 `lint / tsc / test / test:e2e / build` 全套安全网。
 
 ## 剩余工作
 
-- 手动验收生产站新功能：
-  - `/admin/members` 的登录账号修改
-  - `/admin/banners` 的 `hitokoto` 导入
-  - 全站调色板切换效果
-- 检查 Vercel Analytics / Speed Insights 是否开始出数据。
-- 如果用户继续优化：
-  - 再做主题细节打磨
-  - 再做用户名修改后的交互提示优化
-  - 再做 `hitokoto` 导入筛选/分类增强
+- 跑目标验证集：
+  - 新增 unit tests
+  - `member-entry.spec.ts`
+  - `cumulative-stats.spec.ts`
+- 跑完整安全网：
+  - `npm run lint`
+  - `npx tsc --noEmit`
+  - `npm run test`
+  - `npm run test:e2e`
+  - `npm run build`
+- 根据验证结果修复剩余问题。
+- 如果验证全部通过，再决定是否整理分支、提交、合并或部署。
 
 ## 关键决策和约束
 
@@ -48,66 +64,83 @@
 - 角色固定：`MEMBER` / `ADMIN`。
 - 套餐固定：`40` / `60`。
 - 每人每天仅一条销售记录，`userId + saleDate` 唯一。
-- 结算缺规则时必须显式标记，不能按 `0` 结算。
-- 横幅一言与公告保持两个独立系统，不合并成内容中心。
-- `hitokoto` 采用“后台导入到本地数据库”的方式，不在前台请求主链路实时调用外部接口。
-- 主题系统首版采用“浏览器本地持久化”，不入库，不做用户级云同步。
+- 本轮 `/entry` 成功卡展示的是：
+  - 销售日期
+  - `40` 套餐数量
+  - `60` 套餐数量
+  - 总数
+  - 备注摘要
+  - 保存时间
+  不是“销售额”，因为当前数据模型没有该字段。
+- `/entry` 的“是否覆盖”由后端保存动作直接返回 `isUpdate`，前端不预查。
+- 累计统计口径是数量求和：
+  - `TOTAL = sum(count40) + sum(count60)`
+  - `PLAN_40 = sum(count40)`
+  - `PLAN_60 = sum(count60)`
+- 累计统计对象当前限定为：`role === MEMBER && status === ACTIVE`
+- 成员端累计模块挂在 `/leaderboard/range`，默认使用“本月”区间
+- 管理员端累计模块挂在 `/admin`，支持 `MONTH / ROLLING_30 / ALL_TIME`
 - 榜单缓存 TTL 为 `30` 秒。
-- 当前生产区域以 `sin1` 为主；自定义域名访问中，`http` 会 308 跳转到 `https`。
+- 累计统计与榜单共用 `LEADERBOARD_CACHE_TAG`，并额外对 `/admin` 做 revalidate。
 
 ## 重要文件路径
 
 - 交接文档：[docs/ai/handoff.md](/home/chia/Code/maika/docs/ai/handoff.md)
-- 成员管理更新逻辑：[actions.ts](/home/chia/Code/maika/src/app/(admin)/admin/members/actions.ts)
-- 成员管理表格：[member-table.tsx](/home/chia/Code/maika/src/components/admin/member-table.tsx)
-- 成员校验：[member.ts](/home/chia/Code/maika/src/lib/validators/member.ts)
-- 默认账号 seed 逻辑：[default-user-seed.ts](/home/chia/Code/maika/src/server/services/default-user-seed.ts)
-- 横幅后台 action：[actions.ts](/home/chia/Code/maika/src/app/(admin)/admin/banners/actions.ts)
-- `hitokoto` 服务：[hitokoto-service.ts](/home/chia/Code/maika/src/server/services/hitokoto-service.ts)
-- 主题配置：[theme.ts](/home/chia/Code/maika/src/lib/theme.ts)
-- 调色板组件：[theme-palette.tsx](/home/chia/Code/maika/src/components/theme-palette.tsx)
-- 根布局：[layout.tsx](/home/chia/Code/maika/src/app/layout.tsx)
-- 全局样式：[globals.css](/home/chia/Code/maika/src/app/globals.css)
-- 部署说明：[vercel.md](/home/chia/Code/maika/docs/deployment/vercel.md)
+- 录入 action：[actions.ts](/home/chia/Code/maika/src/app/(member)/entry/actions.ts)
+- 录入 form state：[form-state.ts](/home/chia/Code/maika/src/app/(member)/entry/form-state.ts)
+- 录入页服务端入口：[page.tsx](/home/chia/Code/maika/src/app/(member)/entry/page.tsx)
+- 录入页客户端壳层：[sales-entry-page-client.tsx](/home/chia/Code/maika/src/components/sales-entry-page-client.tsx)
+- 录入成功卡：[sales-entry-success-card.tsx](/home/chia/Code/maika/src/components/sales-entry-success-card.tsx)
+- 累计统计服务：[cumulative-sales-stats-service.ts](/home/chia/Code/maika/src/server/services/cumulative-sales-stats-service.ts)
+- 榜单缓存：[leaderboard-cache.ts](/home/chia/Code/maika/src/server/services/leaderboard-cache.ts)
+- 成员端累计排行图：[cumulative-ranking-chart.tsx](/home/chia/Code/maika/src/components/cumulative-ranking-chart.tsx)
+- 管理员趋势图：[cumulative-trend-chart.tsx](/home/chia/Code/maika/src/components/cumulative-trend-chart.tsx)
+- 管理员累计面板：[admin-cumulative-stats-panel.tsx](/home/chia/Code/maika/src/components/admin/admin-cumulative-stats-panel.tsx)
+- 总榜页：[page.tsx](/home/chia/Code/maika/src/app/(shared)/leaderboard/range/page.tsx)
+- 管理员首页：[page.tsx](/home/chia/Code/maika/src/app/(admin)/admin/page.tsx)
 
 ## 当前阻塞和风险
 
-- 最新生产部署已完成，但这轮新增功能尚未做人工线上验收。
-- `hitokoto` 依赖外部接口；虽然只在后台导入时触发，但外部服务波动时导入可能失败。
-- 主题系统当前只保存在浏览器本地；换设备或清缓存会丢失主题偏好。
+- Playwright 启动时仍会出现 Next.js workspace root warning：
+  - `/home/chia/package-lock.json`
+  - `/home/chia/Code/maika/package-lock.json`
+- Admin E2E 曾出现一次 Neon 数据库瞬时连接失败，重试后通过；说明外部数据库可用性仍是测试波动源。
+- 成员端累计模块标题当前固定为 `本月累计买卡`，如果后续需要更严谨展示用户自定义区间，可能要再改文案或动态标题。
 - Next.js 仍有 workspace root warning：
   - `/home/chia/package-lock.json`
   - `/home/chia/Code/maika/package-lock.json`
-- Vercel Analytics / Speed Insights 数据不会立即出现，存在平台延迟。
 
 ## 下次启动后优先执行的 3 个步骤
 
-1. 依次读取 `~/.claude/CLAUDE.md`、项目 `AGENTS.md`、本文件 `docs/ai/handoff.md`。
-2. 先检查生产站 `https://tongji.662613.xyz` 是否已上线以下功能：
-   - `/admin/members` 可修改登录账号
-   - `/admin/banners` 可导入 `hitokoto`
-   - 调色板可切换主题
-3. 若用户反馈问题，再按对应模块回到：
-   - 成员管理链路
-   - 横幅导入链路
-   - 主题变量 / 调色板链路
+1. 进入 worktree：`/home/chia/Code/maika/.worktrees/entry-feedback-cumulative-stats`
+2. 先跑完整验证：
+   - `npm run lint`
+   - `npx tsc --noEmit`
+   - `npm run test`
+   - `npm run test:e2e`
+   - `npm run build`
+3. 若全绿，再决定：
+   - 是否提交当前功能分支
+   - 是否合并回主工作区
+   - 是否进入上线前人工 QA
 
 ## 当前验证状态
 
 - 已通过：
+  - worktree baseline `npm run test`
+  - `tests/unit/sales-entry-action.test.ts`
+  - `tests/unit/sales-entry-success-card.test.tsx`
+  - `tests/unit/cumulative-sales-stats-service.test.ts`
+  - `tests/unit/leaderboard-cache.test.ts`
+  - `tests/unit/cumulative-ranking-chart.test.tsx`
+  - `tests/unit/cumulative-trend-chart.test.tsx`
+  - `tests/unit/leaderboard-actions-revalidation.test.ts`
+  - `tests/e2e/member-entry.spec.ts`
+  - `tests/e2e/cumulative-stats.spec.ts --grep member`
+  - `tests/e2e/cumulative-stats.spec.ts --grep admin`
+- 当前未验证：
   - `npm run lint`
   - `npx tsc --noEmit`
-  - `npm run test`
+  - 完整 `npm run test`
+  - 完整 `npm run test:e2e`
   - `npm run build`
-- 本轮新增测试已通过：
-  - `tests/unit/member-actions.test.ts`
-  - `tests/unit/default-user-seed.test.ts`
-  - `tests/unit/hitokoto-service.test.ts`
-  - `tests/unit/banner-import-actions.test.ts`
-  - `tests/unit/theme-palette.test.tsx`
-  - `tests/unit/leaderboard-actions-revalidation.test.ts`
-- 当前未验证：
-  - 最新生产站人工点击流程
-  - `hitokoto` 线上真实导入一次
-  - 主题切换在移动端和微信内置浏览器的表现
-  - Analytics / Speed Insights 实际数据回流

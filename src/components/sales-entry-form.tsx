@@ -1,15 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
-import { useFormStatus } from "react-dom";
+import type { RefObject } from "react";
 import { StatusCallout } from "@/components/status-callout";
-import { saveSalesEntryAction } from "@/app/(member)/entry/actions";
 import type { SalesEntryFormState } from "@/app/(member)/entry/form-state";
 import type { SalesEntryDefaults } from "@/server/services/sales-service";
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
-
+function SubmitButton({ pending }: { pending: boolean }) {
   return (
     <button
       type="submit"
@@ -22,23 +18,22 @@ function SubmitButton() {
 }
 
 export function SalesEntryForm({
-  initialValues,
+  values,
+  status,
+  message,
+  formAction,
+  pending,
   hasExistingRecord = false,
+  saleDateInputRef,
 }: {
-  initialValues: SalesEntryDefaults;
+  values: SalesEntryDefaults;
+  status: SalesEntryFormState["status"];
+  message: string | null;
+  formAction: (payload: FormData) => void;
+  pending: boolean;
   hasExistingRecord?: boolean;
+  saleDateInputRef?: RefObject<HTMLInputElement | null>;
 }) {
-  const initialState: SalesEntryFormState = {
-    status: "idle" as const,
-    message: null,
-    values: initialValues,
-  };
-
-  const [state, formAction] = useActionState<
-    SalesEntryFormState,
-    FormData
-  >(saveSalesEntryAction, initialState);
-
   return (
     <form
       action={formAction}
@@ -71,7 +66,8 @@ export function SalesEntryForm({
             id="saleDate"
             name="saleDate"
             type="date"
-            defaultValue={state.values.saleDate}
+            defaultValue={values.saleDate}
+            ref={saleDateInputRef}
             className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition duration-200 focus:border-cyan-400 focus:bg-cyan-50/40"
           />
         </div>
@@ -85,7 +81,7 @@ export function SalesEntryForm({
             name="count40"
             type="number"
             min="0"
-            defaultValue={state.values.count40}
+            defaultValue={values.count40}
             className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition duration-200 focus:border-cyan-400 focus:bg-cyan-50/40"
           />
         </div>
@@ -99,7 +95,7 @@ export function SalesEntryForm({
             name="count60"
             type="number"
             min="0"
-            defaultValue={state.values.count60}
+            defaultValue={values.count60}
             className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition duration-200 focus:border-cyan-400 focus:bg-cyan-50/40"
           />
         </div>
@@ -112,23 +108,20 @@ export function SalesEntryForm({
             id="remark"
             name="remark"
             rows={4}
-            defaultValue={state.values.remark}
+            defaultValue={values.remark}
             className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition duration-200 focus:border-cyan-400 focus:bg-cyan-50/40"
             placeholder="可选，记录渠道或当天特殊情况"
           />
         </div>
       </div>
 
-      {state.message ? (
-        <StatusCallout
-          tone={state.status === "error" ? "error" : "success"}
-          title={state.status === "error" ? "保存失败" : "保存成功"}
-        >
-          <p role={state.status === "error" ? "alert" : "status"}>{state.message}</p>
+      {status === "error" && message ? (
+        <StatusCallout tone="error" title="保存失败">
+          <p role="alert">{message}</p>
         </StatusCallout>
       ) : null}
 
-      <SubmitButton />
+      <SubmitButton pending={pending} />
     </form>
   );
 }

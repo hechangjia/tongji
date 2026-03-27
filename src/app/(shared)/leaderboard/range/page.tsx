@@ -1,10 +1,15 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { AppShell } from "@/components/app-shell";
+import { CumulativeRankingChart } from "@/components/cumulative-ranking-chart";
 import { LeaderboardTable } from "@/components/leaderboard-table";
 import { MetricCard } from "@/components/metric-card";
 import { PageHeader } from "@/components/page-header";
-import { getCachedRangeLeaderboard } from "@/server/services/leaderboard-cache";
+import {
+  getCachedMemberCumulativeRanking,
+  getCachedRangeLeaderboard,
+} from "@/server/services/leaderboard-cache";
+import { resolvePresetRange } from "@/server/services/cumulative-sales-stats-service";
 import { getTodaySaleDateValue, type DateValue } from "@/server/services/sales-service";
 
 type RangeLeaderboardPageProps = {
@@ -29,10 +34,18 @@ export default async function RangeLeaderboardPage({
   const endDateParam = Array.isArray(params?.endDate)
     ? params?.endDate[0]
     : params?.endDate;
+  const defaultRange = resolvePresetRange("MONTH");
   const today = getTodaySaleDateValue();
-  const startDate = isDateValue(startDateParam) ? startDateParam : today;
+  const startDate = isDateValue(startDateParam) ? startDateParam : defaultRange.startDate;
   const endDate = isDateValue(endDateParam) ? endDateParam : today;
   const rows = await getCachedRangeLeaderboard(startDate, endDate);
+  const cumulativeRanking = session?.user
+    ? await getCachedMemberCumulativeRanking({
+        startDate,
+        endDate,
+        currentUserId: session.user.id,
+      })
+    : null;
   const champion = rows[0]?.total ?? 0;
   const exportHref = `/api/export/range?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
 
@@ -96,6 +109,10 @@ export default async function RangeLeaderboardPage({
           </button>
         </div>
       </form>
+
+      {cumulativeRanking ? (
+        <CumulativeRankingChart title="本月累计买卡" rows={cumulativeRanking} />
+      ) : null}
 
       <LeaderboardTable
         rows={rows}

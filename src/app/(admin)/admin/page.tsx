@@ -2,10 +2,39 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
+import { AdminCumulativeStatsPanel } from "@/components/admin/admin-cumulative-stats-panel";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
+import {
+  type CumulativeMetric,
+  type CumulativePreset,
+} from "@/server/services/cumulative-sales-stats-service";
+import { getCachedAdminCumulativeTrend } from "@/server/services/leaderboard-cache";
 
-export default async function AdminHomePage() {
+type AdminHomePageProps = {
+  searchParams?: Promise<{
+    preset?: string | string[];
+    metric?: string | string[];
+  }>;
+};
+
+function parsePreset(value?: string): CumulativePreset {
+  if (value === "ROLLING_30" || value === "ALL_TIME") {
+    return value;
+  }
+
+  return "MONTH";
+}
+
+function parseMetric(value?: string): CumulativeMetric {
+  if (value === "PLAN_40" || value === "PLAN_60") {
+    return value;
+  }
+
+  return "TOTAL";
+}
+
+export default async function AdminHomePage({ searchParams }: AdminHomePageProps) {
   const session = await auth();
 
   if (!session?.user) {
@@ -15,6 +44,16 @@ export default async function AdminHomePage() {
   if (!canAccessAdmin(session.user)) {
     redirect(getDefaultRedirectPath(session.user.role));
   }
+
+  const params = searchParams ? await searchParams : undefined;
+  const presetParam = Array.isArray(params?.preset) ? params?.preset[0] : params?.preset;
+  const metricParam = Array.isArray(params?.metric) ? params?.metric[0] : params?.metric;
+  const preset = parsePreset(presetParam);
+  const metric = parseMetric(metricParam);
+  const cumulativeStats = await getCachedAdminCumulativeTrend({
+    preset,
+    metric,
+  });
 
   const cards = [
     {
@@ -60,6 +99,13 @@ export default async function AdminHomePage() {
           eyebrow="管理后台"
           title="管理员功能"
           description="这里是管理员的主控制台。优先从成员、销售、规则和结算四个入口进入，后续内容系统也会挂在这里。"
+        />
+
+        <AdminCumulativeStatsPanel
+          preset={preset}
+          metric={metric}
+          granularity={cumulativeStats.granularity}
+          series={cumulativeStats.series}
         />
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

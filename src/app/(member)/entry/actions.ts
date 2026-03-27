@@ -5,11 +5,11 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { canAccessMemberArea } from "@/lib/permissions";
 import { refreshLeaderboardCaches } from "@/server/services/leaderboard-cache";
-import { saveSalesRecordForUser } from "@/server/services/sales-service";
+import { saleDateToValue, saveSalesRecordForUser } from "@/server/services/sales-service";
 import type { SalesEntryFormState } from "@/app/(member)/entry/form-state";
 
 export async function saveSalesEntryAction(
-  _previousState: unknown,
+  previousState: SalesEntryFormState | undefined,
   formData: FormData,
 ): Promise<SalesEntryFormState> {
   const session = await auth();
@@ -19,7 +19,7 @@ export async function saveSalesEntryAction(
   }
 
   try {
-    const record = await saveSalesRecordForUser(session.user.id, {
+    const { isUpdate, record } = await saveSalesRecordForUser(session.user.id, {
       saleDate: formData.get("saleDate"),
       count40: formData.get("count40"),
       count60: formData.get("count60"),
@@ -33,10 +33,20 @@ export async function saveSalesEntryAction(
       status: "success",
       message: "保存成功",
       values: {
-        saleDate: record.saleDate.toISOString().slice(0, 10),
+        saleDate: saleDateToValue(record.saleDate),
         count40: String(record.count40),
         count60: String(record.count60),
         remark: record.remark ?? "",
+      },
+      summary: {
+        saleDate: saleDateToValue(record.saleDate),
+        count40: record.count40,
+        count60: record.count60,
+        total: record.count40 + record.count60,
+        remark: record.remark ?? "",
+        savedAtIso: record.updatedAt.toISOString(),
+        isUpdate,
+        recoveredFromError: previousState?.status === "error",
       },
     };
   } catch (error) {
@@ -50,6 +60,7 @@ export async function saveSalesEntryAction(
           count60: String(formData.get("count60") ?? "0"),
           remark: String(formData.get("remark") ?? ""),
         },
+        summary: null,
       };
     }
 
@@ -62,6 +73,7 @@ export async function saveSalesEntryAction(
         count60: String(formData.get("count60") ?? "0"),
         remark: String(formData.get("remark") ?? ""),
       },
+      summary: null,
     };
   }
 }

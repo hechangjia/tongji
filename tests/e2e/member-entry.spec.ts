@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 test("member can create or update a daily record", async ({ page }) => {
+  const uniqueDay = String((Date.now() % 28) + 1).padStart(2, "0");
+  const freshSaleDate = `2099-01-${uniqueDay}`;
+
   await page.goto("/entry");
 
   await expect(page).toHaveURL(/\/login/);
@@ -12,9 +15,19 @@ test("member can create or update a daily record", async ({ page }) => {
   await expect(page).toHaveURL(/\/entry$/);
   await expect(page.getByText("每日行动面板")).toBeVisible();
 
+  await page.getByLabel("日期").fill(freshSaleDate);
   await page.getByLabel("40 套餐").fill("5");
   await page.getByLabel("60 套餐").fill("2");
   await page.getByRole("button", { name: "保存今日记录" }).click();
 
-  await expect(page.getByRole("status")).toContainText("保存成功");
+  await expect(page.getByText("今日记录已保存")).toBeVisible();
+  await expect(page.getByText("40 套餐数量")).toBeVisible();
+  await expect(page.getByText("60 套餐数量")).toBeVisible();
+  await expect(page.getByText("总数", { exact: true })).toBeVisible();
+
+  await page.getByLabel("日期").fill(freshSaleDate);
+  await page.getByLabel("40 套餐").fill("6");
+  await page.getByRole("button", { name: "保存今日记录" }).click();
+
+  await expect(page.getByText("今日记录已更新")).toBeVisible();
 });

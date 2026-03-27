@@ -1,5 +1,9 @@
 import { revalidatePath, unstable_cache, updateTag } from "next/cache";
 import {
+  getAdminCumulativeTrend,
+  getMemberCumulativeRanking,
+} from "@/server/services/cumulative-sales-stats-service";
+import {
   getDailyLeaderboard,
   getRangeLeaderboard,
 } from "@/server/services/leaderboard-service";
@@ -27,6 +31,31 @@ const cachedRangeLeaderboard = unstable_cache(
   },
 );
 
+const cachedMemberCumulativeRanking = unstable_cache(
+  async (input: {
+    startDate: DateValue;
+    endDate: DateValue;
+    currentUserId: string;
+  }) => getMemberCumulativeRanking(input),
+  ["leaderboard-member-cumulative-ranking"],
+  {
+    tags: [LEADERBOARD_CACHE_TAG],
+    revalidate: LEADERBOARD_CACHE_REVALIDATE_SECONDS,
+  },
+);
+
+const cachedAdminCumulativeTrend = unstable_cache(
+  async (input: {
+    preset: "MONTH" | "ROLLING_30" | "ALL_TIME";
+    metric: "TOTAL" | "PLAN_40" | "PLAN_60";
+  }) => getAdminCumulativeTrend(input),
+  ["leaderboard-admin-cumulative-trend"],
+  {
+    tags: [LEADERBOARD_CACHE_TAG],
+    revalidate: LEADERBOARD_CACHE_REVALIDATE_SECONDS,
+  },
+);
+
 export function getCachedDailyLeaderboard(date: DateValue) {
   return cachedDailyLeaderboard(date);
 }
@@ -35,8 +64,24 @@ export function getCachedRangeLeaderboard(startDate: DateValue, endDate: DateVal
   return cachedRangeLeaderboard(startDate, endDate);
 }
 
+export function getCachedMemberCumulativeRanking(input: {
+  startDate: DateValue;
+  endDate: DateValue;
+  currentUserId: string;
+}) {
+  return cachedMemberCumulativeRanking(input);
+}
+
+export function getCachedAdminCumulativeTrend(input: {
+  preset: "MONTH" | "ROLLING_30" | "ALL_TIME";
+  metric: "TOTAL" | "PLAN_40" | "PLAN_60";
+}) {
+  return cachedAdminCumulativeTrend(input);
+}
+
 export function refreshLeaderboardCaches() {
   updateTag(LEADERBOARD_CACHE_TAG);
   revalidatePath("/leaderboard/daily");
   revalidatePath("/leaderboard/range");
+  revalidatePath("/admin");
 }
