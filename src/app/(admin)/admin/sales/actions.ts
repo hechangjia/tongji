@@ -52,12 +52,15 @@ export async function updateSalesRecordAction(formData: FormData) {
   redirect(appendNotice(parsedInput.returnTo, "销售记录已更新"));
 }
 
-export async function reviewSalesRecordAction(formData: FormData) {
+export async function reviewSalesRecordAction(
+  decision: "APPROVED" | "REJECTED",
+  formData: FormData,
+) {
   await requireAdminSession();
 
   const parsedInput = salesReviewActionSchema.parse({
     id: formData.get("id"),
-    decision: formData.get("decision"),
+    decision,
     reviewNote: formData.get("reviewNote"),
     returnTo: formData.get("returnTo"),
   });

@@ -33,4 +33,16 @@ describe("prisma schema", () => {
       }),
     ).not.toThrow();
   });
+
+  test("migration backfills legacy sales records as approved instead of leaving history pending", () => {
+    const migration = readFileSync(
+      "prisma/migrations/20260327104000_add_sales_review_audit_fields/migration.sql",
+      "utf8",
+    );
+
+    expect(migration).toMatch(/UPDATE\s+"sales_records"/);
+    expect(migration).toMatch(/"reviewStatus"\s*=\s*'APPROVED'/);
+    expect(migration).toMatch(/"lastSubmittedAt"\s*=\s*COALESCE\("updatedAt",\s*"createdAt"\)/);
+    expect(migration).toMatch(/"reviewedAt"\s*=\s*COALESCE\("updatedAt",\s*"createdAt"\)/);
+  });
 });

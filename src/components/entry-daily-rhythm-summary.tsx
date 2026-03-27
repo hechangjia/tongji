@@ -79,6 +79,17 @@ export function EntryDailyRhythmSummary({
               <dd className="mt-1">{summary.top3Message}</dd>
             </div>
           ) : null}
+
+          {summary.reviewNote ? (
+            <div className="sm:col-span-2">
+              <dt className="text-xs font-semibold uppercase tracking-[0.18em] opacity-70">
+                驳回原因
+              </dt>
+              <dd className="mt-1 whitespace-pre-wrap rounded-[16px] border border-rose-200 bg-rose-50/70 px-3 py-2 text-sm text-rose-900">
+                {summary.reviewNote}
+              </dd>
+            </div>
+          ) : null}
         </dl>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">

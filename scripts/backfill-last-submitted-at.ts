@@ -14,7 +14,9 @@ async function backfillLastSubmittedAt() {
 
   await prisma.$executeRaw`
     UPDATE "sales_records"
-    SET "lastSubmittedAt" = "updatedAt"
+    SET "lastSubmittedAt" = COALESCE("updatedAt", "createdAt"),
+        "reviewStatus" = 'APPROVED',
+        "reviewedAt" = COALESCE("updatedAt", "createdAt")
     WHERE "lastSubmittedAt" IS NULL
   `;
 

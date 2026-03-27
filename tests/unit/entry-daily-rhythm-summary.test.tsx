@@ -49,4 +49,44 @@ describe("entry daily rhythm summary", () => {
     expect(screen.getByRole("link", { name: "继续填写今日记录" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "查看总榜" })).toBeInTheDocument();
   });
+
+  test("renders the admin rejection note when today's record is rejected", () => {
+    render(
+      <EntryDailyRhythmSummary
+        summary={{
+          state: "REJECTED",
+          title: "当日节奏提醒",
+          message: "今天的记录被退回，请尽快重新提交",
+          reviewStatus: "REJECTED",
+          reviewStatusLabel: "已退回",
+          reviewNote: "数量异常，请补充截图时间",
+          isTemporaryTop3: false,
+          isFormalTop3: false,
+          temporaryRank: null,
+          formalRank: null,
+          top3Label: null,
+          top3Message: null,
+          lastSubmittedAtIso: "2026-03-27T09:20:00.000Z",
+          primaryAction: {
+            href: "/entry",
+            label: "重新提交今日记录",
+          },
+          secondaryActions: [
+            {
+              href: "/leaderboard/daily",
+              label: "查看今日榜单",
+            },
+            {
+              href: "/leaderboard/range",
+              label: "查看总榜",
+            },
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.getByText("今天的记录被退回，请尽快重新提交")).toBeInTheDocument();
+    expect(screen.getByText("驳回原因")).toBeInTheDocument();
+    expect(screen.getByText("数量异常，请补充截图时间")).toBeInTheDocument();
+  });
 });

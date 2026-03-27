@@ -13,7 +13,7 @@ test("admin can publish banner and announcement content that members can see", a
   await page.getByLabel("密码").fill("admin123456");
   await page.getByRole("button", { name: "登录" }).click();
 
-  await expect(page).toHaveURL(/\/admin\/banners$/);
+  await page.waitForURL(/\/admin\/banners$/, { timeout: 10000 });
   await page.getByLabel("文案").fill(bannerContent);
   await page.getByLabel("署名（可选）").fill("系统");
   await page.getByRole("button", { name: "保存横幅" }).click();

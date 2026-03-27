@@ -166,7 +166,7 @@ describe("leaderboard cache revalidation on writes", () => {
     formData.set("reviewNote", "");
     formData.set("returnTo", "/admin/sales");
 
-    await expect(reviewSalesRecordAction(formData)).rejects.toThrow(
+    await expect(reviewSalesRecordAction("APPROVED", formData)).rejects.toThrow(
       "redirect:/admin/sales?notice=",
     );
 

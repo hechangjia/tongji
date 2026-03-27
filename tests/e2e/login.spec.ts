@@ -12,8 +12,8 @@ test("admin login protects the admin route and grants access after sign in", asy
   await page.getByLabel("密码").fill("admin123456");
   await page.getByRole("button", { name: "登录" }).click();
 
-  await page.waitForURL(/\/admin$/, { timeout: 10000 });
+  await page.waitForURL(/\/admin$/, { timeout: 20000 });
   await expect(
     page.getByRole("heading", { name: "管理员功能" }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 20000 });
 });

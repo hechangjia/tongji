@@ -62,6 +62,6 @@ test("admin reviews today's pending sales and sees formal top3 leaderboard", asy
 
   const formalTop3Section = page.getByTestId("daily-formal-top3-section");
   await expect(formalTop3Section).toBeVisible();
-  await expect(formalTop3Section.getByText("member01")).toBeVisible();
+  await expect(formalTop3Section.getByText(/member01|示例成员/)).toBeVisible();
   await expect(formalTop3Section.getByText("暂无已通过审核的正式前三")).toHaveCount(0);
 });

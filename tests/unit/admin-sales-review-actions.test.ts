@@ -56,7 +56,7 @@ describe("admin sales review action", () => {
     formData.set("reviewNote", "");
     formData.set("returnTo", "/admin/sales");
 
-    await expect(reviewSalesRecordAction(formData)).rejects.toThrow(
+    await expect(reviewSalesRecordAction("APPROVED", formData)).rejects.toThrow(
       "redirect:/admin/sales?notice=",
     );
 
@@ -81,7 +81,7 @@ describe("admin sales review action", () => {
     formData.set("reviewNote", "数量异常，请核对");
     formData.set("returnTo", "/admin/sales");
 
-    await expect(reviewSalesRecordAction(formData)).rejects.toThrow(
+    await expect(reviewSalesRecordAction("REJECTED", formData)).rejects.toThrow(
       "redirect:/admin/sales?notice=",
     );
 

@@ -24,8 +24,10 @@
   - 新增 `SalesReviewStatus` 枚举
   - 新增手写 migration：
     - `prisma/migrations/20260327104000_add_sales_review_audit_fields/migration.sql`
+    - migration 现会把历史记录回填为 `APPROVED`，避免历史榜单误显示为待审核
   - 新增历史数据回填脚本：
     - `scripts/backfill-last-submitted-at.ts`
+    - script 现会一并补齐历史记录的 `reviewedAt`
   - 新增 `salesReviewActionSchema`
 - 已完成成员保存与审核状态重置链路：
   - 成员每次保存都会重写 `lastSubmittedAt`
@@ -51,10 +53,11 @@
   - `SalesEntryPageClient` 现在会显示今日节奏摘要
   - 提交后同 session 内可看到更新后的今日摘要
   - 时间显示已按 `Asia/Shanghai` 且精确到秒
+  - 若管理员驳回并填写原因，成员端现会直接展示驳回备注
 - 已完成管理员端：
   - 新增 `AdminDailyReviewSummary`
   - `/admin` 首页已在累计趋势面板上方展示今日审核摘要
-  - `/admin/sales` 已切到 `scope=today` 审核队列模式
+  - `/admin/sales` 默认打开今日审核队列，但已恢复日期筛选，可继续审核历史补录记录
   - 队列排序规则：
     - `PENDING`
     - `APPROVED`
@@ -76,22 +79,25 @@
 
 ## 当前进行中的内容
 
-- 代码实现已完成，当前不再有功能开发中的未提交改动。
+- 代码实现与回归修复已完成，当前工作区仍有未提交改动，主要是：
+  - 历史日期审核入口恢复
+  - 成员端驳回原因展示
+  - 历史数据审核状态回填
+  - E2E 稳定性修正
 - 当前处于：
-  - 最终验证已完成大部分
-  - 等待数据库 schema 与运行环境对齐后重新跑 Playwright
+  - 运行环境数据库 schema 已对齐
+  - 完整 Playwright 已重新通过
+  - 等待用户决定是否提交 / push
 
 ## 剩余工作
 
-- 在安全前提下对运行环境数据库执行 schema 对齐：
-  - 应用新增列 migration
-  - 执行 `scripts/backfill-last-submitted-at.ts`
-- 对齐后重新跑：
-  - `npm run test:e2e`
-- 若用户确认可以对外部数据库操作，再决定是否：
-  - 在当前环境执行 migration / backfill
-  - 推送分支
+- 若用户要继续交付：
+  - 提交当前 worktree 改动
+  - push 分支
   - 创建 PR / 合并 / 部署
+- 若后续还要继续走 Prisma migration 管理：
+  - 需要为这个现有 Neon 库补 baseline / migration metadata
+  - 否则未来直接执行 `prisma migrate deploy` 仍可能命中 `P3005`
 
 ## 关键决策和约束
 
@@ -121,8 +127,10 @@
     - `管理公告`
 - 成员端 / 管理员端 / 日榜页都消费统一服务层，不在页面里重复计算业务规则。
 - 真实外部数据库操作仍属于高风险边界：
-  - 当前没有自动对外部 Neon 执行 migration
-  - 若要执行，需用户确认
+  - 本轮已在用户确认后，对外部 Neon 手动执行：
+    - migration SQL
+    - backfill 脚本
+  - 当前未补 `_prisma_migrations` baseline 元数据
 
 ## 重要文件路径
 
@@ -146,27 +154,27 @@
 
 ## 当前阻塞和风险
 
-- 完整 Playwright 当前无法通过，核心原因已明确：
-  - 当前运行环境数据库缺少列：
-    - `sales_records.lastSubmittedAt`
-  - 最新完整 `npm run test:e2e` 失败已证明：
-    - 多条 E2E 在页面首屏服务端查询阶段直接触发 Prisma `P2022`
-- 这不是当前代码工作区未提交改动导致，而是运行环境 schema 落后于代码。
+- 当前没有功能阻塞，完整 Playwright 已通过。
+- 仍存在一个发布侧风险：
+  - 该外部 Neon 库原先没有 Prisma baseline
+  - 本轮为了尽快解锁测试，使用的是手动 `db execute` + backfill
+  - 因此未来若直接对同一数据库运行 `prisma migrate deploy`，仍可能需要先做 baseline / resolve
 - `next build` 和 `npm run test:e2e` 仍会出现 workspace root warning：
   - `/home/chia/package-lock.json`
   - `/home/chia/Code/maika/package-lock.json`
   - `/home/chia/Code/maika/.worktrees/daily-rhythm-top3/package-lock.json`
-- 之前完整 e2e 过程中还出现过一次外部数据库连通性波动；当前最新一轮主因是 schema 缺列。
+- `prisma migrate status` 曾出现一次对 Neon 的瞬时 `P1001` 连通性波动；后续 diff / backfill / Playwright 已成功执行。
 
 ## 下次启动后优先执行的 3 个步骤
 
 1. 进入 worktree：
    - `/home/chia/Code/maika/.worktrees/daily-rhythm-top3`
-2. 先确认是否允许对外部数据库执行 migration / backfill：
-   - 若允许，再应用 schema 并执行回填脚本
-3. 数据库对齐后立即重跑：
-   - `npm run test:e2e`
-   - 如通过，再决定 push / PR / 合并
+2. 检查当前未提交改动并决定是否提交：
+   - `git status`
+3. 若准备发版：
+   - commit
+   - push / PR
+   - 视需要补 Prisma baseline 元数据策略
 
 ## 当前验证状态
 
@@ -174,13 +182,16 @@
   - `npm run lint`
   - `npx tsc --noEmit`
   - `npm run test`
-    - `35` 个测试文件
-    - `83` 个测试全部通过
+    - `36` 个测试文件
+    - `86` 个测试全部通过
   - `npm run build`
+  - `npm run test:e2e`
+    - `8` 个 E2E 全部通过
   - 任务级目标测试均已通过：
     - `tests/unit/prisma-schema-contract.test.ts`
     - `tests/unit/sales-entry-action.test.ts`
     - `tests/unit/admin-sales-review-actions.test.ts`
+    - `tests/unit/admin-sales-page.test.tsx`
     - `tests/unit/daily-rhythm-service.test.ts`
     - `tests/unit/entry-daily-rhythm-summary.test.tsx`
     - `tests/unit/admin-daily-review-summary.test.tsx`
@@ -188,12 +199,13 @@
     - `tests/unit/daily-top3-strip.test.tsx`
     - `tests/unit/leaderboard-cache.test.ts`
     - `tests/unit/sales-entry-page-client.test.ts`
-- 当前未通过：
-  - `npm run test:e2e`
-- `npm run test:e2e` 的最新实际结果：
-  - `1` 个通过
-  - `7` 个失败
-  - 主因均指向运行环境数据库 schema 未包含 `lastSubmittedAt`
-  - 典型 Prisma 错误：
-    - `P2022`
-    - `The column sales_records.lastSubmittedAt does not exist in the current database.`
+    - `tests/e2e/daily-rhythm-and-review.spec.ts`
+    - `tests/e2e/admin-settlement.spec.ts`
+    - `tests/e2e/content-publishing.spec.ts`
+    - `tests/e2e/login.spec.ts`
+- 外部数据库执行记录：
+  - 已手动执行：
+    - `prisma/migrations/20260327104000_add_sales_review_audit_fields/migration.sql`
+  - 已确认：
+    - `scripts/backfill-last-submitted-at.ts`
+    - `pending before: 0`
