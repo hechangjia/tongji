@@ -70,6 +70,7 @@ model SalesRecord {
   updatedAt       DateTime          @updatedAt
 
   @@unique([userId, saleDate])
+  @@index([saleDate])
   @@index([saleDate, reviewStatus, lastSubmittedAt])
   @@index([saleDate, lastSubmittedAt])
   @@map("sales_records")
