@@ -23,6 +23,13 @@ export const salesRecordUpdateSchema = z.object({
   returnTo: z.string().default("/admin/sales"),
 });
 
+export const salesReviewActionSchema = z.object({
+  id: z.string().min(1, "销售记录 ID 缺失"),
+  decision: z.enum(["APPROVED", "REJECTED"]),
+  reviewNote: z.string().trim().max(200, "审核备注不能超过 200 个字符").optional(),
+  returnTo: z.string().default("/admin/sales"),
+});
+
 export type SalesInput = {
   saleDate: unknown;
   count40: unknown;
@@ -32,3 +39,4 @@ export type SalesInput = {
 
 export type SalesValues = z.infer<typeof salesSchema>;
 export type SalesRecordUpdateInput = z.infer<typeof salesRecordUpdateSchema>;
+export type SalesReviewActionInput = z.infer<typeof salesReviewActionSchema>;

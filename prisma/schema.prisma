@@ -32,6 +32,12 @@ enum BannerDisplayMode {
   ROTATE
 }
 
+enum SalesReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id              String           @id @default(cuid())
   username        String           @unique
@@ -49,18 +55,23 @@ model User {
 }
 
 model SalesRecord {
-  id        String   @id @default(cuid())
-  userId    String
-  saleDate  DateTime @db.Date
-  count40   Int      @default(0)
-  count60   Int      @default(0)
-  remark    String?
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String            @id @default(cuid())
+  userId          String
+  saleDate        DateTime          @db.Date
+  count40         Int               @default(0)
+  count60         Int               @default(0)
+  remark          String?
+  lastSubmittedAt DateTime?
+  reviewStatus    SalesReviewStatus @default(PENDING)
+  reviewedAt      DateTime?
+  reviewNote      String?
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
   @@unique([userId, saleDate])
-  @@index([saleDate])
+  @@index([saleDate, reviewStatus, lastSubmittedAt])
+  @@index([saleDate, lastSubmittedAt])
   @@map("sales_records")
 }
 
