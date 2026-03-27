@@ -44,6 +44,8 @@ export async function saveSalesEntryAction(
         count60: record.count60,
         total: record.count40 + record.count60,
         remark: record.remark ?? "",
+        reviewStatus: record.reviewStatus,
+        lastSubmittedAtIso: record.lastSubmittedAt.toISOString(),
         savedAtIso: record.updatedAt.toISOString(),
         isUpdate,
         recoveredFromError: previousState?.status === "error",

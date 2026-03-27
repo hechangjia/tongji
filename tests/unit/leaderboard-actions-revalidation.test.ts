@@ -53,7 +53,10 @@ vi.mock("@/lib/db", () => ({
 }));
 
 import { saveSalesEntryAction } from "@/app/(member)/entry/actions";
-import { updateSalesRecordAction } from "@/app/(admin)/admin/sales/actions";
+import {
+  reviewSalesRecordAction,
+  updateSalesRecordAction,
+} from "@/app/(admin)/admin/sales/actions";
 import { updateMemberAction } from "@/app/(admin)/admin/members/actions";
 
 describe("leaderboard cache revalidation on writes", () => {
@@ -75,6 +78,7 @@ describe("leaderboard cache revalidation on writes", () => {
         count40: 1,
         count60: 2,
         remark: "",
+        lastSubmittedAt: new Date("2026-03-26T08:00:00.000Z"),
         updatedAt: new Date("2026-03-26T08:00:00.000Z"),
       },
     });
@@ -107,6 +111,28 @@ describe("leaderboard cache revalidation on writes", () => {
     formData.set("returnTo", "/admin/sales");
 
     await expect(updateSalesRecordAction(formData)).rejects.toThrow(
+      "redirect:/admin/sales?notice=",
+    );
+
+    expect(refreshLeaderboardCachesMock).toHaveBeenCalledTimes(1);
+  });
+
+  test("refreshes leaderboard caches after admin reviews a sales record", async () => {
+    authMock.mockResolvedValue({
+      user: {
+        id: "admin-1",
+        role: "ADMIN",
+      },
+    });
+    salesRecordUpdateMock.mockResolvedValue({});
+
+    const formData = new FormData();
+    formData.set("id", "record-1");
+    formData.set("decision", "APPROVED");
+    formData.set("reviewNote", "");
+    formData.set("returnTo", "/admin/sales");
+
+    await expect(reviewSalesRecordAction(formData)).rejects.toThrow(
       "redirect:/admin/sales?notice=",
     );
 

@@ -141,6 +141,7 @@ export async function getAdminSalesRows(filters: AdminSalesFilters = {}) {
 export async function saveSalesRecordForUser(userId: string, input: SalesInput) {
   const payload = normalizeSalePayload(input);
   const saleDate = saleDateValueToDate(payload.saleDate);
+  const submittedAt = new Date();
   const existing = await db.salesRecord.findUnique({
     where: {
       userId_saleDate: {
@@ -161,6 +162,10 @@ export async function saveSalesRecordForUser(userId: string, input: SalesInput) 
       count40: payload.count40,
       count60: payload.count60,
       remark: payload.remark,
+      lastSubmittedAt: submittedAt,
+      reviewStatus: "PENDING",
+      reviewedAt: null,
+      reviewNote: null,
     },
     create: {
       userId,
@@ -168,6 +173,8 @@ export async function saveSalesRecordForUser(userId: string, input: SalesInput) 
       count40: payload.count40,
       count60: payload.count60,
       remark: payload.remark,
+      lastSubmittedAt: submittedAt,
+      reviewStatus: "PENDING",
     },
   });
 

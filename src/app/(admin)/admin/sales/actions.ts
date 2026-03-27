@@ -6,7 +6,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
 import { refreshLeaderboardCaches } from "@/server/services/leaderboard-cache";
-import { salesRecordUpdateSchema } from "@/lib/validators/sales";
+import { salesRecordUpdateSchema, salesReviewActionSchema } from "@/lib/validators/sales";
 
 function appendNotice(returnTo: string, notice: string) {
   const separator = returnTo.includes("?") ? "&" : "?";
@@ -50,4 +50,30 @@ export async function updateSalesRecordAction(formData: FormData) {
   revalidatePath("/admin/sales");
   refreshLeaderboardCaches();
   redirect(appendNotice(parsedInput.returnTo, "销售记录已更新"));
+}
+
+export async function reviewSalesRecordAction(formData: FormData) {
+  await requireAdminSession();
+
+  const parsedInput = salesReviewActionSchema.parse({
+    id: formData.get("id"),
+    decision: formData.get("decision"),
+    reviewNote: formData.get("reviewNote"),
+    returnTo: formData.get("returnTo"),
+  });
+
+  await db.salesRecord.update({
+    where: { id: parsedInput.id },
+    data: {
+      reviewStatus: parsedInput.decision,
+      reviewedAt: new Date(),
+      reviewNote: parsedInput.decision === "REJECTED" ? parsedInput.reviewNote || null : null,
+    },
+  });
+
+  revalidatePath("/admin/sales");
+  refreshLeaderboardCaches();
+  redirect(
+    appendNotice(parsedInput.returnTo, parsedInput.decision === "APPROVED" ? "审核已通过" : "审核已驳回"),
+  );
 }

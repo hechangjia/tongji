@@ -6,6 +6,8 @@ export type SalesEntrySummary = {
   count60: number;
   total: number;
   remark: string;
+  reviewStatus: "PENDING" | "APPROVED" | "REJECTED";
+  lastSubmittedAtIso: string;
   savedAtIso: string;
   isUpdate: boolean;
   recoveredFromError: boolean;

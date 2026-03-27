@@ -58,6 +58,8 @@ describe("sales entry action", () => {
         count40: 5,
         count60: 2,
         remark: "地推",
+        reviewStatus: "PENDING",
+        lastSubmittedAt: new Date("2026-03-26T08:15:00.000Z"),
         updatedAt: new Date("2026-03-26T08:15:00.000Z"),
       },
     });
@@ -76,6 +78,8 @@ describe("sales entry action", () => {
         count60: 2,
         total: 7,
         remark: "地推",
+        reviewStatus: "PENDING",
+        lastSubmittedAtIso: expect.any(String),
         isUpdate: false,
         recoveredFromError: false,
       },
@@ -90,6 +94,8 @@ describe("sales entry action", () => {
         count40: 5,
         count60: 2,
         remark: "",
+        reviewStatus: "PENDING",
+        lastSubmittedAt: new Date("2026-03-26T08:15:00.000Z"),
         updatedAt: new Date("2026-03-26T08:15:00.000Z"),
       },
     });
@@ -117,6 +123,8 @@ describe("sales entry action", () => {
     ).resolves.toMatchObject({
       status: "success",
       summary: {
+        reviewStatus: "PENDING",
+        lastSubmittedAtIso: expect.any(String),
         isUpdate: true,
         recoveredFromError: true,
       },
