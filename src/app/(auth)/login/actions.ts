@@ -1,12 +1,11 @@
 "use server";
 
 import { Role, UserStatus } from "@prisma/client";
-import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
 import { signIn } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
-import { sanitizeCallbackUrl } from "@/lib/permissions";
+import { getDefaultRedirectPath, sanitizeCallbackUrl } from "@/lib/permissions";
 import { loginSchema, registerSchema } from "@/lib/validators/auth";
 import type { LoginFormState, RegisterFormState } from "@/app/(auth)/login/form-state";
 
@@ -86,15 +85,38 @@ export async function registerMemberAction(
     };
   }
 
-  await db.user.create({
-    data: {
-      username,
-      name: username,
-      passwordHash: await hashPassword(password),
-      role: Role.MEMBER,
-      status: UserStatus.ACTIVE,
-    },
+  try {
+    await db.user.create({
+      data: {
+        username,
+        name: username,
+        passwordHash: await hashPassword(password),
+        role: Role.MEMBER,
+        status: UserStatus.ACTIVE,
+      },
+    });
+  } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "P2002"
+    ) {
+      return {
+        error: "该账号已存在，请更换后重试",
+      };
+    }
+
+    throw error;
+  }
+
+  await signIn("credentials", {
+    username,
+    password,
+    redirectTo: getDefaultRedirectPath(Role.MEMBER),
   });
 
-  redirect("/entry");
+  return {
+    error: null,
+  };
 }

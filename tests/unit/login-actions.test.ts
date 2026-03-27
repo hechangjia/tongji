@@ -59,6 +59,9 @@ describe("login register actions", () => {
     userFindUniqueMock.mockResolvedValue(null);
     userCreateMock.mockResolvedValue({});
     hashPasswordMock.mockResolvedValue("hashed-password");
+    signInMock.mockImplementation(() => {
+      throw new Error("redirect:/entry");
+    });
 
     const formData = new FormData();
     formData.set("username", "member09");
@@ -81,5 +84,25 @@ describe("login register actions", () => {
         status: UserStatus.ACTIVE,
       },
     });
+    expect(signInMock).toHaveBeenCalledWith("credentials", {
+      username: "member09",
+      password: "member123456",
+      redirectTo: "/entry",
+    });
+  });
+
+  test("registerMemberAction returns friendly error when create hits unique conflict", async () => {
+    userFindUniqueMock.mockResolvedValue(null);
+    userCreateMock.mockRejectedValue({ code: "P2002" });
+    hashPasswordMock.mockResolvedValue("hashed-password");
+
+    const formData = new FormData();
+    formData.set("username", "member09");
+    formData.set("password", "member123456");
+
+    await expect(registerMemberAction(initialState, formData)).resolves.toEqual({
+      error: "该账号已存在，请更换后重试",
+    });
+    expect(signInMock).not.toHaveBeenCalled();
   });
 });
