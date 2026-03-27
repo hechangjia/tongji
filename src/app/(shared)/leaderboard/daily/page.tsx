@@ -1,9 +1,13 @@
 import { auth } from "@/lib/auth";
 import { AppShell } from "@/components/app-shell";
+import { DailyTop3Strip } from "@/components/daily-top3-strip";
 import { LeaderboardTable } from "@/components/leaderboard-table";
 import { MetricCard } from "@/components/metric-card";
 import { PageHeader } from "@/components/page-header";
-import { getCachedDailyLeaderboard } from "@/server/services/leaderboard-cache";
+import {
+  getCachedDailyLeaderboard,
+  getCachedDailyTop3Status,
+} from "@/server/services/leaderboard-cache";
 import { getTodaySaleDateValue, type DateValue } from "@/server/services/sales-service";
 
 type DailyLeaderboardPageProps = {
@@ -23,7 +27,11 @@ export default async function DailyLeaderboardPage({
   const params = searchParams ? await searchParams : undefined;
   const dateParam = Array.isArray(params?.date) ? params?.date[0] : params?.date;
   const selectedDate = isDateValue(dateParam) ? dateParam : getTodaySaleDateValue();
-  const rows = await getCachedDailyLeaderboard(selectedDate);
+  const rowsPromise = getCachedDailyLeaderboard(selectedDate);
+  const top3StatusPromise = getCachedDailyTop3Status({
+    todaySaleDate: selectedDate,
+  });
+  const [rows, top3Status] = await Promise.all([rowsPromise, top3StatusPromise]);
   const champion = rows[0]?.total ?? 0;
 
   const content = (
@@ -62,6 +70,8 @@ export default async function DailyLeaderboardPage({
           </button>
         </div>
       </form>
+
+      <DailyTop3Strip top3Status={top3Status} />
 
       <LeaderboardTable
         rows={rows}

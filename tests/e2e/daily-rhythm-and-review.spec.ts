@@ -57,5 +57,7 @@ test("admin reviews today's pending sales and sees formal top3 leaderboard", asy
   await expect(page.getByText("审核已通过")).toBeVisible();
 
   await page.goto("/leaderboard/daily");
+  await expect(page.getByText("临时前三")).toBeVisible();
   await expect(page.getByText("正式前三")).toBeVisible();
+  await expect(page.getByText("member01")).toBeVisible();
 });
