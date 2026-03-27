@@ -1,6 +1,7 @@
 import type { Role, SalesReviewStatus, UserStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import {
+  filterSalesRows,
   getTodaySaleDateValue,
   saleDateToValue,
   saleDateValueToDate,
@@ -92,6 +93,11 @@ export type AdminTodaySalesRow = Pick<
 > & {
   isTemporaryTop3: boolean;
   isFormalTop3: boolean;
+};
+
+export type AdminSalesReviewData = {
+  summary: AdminDailyRhythmSummary;
+  rows: AdminTodaySalesRow[];
 };
 
 const ADMIN_REVIEW_STATUS_ORDER: Record<SalesReviewStatus, number> = {
@@ -542,4 +548,27 @@ export async function getAdminTodaySalesRows({
   const rows = await getTodayDailyRhythmRows(resolvedTodaySaleDate);
 
   return buildAdminTodaySalesRows(rows, resolvedTodaySaleDate);
+}
+
+export async function getAdminSalesReviewData({
+  todaySaleDate,
+  now = new Date(),
+  keyword = "",
+}: {
+  todaySaleDate?: DateValue;
+  now?: Date;
+  keyword?: string;
+} = {}): Promise<AdminSalesReviewData> {
+  const resolvedTodaySaleDate = todaySaleDate ?? getTodaySaleDateValue(now);
+  const rows = await getTodayDailyRhythmRows(resolvedTodaySaleDate);
+
+  return {
+    summary: buildAdminDailyRhythmSummary({
+      rows,
+      todaySaleDate: resolvedTodaySaleDate,
+    }),
+    rows: filterSalesRows(buildAdminTodaySalesRows(rows, resolvedTodaySaleDate), {
+      keyword,
+    }),
+  };
 }

@@ -16,6 +16,7 @@ import {
   buildFormalTop3,
   buildMemberDailyRhythmSummary,
   buildTemporaryTop3,
+  getAdminSalesReviewData,
   getAdminTodaySalesRows,
   type DailyRhythmSourceRow,
 } from "@/server/services/daily-rhythm-service";
@@ -644,5 +645,67 @@ describe("daily rhythm service pure helpers", () => {
         },
       },
     });
+  });
+
+  test("getAdminSalesReviewData derives summary and filtered rows from one read", async () => {
+    salesRecordFindManyMock.mockResolvedValueOnce([
+      {
+        id: "record-approved",
+        saleDate: new Date("2026-03-27T00:00:00.000Z"),
+        count40: 2,
+        count60: 1,
+        remark: "老成员",
+        reviewStatus: "APPROVED",
+        lastSubmittedAt: new Date("2026-03-26T16:01:00.000Z"),
+        reviewedAt: new Date("2026-03-26T17:00:00.000Z"),
+        reviewNote: null,
+        user: {
+          id: "member-1",
+          name: "",
+          username: "fallback-user",
+          role: "MEMBER",
+          status: "ACTIVE",
+        },
+      },
+      {
+        id: "record-pending",
+        saleDate: new Date("2026-03-27T00:00:00.000Z"),
+        count40: 1,
+        count60: 0,
+        remark: "重点跟进",
+        reviewStatus: "PENDING",
+        lastSubmittedAt: new Date("2026-03-26T16:02:00.000Z"),
+        reviewedAt: null,
+        reviewNote: null,
+        user: {
+          id: "member-2",
+          name: "实名成员",
+          username: "named-user",
+          role: "MEMBER",
+          status: "ACTIVE",
+        },
+      },
+    ]);
+
+    await expect(
+      getAdminSalesReviewData({
+        todaySaleDate: "2026-03-27",
+        keyword: "实名",
+      }),
+    ).resolves.toMatchObject({
+      summary: {
+        message: "今日正式前三还差 2 人",
+        pendingCount: 1,
+        primaryAction: { href: "/admin/sales?scope=today", label: "去审核今日记录" },
+      },
+      rows: [
+        expect.objectContaining({
+          id: "record-pending",
+          userName: "实名成员",
+          reviewStatus: "PENDING",
+        }),
+      ],
+    });
+    expect(salesRecordFindManyMock).toHaveBeenCalledTimes(1);
   });
 });

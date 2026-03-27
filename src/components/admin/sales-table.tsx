@@ -1,3 +1,5 @@
+import "server-only";
+
 import { EmptyState } from "@/components/empty-state";
 import {
   reviewSalesRecordAction,
@@ -5,20 +7,22 @@ import {
 } from "@/app/(admin)/admin/sales/actions";
 import type { AdminTodaySalesRow } from "@/server/services/daily-rhythm-service";
 
+const submittedAtFormatter = new Intl.DateTimeFormat("zh-CN", {
+  timeZone: "Asia/Shanghai",
+  hour12: false,
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+});
+
 function formatSubmittedAt(value: Date | null) {
   if (!value) {
     return "未提交";
   }
 
-  return new Intl.DateTimeFormat("zh-CN", {
-    timeZone: "Asia/Shanghai",
-    hour12: false,
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  }).format(value);
+  return submittedAtFormatter.format(value);
 }
 
 function getReviewStatusLabel(reviewStatus: AdminTodaySalesRow["reviewStatus"]) {
@@ -30,6 +34,9 @@ function getReviewStatusLabel(reviewStatus: AdminTodaySalesRow["reviewStatus"]) 
     case "PENDING":
       return "待审核";
   }
+
+  const unreachableReviewStatus: never = reviewStatus;
+  throw new Error(`Unhandled review status label: ${unreachableReviewStatus}`);
 }
 
 function getReviewStatusTone(reviewStatus: AdminTodaySalesRow["reviewStatus"]) {
@@ -41,6 +48,9 @@ function getReviewStatusTone(reviewStatus: AdminTodaySalesRow["reviewStatus"]) {
     case "PENDING":
       return "bg-amber-100 text-amber-900";
   }
+
+  const unreachableReviewStatus: never = reviewStatus;
+  throw new Error(`Unhandled review status tone: ${unreachableReviewStatus}`);
 }
 
 export function SalesTable({
@@ -54,7 +64,7 @@ export function SalesTable({
     return (
       <EmptyState
         title="暂无销售记录"
-        description="当前筛选条件下没有结果，建议清空筛选或扩大日期范围后再试。"
+        description="当前筛选条件下没有结果，建议清空关键词后再试，或等待成员提交今日记录。"
       />
     );
   }

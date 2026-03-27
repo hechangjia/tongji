@@ -68,8 +68,8 @@ export default async function AdminHomePage({ searchParams }: AdminHomePageProps
     },
     {
       title: "销售记录",
-      href: "/admin/sales",
-      description: "按成员或日期筛选，并直接修正销售数量。",
+      href: "/admin/sales?scope=today",
+      description: "查看今日审核队列，并直接处理待审核销售记录。",
     },
     {
       title: "卡酬规则",

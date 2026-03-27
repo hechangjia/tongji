@@ -8,7 +8,7 @@ describe("admin sales filters", () => {
       [
         { userName: "alice" },
         { userName: "bob" },
-      ] as never,
+      ],
       { keyword: "ali" },
     );
 

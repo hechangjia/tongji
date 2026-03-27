@@ -8,12 +8,8 @@ import { MetricCard } from "@/components/metric-card";
 import { PageHeader } from "@/components/page-header";
 import { SalesTable } from "@/components/admin/sales-table";
 import { StatusCallout } from "@/components/status-callout";
-import {
-  type AdminSalesFilters,
-  filterSalesRows,
-} from "@/server/services/sales-service";
-import { getAdminTodaySalesRows } from "@/server/services/daily-rhythm-service";
-import { getCachedAdminDailyRhythmSummary } from "@/server/services/leaderboard-cache";
+import { type AdminSalesFilters } from "@/server/services/sales-service";
+import { getAdminSalesReviewData } from "@/server/services/daily-rhythm-service";
 
 type AdminSalesPageProps = {
   searchParams?: Promise<{
@@ -51,8 +47,9 @@ export default async function AdminSalesPage({
     keyword: pickQueryValue(params?.keyword)?.trim() ?? "",
   };
   const notice = pickQueryValue(params?.notice) ?? null;
-  const dailySummary = await getCachedAdminDailyRhythmSummary({});
-  const rows = filterSalesRows(await getAdminTodaySalesRows(), filters);
+  const { summary: dailySummary, rows } = await getAdminSalesReviewData({
+    keyword: filters.keyword,
+  });
   const keyword = filters.keyword ?? "";
   const returnTo = `/admin/sales?scope=today&keyword=${encodeURIComponent(keyword)}`;
   const activeFilterCount = [filters.keyword].filter(Boolean).length;

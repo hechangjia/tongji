@@ -38,8 +38,20 @@ test("admin reviews today's pending sales and sees formal top3 leaderboard", asy
   await page.waitForURL(/\/admin\/sales\?scope=today/, { timeout: 10000 });
   await expect(page.getByText("今日待审核")).toBeVisible();
 
-  const remarkInput = page.getByDisplayValue(uniqueRemark).first();
-  const pendingCard = remarkInput.locator("xpath=ancestor::form[1]");
+  const remarkInputs = page.locator('input[name="remark"]');
+  const remarkInputCount = await remarkInputs.count();
+  let pendingCard = page.locator("form").first();
+
+  for (let index = 0; index < remarkInputCount; index += 1) {
+    const remarkInput = remarkInputs.nth(index);
+
+    if ((await remarkInput.inputValue()) === uniqueRemark) {
+      pendingCard = remarkInput.locator("xpath=ancestor::form[1]");
+      break;
+    }
+  }
+
+  await expect(pendingCard.locator('input[name="remark"]')).toHaveValue(uniqueRemark);
   await pendingCard.getByRole("button", { name: "通过" }).click();
 
   await expect(page.getByText("审核已通过")).toBeVisible();

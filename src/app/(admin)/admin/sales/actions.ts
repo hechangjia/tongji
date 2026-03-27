@@ -17,7 +17,7 @@ async function requireAdminSession() {
   const session = await auth();
 
   if (!session?.user) {
-    redirect("/login?callbackUrl=%2Fadmin%2Fsales");
+    redirect("/login?callbackUrl=%2Fadmin%2Fsales%3Fscope%3Dtoday");
   }
 
   if (!canAccessAdmin(session.user)) {
