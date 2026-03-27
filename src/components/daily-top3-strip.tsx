@@ -1,23 +1,35 @@
 import type { DailyTop3Status, DailyRhythmTop3Row } from "@/server/services/daily-rhythm-service";
 
+const submittedAtFormatter = new Intl.DateTimeFormat("zh-CN", {
+  timeZone: "Asia/Shanghai",
+  hour12: false,
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+});
+
 function formatSubmittedAt(value: Date | null) {
   if (!value) {
-    return "提交时间待补充";
+    return null;
   }
 
-  return new Intl.DateTimeFormat("zh-CN", {
-    timeZone: "Asia/Shanghai",
-    hour12: false,
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  }).format(value);
+  return submittedAtFormatter.format(value);
 }
 
 function getReviewStatusLabel(reviewStatus: DailyRhythmTop3Row["reviewStatus"]) {
-  return reviewStatus === "PENDING" ? "待审核" : "已通过";
+  switch (reviewStatus) {
+    case "PENDING":
+      return "待审核";
+    case "APPROVED":
+      return "已通过";
+    case "REJECTED":
+      return "已退回";
+  }
+
+  const unreachableStatus: never = reviewStatus;
+  throw new Error(`Unhandled review status: ${unreachableStatus}`);
 }
 
 function Top3List({
@@ -26,15 +38,20 @@ function Top3List({
   count,
   rows,
   emptyText,
+  testId,
 }: {
   title: string;
   description: string;
   count: number;
   rows: DailyRhythmTop3Row[];
   emptyText: string;
+  testId?: string;
 }) {
   return (
-    <article className="rounded-[24px] border border-white/70 bg-white/82 p-4 shadow-[0_18px_42px_rgba(8,47,73,0.08)] sm:p-5">
+    <article
+      data-testid={testId}
+      className="rounded-[24px] border border-white/70 bg-white/82 p-4 shadow-[0_18px_42px_rgba(8,47,73,0.08)] sm:p-5"
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1">
           <h2 className="text-base font-semibold text-slate-950">{title}</h2>
@@ -67,7 +84,9 @@ function Top3List({
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-slate-500">
-                  提交时间 {formatSubmittedAt(row.lastSubmittedAt)}
+                  {formatSubmittedAt(row.lastSubmittedAt)
+                    ? `提交时间 ${formatSubmittedAt(row.lastSubmittedAt)}`
+                    : "提交时间待补充"}
                 </p>
               </div>
             </li>
@@ -94,6 +113,7 @@ export function DailyTop3Strip({ top3Status }: { top3Status: DailyTop3Status }) 
         count={top3Status.formalCount}
         rows={top3Status.formalTop3}
         emptyText="暂无已通过审核的正式前三"
+        testId="daily-formal-top3-section"
       />
     </section>
   );

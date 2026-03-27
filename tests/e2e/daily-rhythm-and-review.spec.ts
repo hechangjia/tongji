@@ -60,10 +60,7 @@ test("admin reviews today's pending sales and sees formal top3 leaderboard", asy
   await expect(page.getByText("临时前三")).toBeVisible();
   await expect(page.getByText("正式前三")).toBeVisible();
 
-  const formalTop3Section = page
-    .getByRole("heading", { name: "正式前三" })
-    .locator("xpath=ancestor::article[1]");
-
+  const formalTop3Section = page.getByTestId("daily-formal-top3-section");
   await expect(formalTop3Section).toBeVisible();
   await expect(formalTop3Section.getByText("member01")).toBeVisible();
   await expect(formalTop3Section.getByText("暂无已通过审核的正式前三")).toHaveCount(0);

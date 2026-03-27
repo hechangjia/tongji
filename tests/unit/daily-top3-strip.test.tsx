@@ -103,4 +103,30 @@ describe("daily top3 strip", () => {
     expect(screen.getByText("暂无已通过审核的正式前三")).toBeInTheDocument();
     expect(screen.getByText("待审核第一")).toBeInTheDocument();
   });
+
+  test("renders a correct fallback sentence when submitted time is missing", () => {
+    render(
+      <DailyTop3Strip
+        top3Status={{
+          temporaryTop3: [],
+          formalTop3: [
+            {
+              id: "approved-1",
+              userId: "member-3",
+              userName: "正式第一",
+              reviewStatus: "APPROVED",
+              lastSubmittedAt: null,
+              rank: 1,
+            },
+          ],
+          temporaryCount: 0,
+          formalCount: 1,
+          isFormalTop3Complete: false,
+        }}
+      />,
+    );
+
+    expect(screen.getByText("提交时间待补充")).toBeInTheDocument();
+    expect(screen.queryByText("提交时间 提交时间待补充")).not.toBeInTheDocument();
+  });
 });
