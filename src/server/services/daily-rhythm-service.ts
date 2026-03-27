@@ -66,8 +66,8 @@ export type MemberDailyRhythmSummary = {
 export type AdminDailyRhythmSummary = {
   message: string;
   pendingCount: number;
-  top3Status: "NOT_CONFIRMED" | "CONFIRMED";
-  top3Details: DailyTop3Status;
+  top3Status: DailyTop3Status;
+  top3ConfirmationStatus: "NOT_CONFIRMED" | "CONFIRMED";
   primaryAction: DailyRhythmAction;
   secondaryActions: DailyRhythmAction[];
 };
@@ -351,8 +351,8 @@ export function buildAdminDailyRhythmSummary({
   return {
     message,
     pendingCount,
-    top3Status: top3Status.isFormalTop3Complete ? "CONFIRMED" : "NOT_CONFIRMED",
-    top3Details: top3Status,
+    top3Status,
+    top3ConfirmationStatus: top3Status.isFormalTop3Complete ? "CONFIRMED" : "NOT_CONFIRMED",
     primaryAction: {
       href: "/admin/sales",
       label: pendingCount > 0 ? "去审核今日记录" : "查看今日销售记录",

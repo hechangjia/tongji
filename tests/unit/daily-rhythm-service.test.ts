@@ -291,8 +291,8 @@ describe("daily rhythm service pure helpers", () => {
     ).toMatchObject({
       message: "今天还没有成员提交销售记录",
       pendingCount: 0,
-      top3Status: "NOT_CONFIRMED",
-      top3Details: {
+      top3ConfirmationStatus: "NOT_CONFIRMED",
+      top3Status: {
         temporaryCount: 0,
         formalCount: 0,
         isFormalTop3Complete: false,
@@ -325,8 +325,8 @@ describe("daily rhythm service pure helpers", () => {
     ).toMatchObject({
       message: "今天已有 2 条提交，等待管理员审核",
       pendingCount: 2,
-      top3Status: "NOT_CONFIRMED",
-      top3Details: {
+      top3ConfirmationStatus: "NOT_CONFIRMED",
+      top3Status: {
         temporaryCount: 2,
         formalCount: 0,
         isFormalTop3Complete: false,
@@ -355,8 +355,8 @@ describe("daily rhythm service pure helpers", () => {
     ).toMatchObject({
       message: "今日正式前三还差 1 人",
       pendingCount: 0,
-      top3Status: "NOT_CONFIRMED",
-      top3Details: {
+      top3ConfirmationStatus: "NOT_CONFIRMED",
+      top3Status: {
         temporaryCount: 2,
         formalCount: 2,
         isFormalTop3Complete: false,
@@ -399,8 +399,8 @@ describe("daily rhythm service pure helpers", () => {
     ).toMatchObject({
       message: "今日正式前三已确定，仍有 1 条待审核记录",
       pendingCount: 1,
-      top3Status: "CONFIRMED",
-      top3Details: {
+      top3ConfirmationStatus: "CONFIRMED",
+      top3Status: {
         temporaryCount: 3,
         formalCount: 3,
         isFormalTop3Complete: true,
@@ -429,8 +429,8 @@ describe("daily rhythm service pure helpers", () => {
     ).toMatchObject({
       message: "今天的提交已全部驳回，等待成员重新提交",
       pendingCount: 0,
-      top3Status: "NOT_CONFIRMED",
-      top3Details: {
+      top3ConfirmationStatus: "NOT_CONFIRMED",
+      top3Status: {
         temporaryCount: 0,
         formalCount: 0,
         isFormalTop3Complete: false,
