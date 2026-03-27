@@ -12,6 +12,8 @@ describe("sales entry success card", () => {
           count60: 2,
           total: 7,
           remark: "地推",
+          reviewStatus: "PENDING",
+          lastSubmittedAtIso: "2026-03-26T08:15:00.000Z",
           savedAtIso: "2026-03-26T08:15:00.000Z",
           isUpdate: true,
           recoveredFromError: false,

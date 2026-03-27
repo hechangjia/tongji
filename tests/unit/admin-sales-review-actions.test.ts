@@ -71,4 +71,27 @@ describe("admin sales review action", () => {
     expect(revalidatePathMock).toHaveBeenCalledWith("/admin/sales");
     expect(refreshLeaderboardCachesMock).toHaveBeenCalledTimes(1);
   });
+
+  test("keeps reviewNote only when rejecting a sales record", async () => {
+    salesRecordUpdateMock.mockResolvedValue({});
+
+    const formData = new FormData();
+    formData.set("id", "record-2");
+    formData.set("decision", "REJECTED");
+    formData.set("reviewNote", "数量异常，请核对");
+    formData.set("returnTo", "/admin/sales");
+
+    await expect(reviewSalesRecordAction(formData)).rejects.toThrow(
+      "redirect:/admin/sales?notice=",
+    );
+
+    expect(salesRecordUpdateMock).toHaveBeenCalledWith({
+      where: { id: "record-2" },
+      data: {
+        reviewStatus: "REJECTED",
+        reviewedAt: expect.any(Date),
+        reviewNote: "数量异常，请核对",
+      },
+    });
+  });
 });

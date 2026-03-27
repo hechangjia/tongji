@@ -25,6 +25,7 @@ export async function saveSalesEntryAction(
       count60: formData.get("count60"),
       remark: formData.get("remark"),
     });
+    const lastSubmittedAt = record.lastSubmittedAt ?? record.updatedAt;
 
     revalidatePath("/entry");
     refreshLeaderboardCaches();
@@ -45,7 +46,7 @@ export async function saveSalesEntryAction(
         total: record.count40 + record.count60,
         remark: record.remark ?? "",
         reviewStatus: record.reviewStatus,
-        lastSubmittedAtIso: record.lastSubmittedAt.toISOString(),
+        lastSubmittedAtIso: lastSubmittedAt.toISOString(),
         savedAtIso: record.updatedAt.toISOString(),
         isUpdate,
         recoveredFromError: previousState?.status === "error",

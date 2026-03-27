@@ -78,6 +78,7 @@ describe("leaderboard cache revalidation on writes", () => {
         count40: 1,
         count60: 2,
         remark: "",
+        reviewStatus: "PENDING",
         lastSubmittedAt: new Date("2026-03-26T08:00:00.000Z"),
         updatedAt: new Date("2026-03-26T08:00:00.000Z"),
       },

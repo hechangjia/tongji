@@ -175,6 +175,8 @@ export async function saveSalesRecordForUser(userId: string, input: SalesInput) 
       remark: payload.remark,
       lastSubmittedAt: submittedAt,
       reviewStatus: "PENDING",
+      reviewedAt: null,
+      reviewNote: null,
     },
   });
 
