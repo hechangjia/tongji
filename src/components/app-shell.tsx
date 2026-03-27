@@ -36,6 +36,12 @@ const adminNavItems = [
   { label: "全体公告", href: "/admin/announcements" },
 ] as const;
 
+const leaderNavItems = [
+  { label: "小组看板", href: "/leader/group" },
+  { label: "小组销售", href: "/leader/sales" },
+  { label: "小组榜单", href: "/leaderboard/groups" },
+] as const;
+
 export function buildNavSections(role: SessionRole): ShellNavSection[] {
   if (role === "ADMIN") {
     return [
@@ -46,6 +52,15 @@ export function buildNavSections(role: SessionRole): ShellNavSection[] {
       {
         title: "管理区",
         items: [...adminNavItems],
+      },
+    ];
+  }
+
+  if (role === "LEADER") {
+    return [
+      {
+        title: "组长区",
+        items: [...leaderNavItems],
       },
     ];
   }

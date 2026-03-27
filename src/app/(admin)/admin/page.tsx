@@ -72,6 +72,11 @@ export default async function AdminHomePage({ searchParams }: AdminHomePageProps
       description: "新增成员、调整状态、重置密码。",
     },
     {
+      title: "小组管理",
+      href: "/admin/groups",
+      description: "维护业务小组、组长归属与小组备注。",
+    },
+    {
       title: "销售记录",
       href: "/admin/sales?scope=today",
       description: "查看今日审核队列，并直接处理待审核销售记录。",
