@@ -17,8 +17,8 @@ export function CumulativeRankingChart({
         </div>
 
         <EmptyState
-          title="暂无累计买卡数据"
-          description="当前时间范围内暂无累计买卡数据，可调整当前区间后查看"
+          title="暂无累计卖卡数据"
+          description="当前时间范围内暂无累计卖卡数据，可调整当前区间后查看"
         />
       </section>
     );

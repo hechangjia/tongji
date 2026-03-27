@@ -6,7 +6,7 @@ describe("cumulative trend chart", () => {
   test("renders named series in an accessible svg chart", () => {
     render(
       <CumulativeTrendChart
-        title="成员累计买卡趋势"
+        title="成员累计卖卡趋势"
         series={[
           {
             userId: "member-1",
@@ -30,13 +30,13 @@ describe("cumulative trend chart", () => {
       />,
     );
 
-    expect(screen.getByLabelText("成员累计买卡趋势")).toBeInTheDocument();
+    expect(screen.getByLabelText("成员累计卖卡趋势")).toBeInTheDocument();
     expect(screen.getByText("张三")).toBeInTheDocument();
   });
 
   test("renders the admin empty state", () => {
-    render(<CumulativeTrendChart title="成员累计买卡趋势" series={[]} />);
+    render(<CumulativeTrendChart title="成员累计卖卡趋势" series={[]} />);
 
-    expect(screen.getByText("当前筛选条件下暂无累计买卡数据")).toBeInTheDocument();
+    expect(screen.getByText("当前筛选条件下暂无累计卖卡数据")).toBeInTheDocument();
   });
 });

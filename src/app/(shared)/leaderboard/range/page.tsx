@@ -111,7 +111,7 @@ export default async function RangeLeaderboardPage({
       </form>
 
       {cumulativeRanking ? (
-        <CumulativeRankingChart title="本月累计买卡" rows={cumulativeRanking} />
+        <CumulativeRankingChart title="本月累计卖卡" rows={cumulativeRanking} />
       ) : null}
 
       <LeaderboardTable

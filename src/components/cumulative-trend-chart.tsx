@@ -31,7 +31,7 @@ export function CumulativeTrendChart({
     return (
       <EmptyState
         title="暂无趋势数据"
-        description="当前筛选条件下暂无累计买卡数据"
+        description="当前筛选条件下暂无累计卖卡数据"
       />
     );
   }

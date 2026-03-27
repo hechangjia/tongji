@@ -8,7 +8,7 @@ test("member can view cumulative stats on the range leaderboard", async ({ page 
   await page.getByRole("button", { name: "登录" }).click();
 
   await expect(page).toHaveURL(/\/leaderboard\/range$/);
-  await expect(page.getByText("本月累计买卡")).toBeVisible();
+  await expect(page.getByText("本月累计卖卡")).toBeVisible();
   await expect(page.getByText("按全体成员累计数量统计")).toBeVisible();
 });
 
@@ -20,7 +20,7 @@ test("admin can switch cumulative trend filters on the dashboard", async ({ page
   await page.getByRole("button", { name: "登录" }).click();
 
   await expect(page).toHaveURL(/\/admin$/);
-  await expect(page.getByText("成员累计买卡趋势")).toBeVisible();
+  await expect(page.getByText("成员累计卖卡趋势")).toBeVisible();
 
   await page.getByRole("button", { name: "近 30 天" }).click();
   await page.getByRole("button", { name: "60 套餐" }).click();

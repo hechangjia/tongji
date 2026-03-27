@@ -69,7 +69,7 @@ export function AdminCumulativeStatsPanel({
         <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-cyan-700">
           Admin Insight
         </p>
-        <h2 className="text-2xl font-semibold text-slate-950">成员累计买卡趋势</h2>
+        <h2 className="text-2xl font-semibold text-slate-950">成员累计卖卡趋势</h2>
         <p className="text-sm text-slate-600">
           观察成员累计走势，快速识别谁在持续增长，谁近期放缓。当前粒度：
           {granularity === "month" ? "按月" : "按天"}。
@@ -105,13 +105,13 @@ export function AdminCumulativeStatsPanel({
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]">
-        <CumulativeTrendChart title="成员累计买卡趋势" series={series} />
+        <CumulativeTrendChart title="成员累计卖卡趋势" series={series} />
 
         <section className="rounded-[22px] border border-slate-200 bg-slate-50/80 p-4">
           <h3 className="text-lg font-semibold text-slate-950">Top 成员</h3>
           <div className="mt-4 space-y-3">
             {series.length === 0 ? (
-              <p className="text-sm text-slate-600">当前筛选条件下暂无累计买卡数据</p>
+              <p className="text-sm text-slate-600">当前筛选条件下暂无累计卖卡数据</p>
             ) : (
               series.map((row, index) => (
                 <article
