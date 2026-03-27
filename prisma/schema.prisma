@@ -38,18 +38,34 @@ enum SalesReviewStatus {
   REJECTED
 }
 
+enum ReminderStatus {
+  UNREAD
+  READ
+}
+
+enum ReminderTemplate {
+  TARGET_GAP
+  MISSING_SUBMISSION
+  FOLLOW_UP
+  CUSTOM
+}
+
 model User {
-  id              String           @id @default(cuid())
-  username        String           @unique
-  passwordHash    String
-  name            String
-  phone           String?
-  role            Role
-  status          UserStatus       @default(ACTIVE)
-  salesRecords    SalesRecord[]
-  commissionRules CommissionRule[]
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  id                  String           @id @default(cuid())
+  username            String           @unique
+  passwordHash        String
+  name                String
+  phone               String?
+  role                Role
+  status              UserStatus       @default(ACTIVE)
+  salesRecords        SalesRecord[]
+  commissionRules     CommissionRule[]
+  dailyTargets        DailyTarget[]
+  adjustedDailyTargets DailyTarget[]   @relation("DailyTargetAdjustedBy")
+  receivedReminders   MemberReminder[] @relation("MemberReminderRecipient")
+  sentReminders       MemberReminder[] @relation("MemberReminderSender")
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
 
   @@map("users")
 }
@@ -89,6 +105,46 @@ model CommissionRule {
 
   @@index([userId, effectiveStart, effectiveEnd])
   @@map("commission_rules")
+}
+
+model DailyTarget {
+  id               String   @id @default(cuid())
+  userId           String
+  targetDate       DateTime @db.Date
+  suggestedTotal   Int
+  finalTotal       Int
+  suggestionReason String
+  adjustedById     String?
+  adjustedAt       DateTime?
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  adjustedBy       User?    @relation("DailyTargetAdjustedBy", fields: [adjustedById], references: [id], onDelete: SetNull)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([userId, targetDate])
+  @@index([targetDate])
+  @@index([targetDate, userId])
+  @@map("daily_targets")
+}
+
+model MemberReminder {
+  id        String           @id @default(cuid())
+  userId    String
+  type      ReminderTemplate
+  title     String
+  content   String
+  status    ReminderStatus   @default(UNREAD)
+  sentById  String?
+  sentAt    DateTime         @default(now())
+  readAt    DateTime?
+  user      User             @relation("MemberReminderRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  sentBy    User?            @relation("MemberReminderSender", fields: [sentById], references: [id], onDelete: SetNull)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@index([userId, sentAt])
+  @@index([userId, status, sentAt])
+  @@map("member_reminders")
 }
 
 model BannerQuote {

@@ -45,4 +45,15 @@ describe("prisma schema", () => {
     expect(migration).toMatch(/"lastSubmittedAt"\s*=\s*COALESCE\("updatedAt",\s*"createdAt"\)/);
     expect(migration).toMatch(/"reviewedAt"\s*=\s*COALESCE\("updatedAt",\s*"createdAt"\)/);
   });
+
+  test("locks daily target and reminder models", () => {
+    const schema = readFileSync("prisma/schema.prisma", "utf8");
+
+    expect(schema).toContain("enum ReminderStatus");
+    expect(schema).toContain("model DailyTarget");
+    expect(schema).toContain("model MemberReminder");
+    expect(schema).toMatch(/targetDate\s+DateTime\s+@db\.Date/);
+    expect(schema).toMatch(/finalTotal\s+Int/);
+    expect(schema).toMatch(/status\s+ReminderStatus/);
+  });
 });
