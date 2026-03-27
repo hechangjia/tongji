@@ -95,8 +95,6 @@ export function MemberTable({
                   <td className="px-5 py-5">
                     <form action={updateMemberAction} className="space-y-3">
                       <input type="hidden" name="id" value={row.id} />
-                      <input type="hidden" name="role" value={row.role} />
-                      <input type="hidden" name="groupId" value={row.groupId ?? ""} />
                       {isCurrentAdmin ? (
                         <input type="hidden" name="status" value={row.status} />
                       ) : null}
@@ -194,11 +192,6 @@ export function MemberTable({
                   <td className="px-5 py-5">
                     <form action={updateMemberAction} className="space-y-3">
                       <input type="hidden" name="id" value={row.id} />
-                      <input type="hidden" name="username" value={row.username} />
-                      <input type="hidden" name="name" value={row.name} />
-                      <input type="hidden" name="remark" value={row.remark ?? ""} />
-                      <input type="hidden" name="status" value={row.status} />
-                      <input type="hidden" name="password" value="" />
                       {disableCurrentAdminRole ? (
                         <input type="hidden" name="role" value={row.role} />
                       ) : null}

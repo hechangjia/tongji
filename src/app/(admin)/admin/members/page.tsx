@@ -12,6 +12,7 @@ import { StatusCallout } from "@/components/status-callout";
 type MembersPageProps = {
   searchParams?: Promise<{
     notice?: string | string[];
+    noticeTone?: string | string[];
   }>;
 };
 
@@ -30,6 +31,7 @@ export default async function AdminMembersPage({
 
   const params = searchParams ? await searchParams : undefined;
   const notice = typeof params?.notice === "string" ? params.notice : null;
+  const noticeTone = params?.noticeTone === "error" ? "error" : "success";
   const [members, groups] = await Promise.all([
     db.user.findMany({
       orderBy: [{ role: "desc" }, { createdAt: "asc" }],
@@ -80,7 +82,10 @@ export default async function AdminMembersPage({
         </PageHeader>
 
         {notice ? (
-          <StatusCallout tone="success" title="操作完成">
+          <StatusCallout
+            tone={noticeTone}
+            title={noticeTone === "error" ? "保存失败" : "操作完成"}
+          >
             {notice}
           </StatusCallout>
         ) : null}

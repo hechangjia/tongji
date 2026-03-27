@@ -12,6 +12,9 @@ const groupFindUniqueMock = vi.hoisted(() => vi.fn());
 const groupCreateMock = vi.hoisted(() => vi.fn());
 const groupUpdateMock = vi.hoisted(() => vi.fn());
 const userFindManyMock = vi.hoisted(() => vi.fn());
+const userFindUniqueMock = vi.hoisted(() => vi.fn());
+const userUpdateMock = vi.hoisted(() => vi.fn());
+const dbTransactionMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/auth", () => ({
   auth: authMock,
@@ -27,6 +30,7 @@ vi.mock("next/cache", () => ({
 
 vi.mock("@/lib/db", () => ({
   db: {
+    $transaction: dbTransactionMock,
     group: {
       findMany: groupFindManyMock,
       findUnique: groupFindUniqueMock,
@@ -35,6 +39,8 @@ vi.mock("@/lib/db", () => ({
     },
     user: {
       findMany: userFindManyMock,
+      findUnique: userFindUniqueMock,
+      update: userUpdateMock,
     },
   },
 }));
@@ -148,14 +154,26 @@ describe("group actions", () => {
         role: "ADMIN",
       },
     });
+    dbTransactionMock.mockImplementation(async (callback: (tx: typeof import("@/lib/db").db) => Promise<unknown>) =>
+      callback({
+        group: {
+          create: groupCreateMock,
+          update: groupUpdateMock,
+        },
+        user: {
+          update: userUpdateMock,
+        },
+      } as unknown as typeof import("@/lib/db").db),
+    );
   });
 
   test("createGroupAction returns friendly message when leader is already assigned", async () => {
     groupFindUniqueMock.mockResolvedValue(null);
-    groupCreateMock.mockRejectedValue({
-      code: "P2002",
-      meta: {
-        target: ["leaderUserId"],
+    userFindUniqueMock.mockResolvedValue({
+      id: "leader-2",
+      groupId: "group-2",
+      ledGroup: {
+        id: "group-2",
       },
     });
 
@@ -176,6 +194,50 @@ describe("group actions", () => {
       },
     });
     expect(revalidatePathMock).not.toHaveBeenCalled();
+  });
+
+  test("createGroupAction syncs assigned leader role and group membership", async () => {
+    groupFindUniqueMock.mockResolvedValueOnce(null);
+    userFindUniqueMock.mockResolvedValue({
+      id: "leader-2",
+      groupId: "group-old",
+      ledGroup: null,
+    });
+    groupCreateMock.mockResolvedValue({
+      id: "group-1",
+      name: "一组",
+    });
+    userUpdateMock.mockResolvedValue({});
+    groupUpdateMock.mockResolvedValue({});
+
+    const formData = new FormData();
+    formData.set("name", "一组");
+    formData.set("leaderUserId", "leader-2");
+
+    await expect(createGroupAction(undefined, formData)).resolves.toEqual({
+      status: "success",
+      message: "小组创建成功",
+      values: {
+        name: "",
+        slogan: "",
+        remark: "",
+        leaderUserId: "",
+      },
+    });
+
+    expect(userUpdateMock).toHaveBeenCalledWith({
+      where: { id: "leader-2" },
+      data: {
+        role: "LEADER",
+        groupId: "group-1",
+      },
+    });
+    expect(groupUpdateMock).toHaveBeenCalledWith({
+      where: { id: "group-1" },
+      data: {
+        leaderUserId: "leader-2",
+      },
+    });
   });
 
   test("updateGroupAction redirects with validation notice on oversized input", async () => {
@@ -210,10 +272,15 @@ describe("group actions", () => {
   });
 
   test("updateGroupAction redirects with friendly notice on leader conflict", async () => {
-    groupUpdateMock.mockRejectedValue({
-      code: "P2002",
-      meta: {
-        target: ["leaderUserId"],
+    groupFindUniqueMock.mockResolvedValue({
+      id: "group-1",
+      leaderUserId: null,
+    });
+    userFindUniqueMock.mockResolvedValue({
+      id: "leader-2",
+      groupId: "group-2",
+      ledGroup: {
+        id: "group-2",
       },
     });
 
@@ -226,5 +293,77 @@ describe("group actions", () => {
     );
 
     expect(revalidatePathMock).not.toHaveBeenCalled();
+  });
+
+  test("updateGroupAction clears the previous leader role when a group leader is removed", async () => {
+    groupFindUniqueMock.mockResolvedValue({
+      id: "group-1",
+      leaderUserId: "leader-1",
+    });
+    groupUpdateMock.mockResolvedValue({});
+    userUpdateMock.mockResolvedValue({});
+
+    const formData = new FormData();
+    formData.set("id", "group-1");
+    formData.set("leaderUserId", "");
+
+    await expect(updateGroupAction(formData)).rejects.toThrow(
+      "redirect:/admin/groups?notice=小组信息已更新",
+    );
+
+    expect(userUpdateMock).toHaveBeenCalledWith({
+      where: { id: "leader-1" },
+      data: {
+        role: "MEMBER",
+      },
+    });
+    expect(groupUpdateMock).toHaveBeenCalledWith({
+      where: { id: "group-1" },
+      data: {
+        leaderUserId: null,
+      },
+    });
+  });
+
+  test("updateGroupAction reassigns a leader and syncs their group membership", async () => {
+    groupFindUniqueMock.mockResolvedValueOnce({
+      id: "group-1",
+      leaderUserId: "leader-1",
+    });
+    userFindUniqueMock.mockResolvedValue({
+      id: "leader-2",
+      groupId: "group-other",
+      ledGroup: null,
+    });
+    userUpdateMock.mockResolvedValue({});
+    groupUpdateMock.mockResolvedValue({});
+
+    const formData = new FormData();
+    formData.set("id", "group-1");
+    formData.set("leaderUserId", "leader-2");
+
+    await expect(updateGroupAction(formData)).rejects.toThrow(
+      "redirect:/admin/groups?notice=小组信息已更新",
+    );
+
+    expect(userUpdateMock).toHaveBeenNthCalledWith(1, {
+      where: { id: "leader-1" },
+      data: {
+        role: "MEMBER",
+      },
+    });
+    expect(userUpdateMock).toHaveBeenNthCalledWith(2, {
+      where: { id: "leader-2" },
+      data: {
+        role: "LEADER",
+        groupId: "group-1",
+      },
+    });
+    expect(groupUpdateMock).toHaveBeenCalledWith({
+      where: { id: "group-1" },
+      data: {
+        leaderUserId: "leader-2",
+      },
+    });
   });
 });

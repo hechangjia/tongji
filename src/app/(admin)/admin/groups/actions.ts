@@ -10,6 +10,7 @@ import type { GroupCreateFormState } from "@/app/(admin)/admin/groups/form-state
 
 const GROUP_NAME_CONFLICT_NOTICE = "该小组名称已存在，请更换后重试";
 const GROUP_LEADER_CONFLICT_NOTICE = "该组长已被分配到其他小组，请先解绑后再试";
+const GROUP_LEADER_NOT_FOUND_NOTICE = "所选组长不存在，请刷新页面后重试";
 
 async function requireAdminSession() {
   const session = await auth();
@@ -110,14 +111,67 @@ export async function createGroupAction(
     };
   }
 
-  try {
-    await db.group.create({
-      data: {
-        name: parsedInput.data.name,
-        slogan: parsedInput.data.slogan,
-        remark: parsedInput.data.remark,
-        leaderUserId: parsedInput.data.leaderUserId,
+  if (parsedInput.data.leaderUserId) {
+    const selectedLeader = await db.user.findUnique({
+      where: { id: parsedInput.data.leaderUserId },
+      select: {
+        id: true,
+        groupId: true,
+        ledGroup: {
+          select: {
+            id: true,
+          },
+        },
       },
+    });
+
+    if (!selectedLeader) {
+      return {
+        status: "error",
+        message: GROUP_LEADER_NOT_FOUND_NOTICE,
+        values: fallbackValues,
+      };
+    }
+
+    if (selectedLeader.ledGroup?.id) {
+      return {
+        status: "error",
+        message: GROUP_LEADER_CONFLICT_NOTICE,
+        values: fallbackValues,
+      };
+    }
+  }
+
+  try {
+    await db.$transaction(async (tx) => {
+      const createdGroup = await tx.group.create({
+        data: {
+          name: parsedInput.data.name,
+          slogan: parsedInput.data.slogan,
+          remark: parsedInput.data.remark,
+        },
+      });
+
+      if (!parsedInput.data.leaderUserId) {
+        return createdGroup;
+      }
+
+      await tx.user.update({
+        where: { id: parsedInput.data.leaderUserId },
+        data: {
+          role: "LEADER",
+          groupId: createdGroup.id,
+        },
+      });
+
+      await tx.group.update({
+        where: { id: createdGroup.id },
+        data: {
+          leaderUserId: parsedInput.data.leaderUserId,
+        },
+      });
+
+      return createdGroup;
     });
   } catch (error) {
     if (isUniqueConflictOnField(error, "leaderUserId")) {
@@ -210,11 +264,78 @@ export async function updateGroupAction(formData: FormData) {
     }
   }
 
+  const currentGroup = formData.has("leaderUserId")
+    ? await db.group.findUnique({
+        where: { id: parsedInput.data.id },
+        select: {
+          id: true,
+          leaderUserId: true,
+        },
+      })
+    : null;
+  const selectedLeader =
+    formData.has("leaderUserId") && parsedInput.data.leaderUserId
+      ? await db.user.findUnique({
+          where: { id: parsedInput.data.leaderUserId },
+          select: {
+            id: true,
+            groupId: true,
+            ledGroup: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        })
+      : null;
+
+  if (formData.has("leaderUserId") && parsedInput.data.leaderUserId && !selectedLeader) {
+    redirect(`/admin/groups?notice=${GROUP_LEADER_NOT_FOUND_NOTICE}`);
+  }
+
+  if (
+    selectedLeader?.ledGroup?.id &&
+    selectedLeader.ledGroup.id !== parsedInput.data.id
+  ) {
+    redirect(`/admin/groups?notice=${GROUP_LEADER_CONFLICT_NOTICE}`);
+  }
+
   try {
-    await db.group.update({
-      where: { id: parsedInput.data.id },
-      data: updateData,
-    });
+    if (!formData.has("leaderUserId")) {
+      await db.group.update({
+        where: { id: parsedInput.data.id },
+        data: updateData,
+      });
+    } else {
+      await db.$transaction(async (tx) => {
+        if (
+          currentGroup?.leaderUserId &&
+          currentGroup.leaderUserId !== (parsedInput.data.leaderUserId ?? null)
+        ) {
+          await tx.user.update({
+            where: { id: currentGroup.leaderUserId },
+            data: {
+              role: "MEMBER",
+            },
+          });
+        }
+
+        if (parsedInput.data.leaderUserId) {
+          await tx.user.update({
+            where: { id: parsedInput.data.leaderUserId },
+            data: {
+              role: "LEADER",
+              groupId: parsedInput.data.id,
+            },
+          });
+        }
+
+        await tx.group.update({
+          where: { id: parsedInput.data.id },
+          data: updateData,
+        });
+      });
+    }
   } catch (error) {
     if (isUniqueConflictOnField(error, "leaderUserId")) {
       redirect(`/admin/groups?notice=${GROUP_LEADER_CONFLICT_NOTICE}`);
