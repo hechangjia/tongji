@@ -351,6 +351,7 @@ describe("daily rhythm service pure helpers", () => {
     ).toMatchObject({
       message: "今天还没有成员提交销售记录",
       pendingCount: 0,
+      primaryAction: { href: "/admin/sales?scope=today", label: "查看今日销售记录" },
       top3ConfirmationStatus: "NOT_CONFIRMED",
       top3Status: {
         temporaryCount: 0,
@@ -603,18 +604,6 @@ describe("daily rhythm service pure helpers", () => {
       }),
     ).resolves.toEqual([
       expect.objectContaining({
-        id: "record-1",
-        userId: "member-1",
-        userName: "fallback-user",
-        saleDate: "2026-03-27",
-        reviewStatus: "APPROVED",
-        lastSubmittedAt: new Date("2026-03-26T16:01:00.000Z"),
-        reviewedAt: new Date("2026-03-26T17:00:00.000Z"),
-        reviewNote: "通过",
-        isTemporaryTop3: true,
-        isFormalTop3: true,
-      }),
-      expect.objectContaining({
         id: "record-2",
         userId: "member-2",
         userName: "实名成员",
@@ -625,6 +614,18 @@ describe("daily rhythm service pure helpers", () => {
         reviewNote: null,
         isTemporaryTop3: true,
         isFormalTop3: false,
+      }),
+      expect.objectContaining({
+        id: "record-1",
+        userId: "member-1",
+        userName: "fallback-user",
+        saleDate: "2026-03-27",
+        reviewStatus: "APPROVED",
+        lastSubmittedAt: new Date("2026-03-26T16:01:00.000Z"),
+        reviewedAt: new Date("2026-03-26T17:00:00.000Z"),
+        reviewNote: "通过",
+        isTemporaryTop3: true,
+        isFormalTop3: true,
       }),
     ]);
     expect(salesRecordFindManyMock).toHaveBeenCalledWith({

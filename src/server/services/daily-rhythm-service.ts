@@ -94,6 +94,12 @@ export type AdminTodaySalesRow = Pick<
   isFormalTop3: boolean;
 };
 
+const ADMIN_REVIEW_STATUS_ORDER: Record<SalesReviewStatus, number> = {
+  PENDING: 0,
+  APPROVED: 1,
+  REJECTED: 2,
+};
+
 export type DailyTop3StatusInput = {
   todaySaleDate?: DateValue;
   now?: Date;
@@ -122,6 +128,20 @@ function compareBySubmissionOrder(
   }
 
   return left.id.localeCompare(right.id);
+}
+
+function compareAdminReviewQueueOrder(
+  left: Pick<DailyRhythmSourceRow, "id" | "lastSubmittedAt" | "reviewStatus">,
+  right: Pick<DailyRhythmSourceRow, "id" | "lastSubmittedAt" | "reviewStatus">,
+) {
+  const statusOrderDiff =
+    ADMIN_REVIEW_STATUS_ORDER[left.reviewStatus] - ADMIN_REVIEW_STATUS_ORDER[right.reviewStatus];
+
+  if (statusOrderDiff !== 0) {
+    return statusOrderDiff;
+  }
+
+  return compareBySubmissionOrder(left, right);
 }
 
 function rankTop3Rows(rows: DailyRhythmSourceRow[]) {
@@ -385,7 +405,7 @@ export function buildAdminDailyRhythmSummary({
     top3Status,
     top3ConfirmationStatus: top3Status.isFormalTop3Complete ? "CONFIRMED" : "NOT_CONFIRMED",
     primaryAction: {
-      href: "/admin/sales",
+      href: "/admin/sales?scope=today",
       label: pendingCount > 0 ? "去审核今日记录" : "查看今日销售记录",
     },
     secondaryActions: [
@@ -405,7 +425,9 @@ export function buildAdminTodaySalesRows(
   rows: DailyRhythmSourceRow[],
   todaySaleDate: DateValue,
 ): AdminTodaySalesRow[] {
-  const todayRows = filterCurrentBusinessDayRows(rows, todaySaleDate).slice().sort(compareBySubmissionOrder);
+  const todayRows = filterCurrentBusinessDayRows(rows, todaySaleDate)
+    .slice()
+    .sort(compareAdminReviewQueueOrder);
   const temporaryIds = new Set(buildTemporaryTop3(todayRows, todaySaleDate).map((row) => row.id));
   const formalIds = new Set(buildFormalTop3(todayRows, todaySaleDate).map((row) => row.id));
 

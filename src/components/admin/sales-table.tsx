@@ -1,20 +1,53 @@
 import { EmptyState } from "@/components/empty-state";
-import { updateSalesRecordAction } from "@/app/(admin)/admin/sales/actions";
+import {
+  reviewSalesRecordAction,
+  updateSalesRecordAction,
+} from "@/app/(admin)/admin/sales/actions";
+import type { AdminTodaySalesRow } from "@/server/services/daily-rhythm-service";
 
-export type AdminSalesRow = {
-  id: string;
-  saleDate: string;
-  userName: string;
-  count40: number;
-  count60: number;
-  remark: string | null;
-};
+function formatSubmittedAt(value: Date | null) {
+  if (!value) {
+    return "未提交";
+  }
+
+  return new Intl.DateTimeFormat("zh-CN", {
+    timeZone: "Asia/Shanghai",
+    hour12: false,
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).format(value);
+}
+
+function getReviewStatusLabel(reviewStatus: AdminTodaySalesRow["reviewStatus"]) {
+  switch (reviewStatus) {
+    case "APPROVED":
+      return "已通过";
+    case "REJECTED":
+      return "已驳回";
+    case "PENDING":
+      return "待审核";
+  }
+}
+
+function getReviewStatusTone(reviewStatus: AdminTodaySalesRow["reviewStatus"]) {
+  switch (reviewStatus) {
+    case "APPROVED":
+      return "bg-emerald-100 text-emerald-900";
+    case "REJECTED":
+      return "bg-rose-100 text-rose-900";
+    case "PENDING":
+      return "bg-amber-100 text-amber-900";
+  }
+}
 
 export function SalesTable({
   rows,
   returnTo,
 }: {
-  rows: AdminSalesRow[];
+  rows: AdminTodaySalesRow[];
   returnTo: string;
 }) {
   if (rows.length === 0) {
@@ -42,17 +75,32 @@ export function SalesTable({
               <p className="text-base font-semibold text-slate-900">{row.userName}</p>
               <p className="text-xs text-slate-500">{row.saleDate}</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold text-cyan-900">
                 当前总数 {row.count40 + row.count60}
               </span>
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
                 {row.remark ? "含备注" : "备注待补充"}
               </span>
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${getReviewStatusTone(row.reviewStatus)}`}
+              >
+                {getReviewStatusLabel(row.reviewStatus)}
+              </span>
+              {row.isTemporaryTop3 ? (
+                <span className="rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold text-cyan-900">
+                  临时前三
+                </span>
+              ) : null}
+              {row.isFormalTop3 ? (
+                <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-900">
+                  正式前三
+                </span>
+              ) : null}
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-[120px_120px_minmax(0,1fr)_auto] md:items-end">
+          <div className="grid gap-4 xl:grid-cols-[120px_120px_minmax(0,1fr)_minmax(0,220px)_auto] xl:items-end">
             <div className="space-y-1">
               <label
                 htmlFor={`count40-${row.id}`}
@@ -88,6 +136,58 @@ export function SalesTable({
             </div>
 
             <div className="space-y-1">
+              <span className="text-xs font-medium text-slate-500">最后提交时间</span>
+              <p className="rounded-[16px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                {formatSubmittedAt(row.lastSubmittedAt)}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="submit"
+                className="inline-flex h-12 items-center justify-center rounded-[16px] bg-slate-950 px-5 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-800"
+              >
+                保存
+              </button>
+              <button
+                type="submit"
+                formAction={reviewSalesRecordAction}
+                name="decision"
+                value="APPROVED"
+                className="inline-flex h-12 items-center justify-center rounded-[16px] bg-emerald-600 px-5 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-emerald-500"
+              >
+                通过
+              </button>
+              <button
+                type="submit"
+                formAction={reviewSalesRecordAction}
+                name="decision"
+                value="REJECTED"
+                className="inline-flex h-12 items-center justify-center rounded-[16px] bg-rose-600 px-5 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-rose-500"
+              >
+                驳回
+              </button>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-1">
+              <label
+                htmlFor={`reviewNote-${row.id}`}
+                className="text-xs font-medium text-slate-500"
+              >
+                驳回备注（选填）
+              </label>
+              <textarea
+                id={`reviewNote-${row.id}`}
+                name="reviewNote"
+                defaultValue={row.reviewStatus === "REJECTED" ? row.reviewNote ?? "" : ""}
+                rows={3}
+                className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition duration-200 focus:border-cyan-400 focus:bg-cyan-50/40"
+              />
+            </div>
+
+            <div className="space-y-1">
               <label
                 htmlFor={`remark-${row.id}`}
                 className="text-xs font-medium text-slate-500"
@@ -102,13 +202,6 @@ export function SalesTable({
                 className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition duration-200 focus:border-cyan-400 focus:bg-cyan-50/40"
               />
             </div>
-
-            <button
-              type="submit"
-              className="inline-flex h-12 items-center justify-center rounded-[16px] bg-slate-950 px-5 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-800"
-            >
-              保存
-            </button>
           </div>
         </form>
       ))}

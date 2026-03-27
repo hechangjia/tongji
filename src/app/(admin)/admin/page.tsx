@@ -3,13 +3,17 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
 import { AdminCumulativeStatsPanel } from "@/components/admin/admin-cumulative-stats-panel";
+import { AdminDailyReviewSummary } from "@/components/admin/admin-daily-review-summary";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import {
   type CumulativeMetric,
   type CumulativePreset,
 } from "@/server/services/cumulative-sales-stats-service";
-import { getCachedAdminCumulativeTrend } from "@/server/services/leaderboard-cache";
+import {
+  getCachedAdminCumulativeTrend,
+  getCachedAdminDailyRhythmSummary,
+} from "@/server/services/leaderboard-cache";
 
 type AdminHomePageProps = {
   searchParams?: Promise<{
@@ -54,6 +58,7 @@ export default async function AdminHomePage({ searchParams }: AdminHomePageProps
     preset,
     metric,
   });
+  const dailyReviewSummary = await getCachedAdminDailyRhythmSummary({});
 
   const cards = [
     {
@@ -100,6 +105,8 @@ export default async function AdminHomePage({ searchParams }: AdminHomePageProps
           title="管理员功能"
           description="这里是管理员的主控制台。优先从成员、销售、规则和结算四个入口进入，后续内容系统也会挂在这里。"
         />
+
+        <AdminDailyReviewSummary summary={dailyReviewSummary} />
 
         <AdminCumulativeStatsPanel
           preset={preset}
