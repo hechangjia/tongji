@@ -62,7 +62,8 @@ export async function saveSalesEntryAction(
         isUpdate,
         recoveredFromError: previousState?.status === "error",
         dailyRhythm: {
-          lastSubmittedAtIso: lastSubmittedAt.toISOString(),
+          lastSubmittedAtIso:
+            saleDate === todaySaleDate ? lastSubmittedAt.toISOString() : null,
           ...dailyRhythm,
         },
       },

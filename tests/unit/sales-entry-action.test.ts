@@ -84,7 +84,7 @@ describe("sales entry action", () => {
     });
   });
 
-  test("returns structured summary on first successful save", async () => {
+  test("keeps today summary timestamp aligned when saving a non-today record", async () => {
     saveSalesRecordForUserMock.mockResolvedValue({
       isUpdate: false,
       record: {
@@ -116,11 +116,46 @@ describe("sales entry action", () => {
         lastSubmittedAtIso: expect.any(String),
         isUpdate: false,
         recoveredFromError: false,
+        dailyRhythm: {
+          lastSubmittedAtIso: null,
+        },
       },
     });
     expect(getMemberDailyRhythmSummaryMock).toHaveBeenCalledWith({
       currentUserId: "member-1",
       todaySaleDate: getTodaySaleDateValue(),
+    });
+  });
+
+  test("overrides today summary timestamp when saving today's record", async () => {
+    const todaySaleDate = getTodaySaleDateValue();
+    saveSalesRecordForUserMock.mockResolvedValue({
+      isUpdate: false,
+      record: {
+        saleDate: new Date(`${todaySaleDate}T00:00:00.000Z`),
+        count40: 3,
+        count60: 1,
+        remark: "今日跟进",
+        reviewStatus: "PENDING",
+        lastSubmittedAt: new Date("2026-03-27T09:45:12.000Z"),
+        updatedAt: new Date("2026-03-27T09:45:12.000Z"),
+      },
+    });
+
+    const formData = new FormData();
+    formData.set("saleDate", todaySaleDate);
+    formData.set("count40", "3");
+    formData.set("count60", "1");
+    formData.set("remark", "今日跟进");
+
+    await expect(saveSalesEntryAction(undefined, formData)).resolves.toMatchObject({
+      status: "success",
+      summary: {
+        saleDate: todaySaleDate,
+        dailyRhythm: {
+          lastSubmittedAtIso: "2026-03-27T09:45:12.000Z",
+        },
+      },
     });
   });
 
