@@ -7,7 +7,12 @@ const redirectMock = vi.hoisted(() =>
   }),
 );
 const userFindUniqueMock = vi.hoisted(() => vi.fn());
+const userCreateMock = vi.hoisted(() => vi.fn());
 const userUpdateMock = vi.hoisted(() => vi.fn());
+const userUpdateManyMock = vi.hoisted(() => vi.fn());
+const groupFindUniqueMock = vi.hoisted(() => vi.fn());
+const groupUpdateMock = vi.hoisted(() => vi.fn());
+const dbTransactionMock = vi.hoisted(() => vi.fn());
 const hashPasswordMock = vi.hoisted(() => vi.fn());
 const revalidatePathMock = vi.hoisted(() => vi.fn());
 const refreshLeaderboardCachesMock = vi.hoisted(() => vi.fn());
@@ -26,9 +31,16 @@ vi.mock("next/cache", () => ({
 
 vi.mock("@/lib/db", () => ({
   db: {
+    $transaction: dbTransactionMock,
     user: {
+      create: userCreateMock,
       findUnique: userFindUniqueMock,
       update: userUpdateMock,
+      updateMany: userUpdateManyMock,
+    },
+    group: {
+      findUnique: groupFindUniqueMock,
+      update: groupUpdateMock,
     },
   },
 }));
@@ -42,8 +54,9 @@ vi.mock("@/server/services/leaderboard-cache", () => ({
 }));
 
 import { updateMemberAction } from "@/app/(admin)/admin/members/actions";
+import { createMemberAction } from "@/app/(admin)/admin/members/actions";
 
-describe("member update action", () => {
+describe("member create action", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     authMock.mockResolvedValue({
@@ -54,33 +67,114 @@ describe("member update action", () => {
     });
   });
 
-  test("updates username when it is unique", async () => {
+  test("creates a member with optional group and remark", async () => {
     userFindUniqueMock.mockResolvedValue(null);
-    userUpdateMock.mockResolvedValue({});
+    userCreateMock.mockResolvedValue({});
     hashPasswordMock.mockResolvedValue("hashed-password");
 
     const formData = new FormData();
-    formData.set("id", "admin-1");
-    formData.set("username", "new_admin");
-    formData.set("name", "系统管理员");
+    formData.set("username", "member01");
+    formData.set("name", "成员1");
+    formData.set("password", "member123456");
+    formData.set("groupId", "group-1");
+    formData.set("remark", "负责新生点位");
     formData.set("status", "ACTIVE");
-    formData.set("password", "changed-pass");
+
+    await expect(createMemberAction(undefined, formData)).resolves.toEqual({
+      status: "success",
+      message: "成员创建成功",
+      values: {
+        username: "",
+        name: "",
+        password: "",
+        groupId: "",
+        remark: "",
+        status: "ACTIVE",
+      },
+    });
+
+    expect(userCreateMock).toHaveBeenCalledWith({
+      data: {
+        username: "member01",
+        name: "成员1",
+        passwordHash: "hashed-password",
+        role: "MEMBER",
+        groupId: "group-1",
+        remark: "负责新生点位",
+        status: "ACTIVE",
+      },
+    });
+  });
+});
+
+describe("member update action", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    authMock.mockResolvedValue({
+      user: {
+        id: "admin-1",
+        role: "ADMIN",
+      },
+    });
+    dbTransactionMock.mockImplementation(async (operations: Array<Promise<unknown>>) =>
+      Promise.all(operations),
+    );
+  });
+
+  test("promotes a member to leader and syncs group assignment", async () => {
+    userFindUniqueMock
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ ledGroup: null });
+    groupFindUniqueMock.mockResolvedValue({
+      id: "group-1",
+      leaderUserId: "leader-old",
+    });
+    userUpdateMock.mockResolvedValue({});
+    userUpdateManyMock.mockResolvedValue({ count: 1 });
+    groupUpdateMock.mockResolvedValue({});
+
+    const formData = new FormData();
+    formData.set("id", "member-1");
+    formData.set("username", "member01");
+    formData.set("name", "成员1");
+    formData.set("role", "LEADER");
+    formData.set("groupId", "group-1");
+    formData.set("remark", "负责新生点位");
+    formData.set("status", "ACTIVE");
+    formData.set("password", "");
 
     await expect(updateMemberAction(formData)).rejects.toThrow(
       "redirect:/admin/members?notice=成员信息已更新",
     );
 
     expect(userFindUniqueMock).toHaveBeenCalledWith({
-      where: { username: "new_admin" },
+      where: { username: "member01" },
       select: { id: true },
     });
-    expect(userUpdateMock).toHaveBeenCalledWith({
-      where: { id: "admin-1" },
+    expect(userUpdateManyMock).toHaveBeenCalledWith({
+      where: {
+        id: "leader-old",
+        role: "LEADER",
+      },
       data: {
-        username: "new_admin",
-        name: "系统管理员",
+        role: "MEMBER",
+      },
+    });
+    expect(userUpdateMock).toHaveBeenCalledWith({
+      where: { id: "member-1" },
+      data: {
+        username: "member01",
+        name: "成员1",
+        role: "LEADER",
+        groupId: "group-1",
+        remark: "负责新生点位",
         status: "ACTIVE",
-        passwordHash: "hashed-password",
+      },
+    });
+    expect(groupUpdateMock).toHaveBeenCalledWith({
+      where: { id: "group-1" },
+      data: {
+        leaderUserId: "member-1",
       },
     });
     expect(refreshLeaderboardCachesMock).toHaveBeenCalledTimes(1);
@@ -93,6 +187,9 @@ describe("member update action", () => {
     formData.set("id", "admin-1");
     formData.set("username", "taken_name");
     formData.set("name", "系统管理员");
+    formData.set("role", "ADMIN");
+    formData.set("groupId", "");
+    formData.set("remark", "");
     formData.set("status", "ACTIVE");
     formData.set("password", "");
 
@@ -100,6 +197,45 @@ describe("member update action", () => {
       "redirect:/admin/members?notice=该账号已存在，请更换后重试",
     );
 
+    expect(userUpdateMock).not.toHaveBeenCalled();
+    expect(refreshLeaderboardCachesMock).not.toHaveBeenCalled();
+  });
+
+  test("rejects promoting a leader without a group", async () => {
+    const formData = new FormData();
+    formData.set("id", "member-1");
+    formData.set("username", "member01");
+    formData.set("name", "成员1");
+    formData.set("role", "LEADER");
+    formData.set("groupId", "");
+    formData.set("remark", "负责新生点位");
+    formData.set("status", "ACTIVE");
+    formData.set("password", "");
+
+    await expect(updateMemberAction(formData)).rejects.toThrow(
+      "redirect:/admin/members?notice=组长必须绑定所属小组",
+    );
+
+    expect(userUpdateMock).not.toHaveBeenCalled();
+    expect(groupUpdateMock).not.toHaveBeenCalled();
+  });
+
+  test("rejects demoting the current admin away from ADMIN", async () => {
+    const formData = new FormData();
+    formData.set("id", "admin-1");
+    formData.set("username", "admin_1");
+    formData.set("name", "系统管理员");
+    formData.set("role", "MEMBER");
+    formData.set("groupId", "");
+    formData.set("remark", "");
+    formData.set("status", "ACTIVE");
+    formData.set("password", "");
+
+    await expect(updateMemberAction(formData)).rejects.toThrow(
+      "redirect:/admin/members?notice=不能将当前登录管理员降级",
+    );
+
+    expect(userFindUniqueMock).not.toHaveBeenCalled();
     expect(userUpdateMock).not.toHaveBeenCalled();
     expect(refreshLeaderboardCachesMock).not.toHaveBeenCalled();
   });

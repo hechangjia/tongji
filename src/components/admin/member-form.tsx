@@ -6,6 +6,11 @@ import { StatusCallout } from "@/components/status-callout";
 import { createMemberAction } from "@/app/(admin)/admin/members/actions";
 import type { MemberCreateFormState } from "@/app/(admin)/admin/members/form-state";
 
+type MemberGroupOption = {
+  id: string;
+  name: string;
+};
+
 const initialState: MemberCreateFormState = {
   status: "idle",
   message: null,
@@ -13,6 +18,8 @@ const initialState: MemberCreateFormState = {
     username: "",
     name: "",
     password: "",
+    groupId: "",
+    remark: "",
     status: "ACTIVE",
   },
 };
@@ -31,7 +38,13 @@ function SubmitButton({ submitLabel }: { submitLabel: string }) {
   );
 }
 
-export function MemberForm({ submitLabel }: { submitLabel: string }) {
+export function MemberForm({
+  submitLabel,
+  groups,
+}: {
+  submitLabel: string;
+  groups: MemberGroupOption[];
+}) {
   const [state, formAction] = useActionState<MemberCreateFormState, FormData>(
     createMemberAction,
     initialState,
@@ -102,6 +115,40 @@ export function MemberForm({ submitLabel }: { submitLabel: string }) {
             <option value="ACTIVE">启用</option>
             <option value="INACTIVE">停用</option>
           </select>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label htmlFor="groupId" className="text-sm font-medium text-slate-700">
+            所属小组（可选）
+          </label>
+          <select
+            id="groupId"
+            name="groupId"
+            defaultValue={state.values.groupId}
+            className="w-full rounded-[18px] border border-slate-200 px-4 py-3 text-sm outline-none transition duration-200 focus:border-cyan-400 focus:bg-cyan-50/40"
+          >
+            <option value="">暂不分组</option>
+            {groups.map((group) => (
+              <option key={group.id} value={group.id}>
+                {group.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="remark" className="text-sm font-medium text-slate-700">
+            备注（可选）
+          </label>
+          <textarea
+            id="remark"
+            name="remark"
+            rows={3}
+            defaultValue={state.values.remark}
+            className="w-full rounded-[18px] border border-slate-200 px-4 py-3 text-sm outline-none transition duration-200 focus:border-cyan-400 focus:bg-cyan-50/40"
+          />
         </div>
       </div>
 

@@ -17,6 +17,7 @@ const dailyTargetUpdateMock = vi.hoisted(() => vi.fn());
 const memberReminderCreateMock = vi.hoisted(() => vi.fn());
 const userFindUniqueMock = vi.hoisted(() => vi.fn());
 const userUpdateMock = vi.hoisted(() => vi.fn());
+const dbTransactionMock = vi.hoisted(() => vi.fn());
 const revalidatePathMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/auth", () => ({
@@ -63,6 +64,7 @@ vi.mock("@/server/services/daily-rhythm-service", () => ({
 
 vi.mock("@/lib/db", () => ({
   db: {
+    $transaction: dbTransactionMock,
     salesRecord: {
       update: salesRecordUpdateMock,
     },
@@ -87,6 +89,9 @@ import { updateMemberAction } from "@/app/(admin)/admin/members/actions";
 describe("leaderboard cache revalidation on writes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    dbTransactionMock.mockImplementation(async (operations: Array<Promise<unknown>>) =>
+      Promise.all(operations),
+    );
     getMemberDailyRhythmSummaryMock.mockResolvedValue({
       state: "PENDING_REVIEW",
       title: "当日节奏摘要",
@@ -214,12 +219,19 @@ describe("leaderboard cache revalidation on writes", () => {
       },
     });
     userUpdateMock.mockResolvedValue({});
-    userFindUniqueMock.mockResolvedValue(null);
+    userFindUniqueMock
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        ledGroup: null,
+      });
 
     const formData = new FormData();
     formData.set("id", "member-1");
     formData.set("username", "member_renamed");
     formData.set("name", "新的名字");
+    formData.set("role", "MEMBER");
+    formData.set("groupId", "");
+    formData.set("remark", "");
     formData.set("status", "ACTIVE");
     formData.set("password", "");
 

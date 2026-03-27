@@ -5,6 +5,8 @@ export type MemberCreateFormState = {
     username: string;
     name: string;
     password: string;
+    groupId: string;
+    remark: string;
     status: "ACTIVE" | "INACTIVE";
   };
 };

@@ -30,17 +30,33 @@ export default async function AdminMembersPage({
 
   const params = searchParams ? await searchParams : undefined;
   const notice = typeof params?.notice === "string" ? params.notice : null;
-  const members = await db.user.findMany({
-    orderBy: [{ role: "desc" }, { createdAt: "asc" }],
-    select: {
-      id: true,
-      username: true,
-      name: true,
-      role: true,
-      status: true,
-      createdAt: true,
-    },
-  });
+  const [members, groups] = await Promise.all([
+    db.user.findMany({
+      orderBy: [{ role: "desc" }, { createdAt: "asc" }],
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        role: true,
+        groupId: true,
+        remark: true,
+        status: true,
+        createdAt: true,
+        group: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    }),
+    db.group.findMany({
+      orderBy: [{ createdAt: "asc" }],
+      select: {
+        id: true,
+        name: true,
+      },
+    }),
+  ]);
   const activeMembers = members.filter((member) => member.status === "ACTIVE").length;
   const adminMembers = members.filter((member) => member.role === "ADMIN").length;
 
@@ -70,8 +86,8 @@ export default async function AdminMembersPage({
         ) : null}
 
         <div className="grid gap-6 xl:grid-cols-[minmax(320px,360px)_minmax(0,1fr)]">
-          <MemberForm submitLabel="新增成员" />
-          <MemberTable rows={members} currentAdminId={session.user.id} />
+          <MemberForm submitLabel="新增成员" groups={groups} />
+          <MemberTable rows={members} groups={groups} currentAdminId={session.user.id} />
         </div>
       </section>
     </AppShell>

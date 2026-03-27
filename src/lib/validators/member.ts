@@ -13,26 +13,60 @@ const nameSchema = z
   .min(1, "请输入成员姓名")
   .max(32, "姓名不能超过 32 个字符");
 
+const roleSchema = z.enum(["ADMIN", "LEADER", "MEMBER"]);
+
+function optionalTrimmedString(maxLength: number, errorMessage: string) {
+  return z
+    .string()
+    .optional()
+    .transform((value) => value?.trim() ?? "")
+    .refine((value) => value.length <= maxLength, {
+      message: errorMessage,
+    })
+    .transform((value) => value || undefined);
+}
+
+const optionalGroupIdSchema = z
+  .string()
+  .optional()
+  .transform((value) => value?.trim() ?? "")
+  .transform((value) => value || undefined);
+
 export const memberSchema = z.object({
   username: usernameSchema,
   name: nameSchema,
   password: z.string().min(8, "密码至少需要 8 个字符"),
+  groupId: optionalGroupIdSchema,
+  remark: optionalTrimmedString(200, "备注不能超过 200 个字符"),
   status: z.enum(["ACTIVE", "INACTIVE"]),
 });
 
-export const memberUpdateSchema = z.object({
-  id: z.string().min(1, "成员 ID 缺失"),
-  username: usernameSchema,
-  name: nameSchema,
-  status: z.enum(["ACTIVE", "INACTIVE"]),
-  password: z
-    .string()
-    .optional()
-    .transform((value) => value?.trim() ?? "")
-    .refine((value) => value === "" || value.length >= 8, {
-      message: "新密码至少需要 8 个字符",
-    }),
-});
+export const memberUpdateSchema = z
+  .object({
+    id: z.string().min(1, "成员 ID 缺失"),
+    username: usernameSchema,
+    name: nameSchema,
+    role: roleSchema,
+    groupId: optionalGroupIdSchema,
+    remark: optionalTrimmedString(200, "备注不能超过 200 个字符"),
+    status: z.enum(["ACTIVE", "INACTIVE"]),
+    password: z
+      .string()
+      .optional()
+      .transform((value) => value?.trim() ?? "")
+      .refine((value) => value === "" || value.length >= 8, {
+        message: "新密码至少需要 8 个字符",
+      }),
+  })
+  .superRefine((value, context) => {
+    if (value.role === "LEADER" && !value.groupId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "组长必须绑定所属小组",
+        path: ["groupId"],
+      });
+    }
+  });
 
 export const memberResetPasswordSchema = z.object({
   id: z.string().min(1, "成员 ID 缺失"),
