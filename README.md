@@ -383,7 +383,7 @@ npx vercel
 
 ## 当前已知注意事项
 
-- Next.js 会提示 workspace root warning，因为 `/home/chia/package-lock.json` 与项目内 `package-lock.json` 并存；当前不阻塞运行和构建。
+- `next.config.ts` 已显式配置 `turbopack.root`，避免上层多 lockfile 导致的 workspace root warning。
 - `.env` 是本地文件，不应提交。
 - 当前共享 Neon 库如果尚未同步 `DailyTarget` / `MemberReminder` 新表，`/entry` 与 `/admin/insights` 会直接报 Prisma 缺表错误；部署前必须先同步 schema。
 - 本轮 E2E 是在隔离的本地 PostgreSQL 临时库中验证通过，不建议直接拿共享开发库跑 Playwright。

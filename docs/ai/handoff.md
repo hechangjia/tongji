@@ -100,10 +100,7 @@
 ## 当前阻塞和风险
 
 - 代码主线当前无功能性 blocker。
-- `npm run build` 已通过，但仍会出现 Next.js workspace root warning：
-  - 根目录自动推断到 `/home/chia`
-  - 原因是上层目录存在多个 `package-lock.json`
-  - 当前不阻塞 lint / type-check / test / build
+- `next.config.ts` 已显式配置 `turbopack.root`，workspace root warning 已消除。
 - 识别码相关 phase 还未开始，现有 `/leader/sales` 与 `/leaderboard/groups` 仍是占位页，不是完整业务能力。
 
 ## 下一次会话建议

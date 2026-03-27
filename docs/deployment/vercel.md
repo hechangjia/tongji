@@ -176,7 +176,7 @@ npx prisma db seed
 
 ## 当前已知注意事项
 
-- Next.js 当前会提示 workspace root warning，因为 `/home/chia/package-lock.json` 与项目内 `package-lock.json` 并存；当前不阻塞部署，但建议后续显式配置 `turbopack.root` 或清理多余 lockfile。
+- `next.config.ts` 已显式配置 `turbopack.root`，上层多 lockfile 场景下不会再出现 workspace root warning。
 - 本地 `.env` 只用于开发验证，不应直接复制到线上。
 - Preview 部署尚未真正执行，因此这份文档中的线上验证步骤仍需要手动完成一次。
 - 默认管理员与示例成员仅在账号不存在时由 seed 创建；后续再次执行 `npx prisma db seed` 不会覆盖已存在账号的姓名或密码。
