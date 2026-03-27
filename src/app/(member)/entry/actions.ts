@@ -3,8 +3,13 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { canAccessMemberArea } from "@/lib/permissions";
+import {
+  getMemberDailyTargetFeedback,
+  getMemberSelfTrendSummary,
+} from "@/server/services/daily-target-service";
 import { getMemberDailyRhythmSummary } from "@/server/services/daily-rhythm-service";
 import { refreshLeaderboardCaches } from "@/server/services/leaderboard-cache";
+import { getMemberRecentReminders } from "@/server/services/member-reminder-service";
 import {
   getTodaySaleDateValue,
   saleDateToValue,
@@ -32,10 +37,21 @@ export async function saveSalesEntryAction(
     const lastSubmittedAt = record.lastSubmittedAt ?? record.updatedAt;
     const saleDate = saleDateToValue(record.saleDate);
     const todaySaleDate = getTodaySaleDateValue();
-    const dailyRhythm = await getMemberDailyRhythmSummary({
-      currentUserId: session.user.id,
-      todaySaleDate,
-    });
+    const [dailyRhythm, targetFeedback, selfTrend, recentReminders] = await Promise.all([
+      getMemberDailyRhythmSummary({
+        currentUserId: session.user.id,
+        todaySaleDate,
+      }),
+      getMemberDailyTargetFeedback({
+        userId: session.user.id,
+        todaySaleDate,
+      }),
+      getMemberSelfTrendSummary({
+        userId: session.user.id,
+        todaySaleDate,
+      }),
+      getMemberRecentReminders(session.user.id),
+    ]);
     refreshLeaderboardCaches();
 
     return {
@@ -58,6 +74,9 @@ export async function saveSalesEntryAction(
         savedAtIso: record.updatedAt.toISOString(),
         isUpdate,
         recoveredFromError: previousState?.status === "error",
+        targetFeedback,
+        selfTrend,
+        recentReminders,
         dailyRhythm: {
           lastSubmittedAtIso:
             saleDate === todaySaleDate

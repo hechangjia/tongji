@@ -12,6 +12,16 @@ export type ReminderTemplateContext = {
   };
 };
 
+export type MemberReminderListItem = {
+  id: string;
+  type: ReminderTemplate;
+  title: string;
+  content: string;
+  sentAtIso: string;
+  senderName: string;
+  status: "UNREAD" | "READ";
+};
+
 export function buildReminderFromTemplate(
   template: ReminderTemplate,
   context: ReminderTemplateContext,
@@ -75,4 +85,18 @@ export async function listRecentMemberReminders(userId: string, limit = 5) {
       },
     },
   });
+}
+
+export async function getMemberRecentReminders(userId: string, limit = 5): Promise<MemberReminderListItem[]> {
+  const reminders = await listRecentMemberReminders(userId, limit);
+
+  return reminders.map((reminder) => ({
+    id: reminder.id,
+    type: reminder.type,
+    title: reminder.title,
+    content: reminder.content,
+    sentAtIso: reminder.sentAt.toISOString(),
+    senderName: reminder.sentBy?.name || reminder.sentBy?.username || "管理员",
+    status: reminder.status,
+  }));
 }

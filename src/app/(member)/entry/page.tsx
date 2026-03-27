@@ -3,6 +3,11 @@ import { auth } from "@/lib/auth";
 import { canAccessMemberArea } from "@/lib/permissions";
 import { AppShell } from "@/components/app-shell";
 import { SalesEntryPageClient } from "@/components/sales-entry-page-client";
+import {
+  getMemberDailyTargetFeedback,
+  getMemberSelfTrendSummary,
+} from "@/server/services/daily-target-service";
+import { getMemberRecentReminders } from "@/server/services/member-reminder-service";
 import { getCachedMemberDailyRhythmSummary } from "@/server/services/leaderboard-cache";
 import {
   buildSalesEntryDefaults,
@@ -23,12 +28,21 @@ export default async function EntryPage() {
   }
 
   const saleDate = getTodaySaleDateValue();
-  const [currentRecord, dailyRhythmSummary] = await Promise.all([
+  const [currentRecord, dailyRhythmSummary, targetFeedback, selfTrend, recentReminders] = await Promise.all([
     getSalesRecordForUserOnDate(session.user.id, saleDate),
     getCachedMemberDailyRhythmSummary({
       currentUserId: session.user.id,
       todaySaleDate: saleDate,
     }),
+    getMemberDailyTargetFeedback({
+      userId: session.user.id,
+      todaySaleDate: saleDate,
+    }),
+    getMemberSelfTrendSummary({
+      userId: session.user.id,
+      todaySaleDate: saleDate,
+    }),
+    getMemberRecentReminders(session.user.id),
   ]);
   const initialValues = buildSalesEntryDefaults(
     currentRecord
@@ -55,6 +69,9 @@ export default async function EntryPage() {
         initialValues={initialValues}
         hasExistingRecord={Boolean(currentRecord)}
         todayTotal={todayTotal}
+        initialTargetFeedback={targetFeedback}
+        initialSelfTrend={selfTrend}
+        initialRecentReminders={recentReminders}
         initialDailyRhythmSummary={{
           lastSubmittedAtIso:
             (currentRecord?.lastSubmittedAt ?? currentRecord?.updatedAt)?.toISOString() ?? null,

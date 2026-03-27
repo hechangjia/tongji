@@ -10,6 +10,9 @@ const redirectMock = vi.hoisted(() =>
 const saveSalesRecordForUserMock = vi.hoisted(() => vi.fn());
 const refreshLeaderboardCachesMock = vi.hoisted(() => vi.fn());
 const getMemberDailyRhythmSummaryMock = vi.hoisted(() => vi.fn());
+const getMemberDailyTargetFeedbackMock = vi.hoisted(() => vi.fn());
+const getMemberSelfTrendSummaryMock = vi.hoisted(() => vi.fn());
+const getMemberRecentRemindersMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/auth", () => ({
   auth: authMock,
@@ -25,6 +28,15 @@ vi.mock("@/server/services/leaderboard-cache", () => ({
 
 vi.mock("@/server/services/daily-rhythm-service", () => ({
   getMemberDailyRhythmSummary: getMemberDailyRhythmSummaryMock,
+}));
+
+vi.mock("@/server/services/daily-target-service", () => ({
+  getMemberDailyTargetFeedback: getMemberDailyTargetFeedbackMock,
+  getMemberSelfTrendSummary: getMemberSelfTrendSummaryMock,
+}));
+
+vi.mock("@/server/services/member-reminder-service", () => ({
+  getMemberRecentReminders: getMemberRecentRemindersMock,
 }));
 
 vi.mock("@/server/services/sales-service", async () => {
@@ -71,6 +83,29 @@ describe("sales entry action", () => {
         },
       ],
     });
+    getMemberDailyTargetFeedbackMock.mockResolvedValue({
+      targetTotal: 8,
+      currentTotal: 5,
+      gap: 3,
+      completionRate: 63,
+      status: "BEHIND",
+    });
+    getMemberSelfTrendSummaryMock.mockResolvedValue({
+      direction: "DOWN",
+      label: "低于近 7 天常态",
+      message: "今天的完成度低于你最近几天的平均水平。",
+    });
+    getMemberRecentRemindersMock.mockResolvedValue([
+      {
+        id: "reminder-1",
+        type: "TARGET_GAP",
+        title: "今日目标仍有差距",
+        content: "你今天距离目标还差 3 单，请尽快跟进。",
+        sentAtIso: "2026-03-27T09:00:00.000Z",
+        senderName: "系统管理员",
+        status: "UNREAD",
+      },
+    ]);
     authMock.mockResolvedValue({
       user: {
         id: "member-1",
@@ -166,6 +201,14 @@ describe("sales entry action", () => {
         lastSubmittedAtIso: expect.any(String),
         isUpdate: false,
         recoveredFromError: false,
+        targetFeedback: {
+          targetTotal: 8,
+        },
+        recentReminders: [
+          {
+            title: "今日目标仍有差距",
+          },
+        ],
         dailyRhythm: {
           lastSubmittedAtIso: "2026-03-27T07:30:45.000Z",
         },
@@ -202,6 +245,9 @@ describe("sales entry action", () => {
       status: "success",
       summary: {
         saleDate: todaySaleDate,
+        targetFeedback: {
+          targetTotal: 8,
+        },
         dailyRhythm: {
           lastSubmittedAtIso: "2026-03-27T09:45:12.000Z",
         },
@@ -248,6 +294,9 @@ describe("sales entry action", () => {
       summary: {
         reviewStatus: "PENDING",
         lastSubmittedAtIso: expect.any(String),
+        targetFeedback: {
+          targetTotal: 8,
+        },
         isUpdate: true,
         recoveredFromError: true,
       },

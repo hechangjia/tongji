@@ -4,10 +4,16 @@ import { useActionState, useRef, useState } from "react";
 import type { RefObject } from "react";
 import { saveSalesEntryAction } from "@/app/(member)/entry/actions";
 import type { SalesEntryFormState } from "@/app/(member)/entry/form-state";
+import { EntryDailyTargetCard, type EntryDailyTargetFeedback } from "@/components/entry-daily-target-card";
 import {
   EntryDailyRhythmSummary,
   type EntryDailyRhythmSummaryData,
 } from "@/components/entry-daily-rhythm-summary";
+import { EntryReminderList, type EntryReminderListItem } from "@/components/entry-reminder-list";
+import {
+  EntrySelfTrendSummary,
+  type EntrySelfTrendSummaryData,
+} from "@/components/entry-self-trend-summary";
 import { MetricCard } from "@/components/metric-card";
 import { PageHeader } from "@/components/page-header";
 import { SalesEntryForm } from "@/components/sales-entry-form";
@@ -37,11 +43,17 @@ export function SalesEntryPageClient({
   initialValues,
   hasExistingRecord,
   todayTotal,
+  initialTargetFeedback,
+  initialSelfTrend,
+  initialRecentReminders,
   initialDailyRhythmSummary,
 }: {
   initialValues: SalesEntryDefaults;
   hasExistingRecord: boolean;
   todayTotal: number;
+  initialTargetFeedback: EntryDailyTargetFeedback;
+  initialSelfTrend: EntrySelfTrendSummaryData;
+  initialRecentReminders: EntryReminderListItem[];
   initialDailyRhythmSummary: EntryDailyRhythmSummaryData;
 }) {
   const saleDateInputRef = useRef<HTMLInputElement>(null);
@@ -60,6 +72,9 @@ export function SalesEntryPageClient({
     initialDailyRhythmSummary,
     state.summary?.dailyRhythm,
   );
+  const targetFeedback = state.summary?.targetFeedback ?? initialTargetFeedback;
+  const selfTrend = state.summary?.selfTrend ?? initialSelfTrend;
+  const recentReminders = state.summary?.recentReminders ?? initialRecentReminders;
   const statusValue = pending
     ? "提交中"
     : state.summary
@@ -95,6 +110,12 @@ export function SalesEntryPageClient({
       </PageHeader>
 
       <EntryDailyRhythmSummary summary={dailyRhythmSummary} />
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <EntryDailyTargetCard feedback={targetFeedback} />
+        <EntrySelfTrendSummary summary={selfTrend} />
+        <EntryReminderList reminders={recentReminders} />
+      </div>
 
       {showSummary && state.summary ? (
         <SalesEntrySuccessCard

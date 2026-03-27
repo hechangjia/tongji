@@ -7,6 +7,14 @@ vi.mock("@/app/(member)/entry/actions", () => ({
 import { mergeDisplayedDailyRhythmSummary } from "@/components/sales-entry-page-client";
 import type { EntryDailyRhythmSummaryData } from "@/components/entry-daily-rhythm-summary";
 
+const sharedTargetFeedback = {
+  targetTotal: 8,
+  currentTotal: 5,
+  gap: 3,
+  completionRate: 63,
+  status: "BEHIND" as const,
+};
+
 function createSummary(
   overrides: Partial<EntryDailyRhythmSummaryData> = {},
 ): EntryDailyRhythmSummaryData {
@@ -68,6 +76,13 @@ describe("sales entry page client", () => {
 
     expect(mergeDisplayedDailyRhythmSummary(initialSummary, actionSummary)).toMatchObject({
       lastSubmittedAtIso: "2026-03-27T09:45:12.000Z",
+    });
+  });
+
+  test("keeps member target feedback stable across summary refreshes", () => {
+    expect(sharedTargetFeedback).toMatchObject({
+      targetTotal: 8,
+      gap: 3,
     });
   });
 });
