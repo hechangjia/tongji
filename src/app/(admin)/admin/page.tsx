@@ -62,6 +62,11 @@ export default async function AdminHomePage({ searchParams }: AdminHomePageProps
 
   const cards = [
     {
+      title: "经营诊断",
+      href: "/admin/insights",
+      description: "集中查看异常成员、今日目标建议和提醒执行情况。",
+    },
+    {
       title: "成员管理",
       href: "/admin/members",
       description: "新增成员、调整状态、重置密码。",
