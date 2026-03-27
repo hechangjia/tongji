@@ -53,6 +53,15 @@ describe("cumulative sales stats service", () => {
         count40: 99,
         count60: 0,
       },
+      {
+        userId: "leader-1",
+        userName: "组长一号",
+        role: "LEADER" as const,
+        status: "ACTIVE" as const,
+        saleDate: "2026-03-27" as const,
+        count40: 88,
+        count60: 0,
+      },
     ];
     const rows: CumulativeSourceRow[] = [...memberRows, ...hiddenRows];
 
@@ -80,6 +89,7 @@ describe("cumulative sales stats service", () => {
     });
     expect(ranking.find((row) => row.userName === "管理员")).toBeUndefined();
     expect(ranking.find((row) => row.userName === "停用成员")).toBeUndefined();
+    expect(ranking.find((row) => row.userName === "组长一号")).toBeUndefined();
   });
 
   test("builds trend series with carry-forward points and final-total top ordering", () => {

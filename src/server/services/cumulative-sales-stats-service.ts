@@ -13,7 +13,7 @@ export type TrendGranularity = "day" | "month";
 export type CumulativeSourceRow = {
   userId: string;
   userName: string;
-  role: "MEMBER" | "ADMIN";
+  role: "MEMBER" | "LEADER" | "ADMIN";
   status: "ACTIVE" | "INACTIVE";
   saleDate: DateValue;
   count40: number;
