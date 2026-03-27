@@ -17,6 +17,31 @@ describe("sales entry success card", () => {
           savedAtIso: "2026-03-26T08:15:00.000Z",
           isUpdate: true,
           recoveredFromError: false,
+          dailyRhythm: {
+            state: "PENDING_REVIEW",
+            message: "今天的提交已收到，等待管理员审核",
+            reviewStatus: "PENDING",
+            reviewNote: null,
+            isTemporaryTop3: false,
+            isFormalTop3: false,
+            temporaryRank: null,
+            formalRank: null,
+            lastSubmittedAtIso: "2026-03-26T08:15:00.000Z",
+            primaryAction: {
+              href: "/leaderboard/daily",
+              label: "查看今日榜单",
+            },
+            secondaryActions: [
+              {
+                href: "/entry",
+                label: "继续填写今日记录",
+              },
+              {
+                href: "/leaderboard/range",
+                label: "查看总榜",
+              },
+            ],
+          },
         }}
       />,
     );

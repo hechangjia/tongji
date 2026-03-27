@@ -1,4 +1,5 @@
 import type { SalesReviewStatus } from "@prisma/client";
+import type { EntryDailyRhythmSummaryData } from "@/components/entry-daily-rhythm-summary";
 import type { SalesEntryDefaults } from "@/server/services/sales-service";
 
 export type SalesEntrySummary = {
@@ -12,6 +13,7 @@ export type SalesEntrySummary = {
   savedAtIso: string;
   isUpdate: boolean;
   recoveredFromError: boolean;
+  dailyRhythm: EntryDailyRhythmSummaryData;
 };
 
 export type SalesEntryFormState = {

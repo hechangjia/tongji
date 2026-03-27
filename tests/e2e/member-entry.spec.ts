@@ -24,6 +24,14 @@ test("member can create or update a daily record", async ({ page }) => {
   await expect(page.getByText("40 套餐数量")).toBeVisible();
   await expect(page.getByText("60 套餐数量")).toBeVisible();
   await expect(page.getByText("总数", { exact: true })).toBeVisible();
+  await expect(page.getByText("最后提交时间")).toBeVisible();
+  await expect(page.getByText("当前审核状态")).toBeVisible();
+  await expect(page.getByText("待审核")).toBeVisible();
+
+  const temporaryTop3Copy = page.getByText(/临时前三|当前处于临时第/);
+  if (await temporaryTop3Copy.count()) {
+    await expect(temporaryTop3Copy.first()).toBeVisible();
+  }
 
   await page.getByLabel("日期").fill(freshSaleDate);
   await page.getByLabel("40 套餐").fill("6");

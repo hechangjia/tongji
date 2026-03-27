@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { canAccessMemberArea } from "@/lib/permissions";
+import { getMemberDailyRhythmSummary } from "@/server/services/daily-rhythm-service";
 import { refreshLeaderboardCaches } from "@/server/services/leaderboard-cache";
 import { saleDateToValue, saveSalesRecordForUser } from "@/server/services/sales-service";
 import type { SalesEntryFormState } from "@/app/(member)/entry/form-state";
@@ -26,6 +27,11 @@ export async function saveSalesEntryAction(
       remark: formData.get("remark"),
     });
     const lastSubmittedAt = record.lastSubmittedAt ?? record.updatedAt;
+    const saleDate = saleDateToValue(record.saleDate);
+    const dailyRhythm = await getMemberDailyRhythmSummary({
+      currentUserId: session.user.id,
+      todaySaleDate: saleDate,
+    });
 
     revalidatePath("/entry");
     refreshLeaderboardCaches();
@@ -40,7 +46,7 @@ export async function saveSalesEntryAction(
         remark: record.remark ?? "",
       },
       summary: {
-        saleDate: saleDateToValue(record.saleDate),
+        saleDate,
         count40: record.count40,
         count60: record.count60,
         total: record.count40 + record.count60,
@@ -50,6 +56,10 @@ export async function saveSalesEntryAction(
         savedAtIso: record.updatedAt.toISOString(),
         isUpdate,
         recoveredFromError: previousState?.status === "error",
+        dailyRhythm: {
+          lastSubmittedAtIso: lastSubmittedAt.toISOString(),
+          ...dailyRhythm,
+        },
       },
     };
   } catch (error) {

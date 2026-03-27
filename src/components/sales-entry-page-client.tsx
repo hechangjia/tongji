@@ -4,6 +4,10 @@ import { useActionState, useRef, useState } from "react";
 import type { RefObject } from "react";
 import { saveSalesEntryAction } from "@/app/(member)/entry/actions";
 import type { SalesEntryFormState } from "@/app/(member)/entry/form-state";
+import {
+  EntryDailyRhythmSummary,
+  type EntryDailyRhythmSummaryData,
+} from "@/components/entry-daily-rhythm-summary";
 import { MetricCard } from "@/components/metric-card";
 import { PageHeader } from "@/components/page-header";
 import { SalesEntryForm } from "@/components/sales-entry-form";
@@ -19,10 +23,12 @@ export function SalesEntryPageClient({
   initialValues,
   hasExistingRecord,
   todayTotal,
+  initialDailyRhythmSummary,
 }: {
   initialValues: SalesEntryDefaults;
   hasExistingRecord: boolean;
   todayTotal: number;
+  initialDailyRhythmSummary: EntryDailyRhythmSummaryData;
 }) {
   const saleDateInputRef = useRef<HTMLInputElement>(null);
   const [dismissedSummaryKey, setDismissedSummaryKey] = useState<string | null>(null);
@@ -36,6 +42,7 @@ export function SalesEntryPageClient({
   const [state, formAction, pending] = useActionState(saveSalesEntryAction, initialState);
   const summaryKey = state.summary?.savedAtIso ?? null;
   const showSummary = Boolean(state.summary && dismissedSummaryKey !== summaryKey);
+  const dailyRhythmSummary = state.summary?.dailyRhythm ?? initialDailyRhythmSummary;
   const statusValue = pending
     ? "提交中"
     : state.summary
@@ -69,6 +76,8 @@ export function SalesEntryPageClient({
           />
         </div>
       </PageHeader>
+
+      <EntryDailyRhythmSummary summary={dailyRhythmSummary} />
 
       {showSummary && state.summary ? (
         <SalesEntrySuccessCard

@@ -9,6 +9,7 @@ const redirectMock = vi.hoisted(() =>
 const saveSalesRecordForUserMock = vi.hoisted(() => vi.fn());
 const refreshLeaderboardCachesMock = vi.hoisted(() => vi.fn());
 const revalidatePathMock = vi.hoisted(() => vi.fn());
+const getMemberDailyRhythmSummaryMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/auth", () => ({
   auth: authMock,
@@ -24,6 +25,10 @@ vi.mock("next/cache", () => ({
 
 vi.mock("@/server/services/leaderboard-cache", () => ({
   refreshLeaderboardCaches: refreshLeaderboardCachesMock,
+}));
+
+vi.mock("@/server/services/daily-rhythm-service", () => ({
+  getMemberDailyRhythmSummary: getMemberDailyRhythmSummaryMock,
 }));
 
 vi.mock("@/server/services/sales-service", async () => {
@@ -42,6 +47,30 @@ import { saveSalesEntryAction } from "@/app/(member)/entry/actions";
 describe("sales entry action", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getMemberDailyRhythmSummaryMock.mockResolvedValue({
+      state: "PENDING_REVIEW",
+      message: "今天的提交已收到，等待管理员审核",
+      reviewStatus: "PENDING",
+      reviewNote: null,
+      isTemporaryTop3: false,
+      isFormalTop3: false,
+      temporaryRank: null,
+      formalRank: null,
+      primaryAction: {
+        href: "/leaderboard/daily",
+        label: "查看今日榜单",
+      },
+      secondaryActions: [
+        {
+          href: "/entry",
+          label: "继续填写今日记录",
+        },
+        {
+          href: "/leaderboard/range",
+          label: "查看总榜",
+        },
+      ],
+    });
     authMock.mockResolvedValue({
       user: {
         id: "member-1",

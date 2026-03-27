@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { canAccessMemberArea } from "@/lib/permissions";
 import { AppShell } from "@/components/app-shell";
 import { SalesEntryPageClient } from "@/components/sales-entry-page-client";
+import { getCachedMemberDailyRhythmSummary } from "@/server/services/leaderboard-cache";
 import {
   buildSalesEntryDefaults,
   getSalesRecordForUserOnDate,
@@ -22,7 +23,13 @@ export default async function EntryPage() {
   }
 
   const saleDate = getTodaySaleDateValue();
-  const currentRecord = await getSalesRecordForUserOnDate(session.user.id, saleDate);
+  const [currentRecord, dailyRhythmSummary] = await Promise.all([
+    getSalesRecordForUserOnDate(session.user.id, saleDate),
+    getCachedMemberDailyRhythmSummary({
+      currentUserId: session.user.id,
+      todaySaleDate: saleDate,
+    }),
+  ]);
   const initialValues = buildSalesEntryDefaults(
     currentRecord
       ? {
@@ -48,6 +55,10 @@ export default async function EntryPage() {
         initialValues={initialValues}
         hasExistingRecord={Boolean(currentRecord)}
         todayTotal={todayTotal}
+        initialDailyRhythmSummary={{
+          lastSubmittedAtIso: currentRecord?.lastSubmittedAt?.toISOString() ?? null,
+          ...dailyRhythmSummary,
+        }}
       />
     </AppShell>
   );
