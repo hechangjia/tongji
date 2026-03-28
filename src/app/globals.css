@@ -1,0 +1,281 @@
+@import "tailwindcss";
+
+:root {
+  --background: #effcff;
+  --foreground: #082032;
+  --maika-ink: #082f49;
+  --maika-surface: rgba(255, 255, 255, 0.82);
+  --maika-accent: #67e8f9;
+  --maika-accent-strong: #0f766e;
+  --maika-ring: #bae6fd;
+  --maika-muted: #5a6f7f;
+  --maika-body-gradient:
+    radial-gradient(circle at top left, rgba(103, 232, 249, 0.28), transparent 30%),
+    radial-gradient(circle at top right, rgba(14, 165, 233, 0.16), transparent 24%),
+    linear-gradient(180deg, #f0fdfa 0%, #dbeafe 42%, #ecfeff 100%);
+  --maika-shell-gradient:
+    radial-gradient(circle at top left, rgba(103, 232, 249, 0.3), transparent 28%),
+    radial-gradient(circle at top right, rgba(14, 165, 233, 0.18), transparent 24%),
+    linear-gradient(180deg, #f0fdfa 0%, #dbeafe 45%, #ecfeff 100%);
+  --maika-login-gradient:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.2), transparent 25%),
+    radial-gradient(circle at bottom right, rgba(103, 232, 249, 0.22), transparent 28%),
+    linear-gradient(135deg, #082f49 0%, #0f766e 55%, #67e8f9 100%);
+  --maika-sidebar-gradient:
+    linear-gradient(180deg, rgba(2, 32, 48, 0.98) 0%, rgba(8, 47, 73, 0.94) 100%);
+  --maika-banner-gradient: linear-gradient(135deg, #082f49 0%, #0f766e 100%);
+  --maika-header-gradient:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.92) 0%, rgba(236, 254, 255, 0.88) 52%, rgba(219, 234, 254, 0.92) 100%);
+  --maika-podium-gradient: linear-gradient(135deg, #082f49 0%, #0f766e 100%);
+  --maika-selection: rgba(34, 211, 238, 0.35);
+  --maika-grid-line: rgba(8, 47, 73, 0.04);
+  --font-maika-sans: "Avenir Next", "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei UI", sans-serif;
+  --font-maika-display: "Iowan Old Style", "Noto Serif SC", "Songti SC",
+    serif;
+}
+
+:root[data-maika-theme="sunset"] {
+  --background: #fff7ed;
+  --foreground: #431407;
+  --maika-ink: #7c2d12;
+  --maika-surface: rgba(255, 251, 235, 0.84);
+  --maika-accent: #fb7185;
+  --maika-accent-strong: #ea580c;
+  --maika-ring: #fdba74;
+  --maika-muted: #7c4a36;
+  --maika-body-gradient:
+    radial-gradient(circle at top left, rgba(251, 113, 133, 0.18), transparent 30%),
+    radial-gradient(circle at top right, rgba(251, 146, 60, 0.22), transparent 25%),
+    linear-gradient(180deg, #fff7ed 0%, #ffedd5 45%, #fef2f2 100%);
+  --maika-shell-gradient:
+    radial-gradient(circle at top left, rgba(251, 113, 133, 0.2), transparent 30%),
+    radial-gradient(circle at top right, rgba(251, 146, 60, 0.18), transparent 24%),
+    linear-gradient(180deg, #fff7ed 0%, #ffedd5 46%, #fff1f2 100%);
+  --maika-login-gradient:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.18), transparent 25%),
+    radial-gradient(circle at bottom right, rgba(254, 215, 170, 0.26), transparent 28%),
+    linear-gradient(135deg, #7c2d12 0%, #ea580c 58%, #fb7185 100%);
+  --maika-sidebar-gradient:
+    linear-gradient(180deg, rgba(67, 20, 7, 0.98) 0%, rgba(124, 45, 18, 0.96) 100%);
+  --maika-banner-gradient: linear-gradient(135deg, #7c2d12 0%, #ea580c 100%);
+  --maika-header-gradient:
+    linear-gradient(145deg, rgba(255, 251, 235, 0.94) 0%, rgba(255, 237, 213, 0.9) 52%, rgba(254, 242, 242, 0.94) 100%);
+  --maika-podium-gradient: linear-gradient(135deg, #7c2d12 0%, #ea580c 100%);
+  --maika-selection: rgba(251, 146, 60, 0.32);
+  --maika-grid-line: rgba(124, 45, 18, 0.05);
+}
+
+:root[data-maika-theme="aurora"] {
+  --background: #ecfdf5;
+  --foreground: #052e16;
+  --maika-ink: #14532d;
+  --maika-surface: rgba(248, 250, 252, 0.84);
+  --maika-accent: #4ade80;
+  --maika-accent-strong: #15803d;
+  --maika-ring: #86efac;
+  --maika-muted: #3f5d4f;
+  --maika-body-gradient:
+    radial-gradient(circle at top left, rgba(74, 222, 128, 0.2), transparent 30%),
+    radial-gradient(circle at top right, rgba(16, 185, 129, 0.16), transparent 24%),
+    linear-gradient(180deg, #ecfdf5 0%, #d1fae5 45%, #f0fdf4 100%);
+  --maika-shell-gradient:
+    radial-gradient(circle at top left, rgba(74, 222, 128, 0.24), transparent 28%),
+    radial-gradient(circle at top right, rgba(16, 185, 129, 0.18), transparent 24%),
+    linear-gradient(180deg, #ecfdf5 0%, #d1fae5 44%, #f0fdf4 100%);
+  --maika-login-gradient:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.18), transparent 25%),
+    radial-gradient(circle at bottom right, rgba(110, 231, 183, 0.24), transparent 28%),
+    linear-gradient(135deg, #022c22 0%, #166534 55%, #4ade80 100%);
+  --maika-sidebar-gradient:
+    linear-gradient(180deg, rgba(2, 44, 34, 0.98) 0%, rgba(20, 83, 45, 0.95) 100%);
+  --maika-banner-gradient: linear-gradient(135deg, #14532d 0%, #15803d 100%);
+  --maika-header-gradient:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.94) 0%, rgba(236, 253, 245, 0.92) 52%, rgba(220, 252, 231, 0.94) 100%);
+  --maika-podium-gradient: linear-gradient(135deg, #14532d 0%, #15803d 100%);
+  --maika-selection: rgba(74, 222, 128, 0.28);
+  --maika-grid-line: rgba(20, 83, 45, 0.05);
+}
+
+:root[data-maika-theme="violet"] {
+  --background: #f5f3ff;
+  --foreground: #1e1b4b;
+  --maika-ink: #312e81;
+  --maika-surface: rgba(255, 255, 255, 0.84);
+  --maika-accent: #c084fc;
+  --maika-accent-strong: #7c3aed;
+  --maika-ring: #ddd6fe;
+  --maika-muted: #5b5874;
+  --maika-body-gradient:
+    radial-gradient(circle at top left, rgba(192, 132, 252, 0.22), transparent 30%),
+    radial-gradient(circle at top right, rgba(99, 102, 241, 0.16), transparent 24%),
+    linear-gradient(180deg, #f5f3ff 0%, #ede9fe 45%, #f8fafc 100%);
+  --maika-shell-gradient:
+    radial-gradient(circle at top left, rgba(192, 132, 252, 0.24), transparent 28%),
+    radial-gradient(circle at top right, rgba(99, 102, 241, 0.18), transparent 24%),
+    linear-gradient(180deg, #f5f3ff 0%, #ede9fe 44%, #eef2ff 100%);
+  --maika-login-gradient:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.18), transparent 25%),
+    radial-gradient(circle at bottom right, rgba(216, 180, 254, 0.24), transparent 28%),
+    linear-gradient(135deg, #312e81 0%, #7c3aed 55%, #c084fc 100%);
+  --maika-sidebar-gradient:
+    linear-gradient(180deg, rgba(30, 27, 75, 0.98) 0%, rgba(49, 46, 129, 0.95) 100%);
+  --maika-banner-gradient: linear-gradient(135deg, #312e81 0%, #7c3aed 100%);
+  --maika-header-gradient:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.94) 0%, rgba(245, 243, 255, 0.92) 52%, rgba(237, 233, 254, 0.94) 100%);
+  --maika-podium-gradient: linear-gradient(135deg, #312e81 0%, #7c3aed 100%);
+  --maika-selection: rgba(192, 132, 252, 0.3);
+  --maika-grid-line: rgba(49, 46, 129, 0.05);
+}
+
+:root[data-maika-theme="ember"] {
+  --background: #fffbeb;
+  --foreground: #422006;
+  --maika-ink: #78350f;
+  --maika-surface: rgba(255, 251, 235, 0.85);
+  --maika-accent: #fbbf24;
+  --maika-accent-strong: #b45309;
+  --maika-ring: #fde68a;
+  --maika-muted: #6d553d;
+  --maika-body-gradient:
+    radial-gradient(circle at top left, rgba(251, 191, 36, 0.18), transparent 30%),
+    radial-gradient(circle at top right, rgba(245, 158, 11, 0.18), transparent 24%),
+    linear-gradient(180deg, #fffbeb 0%, #fef3c7 46%, #fff7ed 100%);
+  --maika-shell-gradient:
+    radial-gradient(circle at top left, rgba(251, 191, 36, 0.22), transparent 28%),
+    radial-gradient(circle at top right, rgba(245, 158, 11, 0.16), transparent 24%),
+    linear-gradient(180deg, #fffbeb 0%, #fef3c7 44%, #fff7ed 100%);
+  --maika-login-gradient:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.2), transparent 25%),
+    radial-gradient(circle at bottom right, rgba(251, 191, 36, 0.24), transparent 28%),
+    linear-gradient(135deg, #451a03 0%, #b45309 55%, #fbbf24 100%);
+  --maika-sidebar-gradient:
+    linear-gradient(180deg, rgba(69, 26, 3, 0.98) 0%, rgba(120, 53, 15, 0.95) 100%);
+  --maika-banner-gradient: linear-gradient(135deg, #78350f 0%, #b45309 100%);
+  --maika-header-gradient:
+    linear-gradient(145deg, rgba(255, 251, 235, 0.95) 0%, rgba(254, 243, 199, 0.92) 52%, rgba(255, 247, 237, 0.94) 100%);
+  --maika-podium-gradient: linear-gradient(135deg, #78350f 0%, #b45309 100%);
+  --maika-selection: rgba(251, 191, 36, 0.3);
+  --maika-grid-line: rgba(120, 53, 15, 0.05);
+}
+
+:root[data-maika-theme="graphite"] {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --maika-ink: #1e293b;
+  --maika-surface: rgba(255, 255, 255, 0.84);
+  --maika-accent: #94a3b8;
+  --maika-accent-strong: #475569;
+  --maika-ring: #cbd5e1;
+  --maika-muted: #526071;
+  --maika-body-gradient:
+    radial-gradient(circle at top left, rgba(148, 163, 184, 0.16), transparent 30%),
+    radial-gradient(circle at top right, rgba(71, 85, 105, 0.12), transparent 24%),
+    linear-gradient(180deg, #f8fafc 0%, #e2e8f0 46%, #f8fafc 100%);
+  --maika-shell-gradient:
+    radial-gradient(circle at top left, rgba(148, 163, 184, 0.18), transparent 28%),
+    radial-gradient(circle at top right, rgba(71, 85, 105, 0.12), transparent 24%),
+    linear-gradient(180deg, #f8fafc 0%, #e2e8f0 44%, #eef2f7 100%);
+  --maika-login-gradient:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.18), transparent 25%),
+    radial-gradient(circle at bottom right, rgba(148, 163, 184, 0.22), transparent 28%),
+    linear-gradient(135deg, #111827 0%, #334155 55%, #94a3b8 100%);
+  --maika-sidebar-gradient:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.95) 100%);
+  --maika-banner-gradient: linear-gradient(135deg, #111827 0%, #334155 100%);
+  --maika-header-gradient:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 252, 0.92) 52%, rgba(226, 232, 240, 0.94) 100%);
+  --maika-podium-gradient: linear-gradient(135deg, #111827 0%, #334155 100%);
+  --maika-selection: rgba(148, 163, 184, 0.32);
+  --maika-grid-line: rgba(30, 41, 59, 0.05);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-maika-ink: var(--maika-ink);
+  --color-maika-accent: var(--maika-accent);
+  --font-sans: var(--font-maika-sans);
+  --font-display: var(--font-maika-display);
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+@keyframes maika-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+html {
+  min-height: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  background-image: var(--maika-body-gradient);
+  font-family: var(--font-maika-sans), "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei UI", sans-serif;
+  min-height: 100%;
+}
+
+* {
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+::selection {
+  background: var(--maika-selection);
+  color: #082032;
+}
+
+.font-display {
+  font-family: var(--font-maika-display), "STSong", "Songti SC", serif;
+}
+
+.maika-fade-up {
+  animation: maika-fade-up 0.42s ease-out both;
+}
+
+.maika-glass {
+  background: var(--maika-surface);
+  backdrop-filter: blur(18px);
+}
+
+.maika-grid {
+  background-image:
+    linear-gradient(var(--maika-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--maika-grid-line) 1px, transparent 1px);
+  background-position: center;
+  background-size: 22px 22px;
+}
+
+.maika-shell-backdrop {
+  background-image: var(--maika-shell-gradient);
+}
+
+.maika-login-backdrop {
+  background-image: var(--maika-login-gradient);
+}
+
+.maika-sidebar-surface {
+  background: var(--maika-sidebar-gradient);
+}
+
+.maika-banner-surface {
+  background-image: var(--maika-banner-gradient);
+}
+
+.maika-page-header-surface {
+  background-image: var(--maika-header-gradient);
+}
+
+.maika-podium-surface {
+  background-image: var(--maika-podium-gradient);
+}

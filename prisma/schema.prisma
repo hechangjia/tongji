@@ -1,0 +1,352 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MEMBER
+  LEADER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ContentStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum BannerSourceType {
+  BUILTIN
+  CUSTOM
+}
+
+enum BannerDisplayMode {
+  RANDOM
+  ROTATE
+}
+
+enum SalesReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ReminderStatus {
+  UNREAD
+  READ
+}
+
+enum ReminderTemplate {
+  TARGET_GAP
+  MISSING_SUBMISSION
+  FOLLOW_UP
+  CUSTOM
+}
+
+enum IdentifierCodeStatus {
+  UNASSIGNED
+  ASSIGNED
+  SOLD
+}
+
+enum ProspectLeadStatus {
+  UNASSIGNED
+  ASSIGNED
+  CONVERTED
+}
+
+enum ProspectLeadSourceType {
+  ADMIN_IMPORT
+  MEMBER_MANUAL
+}
+
+enum PlanType {
+  PLAN_40
+  PLAN_60
+}
+
+model User {
+  id                     String                  @id @default(cuid())
+  username               String                  @unique
+  passwordHash           String
+  name                   String
+  phone                  String?
+  remark                 String?
+  groupId                String?
+  role                   Role
+  status                 UserStatus              @default(ACTIVE)
+  group                  Group?                  @relation("GroupMembers", fields: [groupId], references: [id], onDelete: SetNull)
+  ledGroup               Group?                  @relation("GroupLeader")
+  salesRecords           SalesRecord[]
+  commissionRules        CommissionRule[]
+  dailyTargets           DailyTarget[]
+  adjustedDailyTargets   DailyTarget[]           @relation("DailyTargetAdjustedBy")
+  receivedReminders      MemberReminder[]        @relation("MemberReminderRecipient")
+  sentReminders          MemberReminder[]        @relation("MemberReminderSender")
+  identifierImportBatches IdentifierImportBatch[] @relation("IdentifierImportBatchImporter")
+  importedProspectBatches ProspectImportBatch[]   @relation("ProspectImportBatchImporter")
+  ownedIdentifierCodes   IdentifierCode[]        @relation("IdentifierCodeCurrentOwner")
+  receivedCodeAssignments CodeAssignment[]        @relation("CodeAssignmentRecipient")
+  sentCodeAssignments    CodeAssignment[]        @relation("CodeAssignmentSender")
+  assignedProspectLeads  ProspectLead[]          @relation("ProspectLeadAssignee")
+  createdProspectLeads   ProspectLead[]          @relation("ProspectLeadCreator")
+  identifierSales        IdentifierSale[]        @relation("IdentifierSaleSeller")
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+
+  @@map("users")
+}
+
+model Group {
+  id                   String         @id @default(cuid())
+  name                 String         @unique
+  slogan               String?
+  remark               String?
+  leaderUserId         String?        @unique
+  leader               User?          @relation("GroupLeader", fields: [leaderUserId], references: [id], onDelete: SetNull)
+  members              User[]         @relation("GroupMembers")
+  assignedProspectLeads ProspectLead[] @relation("ProspectLeadAssignedGroup")
+  identifierSales      IdentifierSale[] @relation("IdentifierSaleGroup")
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  @@map("groups")
+}
+
+model SalesRecord {
+  id              String            @id @default(cuid())
+  userId          String
+  saleDate        DateTime          @db.Date
+  count40         Int               @default(0)
+  count60         Int               @default(0)
+  remark          String?
+  lastSubmittedAt DateTime?
+  reviewStatus    SalesReviewStatus @default(PENDING)
+  reviewedAt      DateTime?
+  reviewNote      String?
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@unique([userId, saleDate])
+  @@index([saleDate])
+  @@index([saleDate, reviewStatus, lastSubmittedAt])
+  @@index([saleDate, lastSubmittedAt])
+  @@map("sales_records")
+}
+
+model CommissionRule {
+  id             String   @id @default(cuid())
+  userId         String
+  price40        Decimal  @db.Decimal(10, 2)
+  price60        Decimal  @db.Decimal(10, 2)
+  effectiveStart DateTime @db.Date
+  effectiveEnd   DateTime? @db.Date
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId, effectiveStart, effectiveEnd])
+  @@map("commission_rules")
+}
+
+model DailyTarget {
+  id               String   @id @default(cuid())
+  userId           String
+  targetDate       DateTime @db.Date
+  suggestedTotal   Int
+  finalTotal       Int
+  suggestionReason String
+  adjustedById     String?
+  adjustedAt       DateTime?
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  adjustedBy       User?    @relation("DailyTargetAdjustedBy", fields: [adjustedById], references: [id], onDelete: SetNull)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([userId, targetDate])
+  @@index([targetDate])
+  @@index([targetDate, userId])
+  @@map("daily_targets")
+}
+
+model MemberReminder {
+  id        String           @id @default(cuid())
+  userId    String
+  type      ReminderTemplate
+  title     String
+  content   String
+  status    ReminderStatus   @default(UNREAD)
+  sentById  String?
+  sentAt    DateTime         @default(now())
+  readAt    DateTime?
+  user      User             @relation("MemberReminderRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  sentBy    User?            @relation("MemberReminderSender", fields: [sentById], references: [id], onDelete: SetNull)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@index([userId, sentAt])
+  @@index([userId, status, sentAt])
+  @@map("member_reminders")
+}
+
+model BannerQuote {
+  id         String           @id @default(cuid())
+  content    String
+  author     String?
+  sourceType BannerSourceType @default(CUSTOM)
+  status     ContentStatus    @default(ACTIVE)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@map("banner_quotes")
+}
+
+model BannerSettings {
+  id          String            @id
+  isEnabled   Boolean           @default(true)
+  displayMode BannerDisplayMode @default(RANDOM)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@map("banner_settings")
+}
+
+model Announcement {
+  id        String        @id @default(cuid())
+  title     String
+  content   String
+  isPinned  Boolean       @default(false)
+  status    ContentStatus @default(ACTIVE)
+  publishAt DateTime      @default(now())
+  expireAt  DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([status, publishAt, expireAt, isPinned])
+  @@map("announcements")
+}
+
+model IdentifierImportBatch {
+  id             String           @id @default(cuid())
+  sourceFileName String
+  importedByUserId String
+  successCount   Int              @default(0)
+  skippedCount   Int              @default(0)
+  importedBy     User             @relation("IdentifierImportBatchImporter", fields: [importedByUserId], references: [id], onDelete: Cascade)
+  codes          IdentifierCode[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([importedByUserId, createdAt])
+  @@map("identifier_import_batches")
+}
+
+model IdentifierCode {
+  id               String               @id @default(cuid())
+  code             String               @unique
+  status           IdentifierCodeStatus @default(UNASSIGNED)
+  importBatchId    String
+  currentOwnerUserId String?
+  assignedAt       DateTime?
+  soldAt           DateTime?
+  importBatch      IdentifierImportBatch @relation(fields: [importBatchId], references: [id], onDelete: Cascade)
+  currentOwner     User?                @relation("IdentifierCodeCurrentOwner", fields: [currentOwnerUserId], references: [id], onDelete: SetNull)
+  assignments      CodeAssignment[]
+  sale             IdentifierSale?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  @@index([status])
+  @@index([currentOwnerUserId, status])
+  @@map("identifier_codes")
+}
+
+model CodeAssignment {
+  id               String         @id @default(cuid())
+  codeId           String
+  assignedToUserId String
+  assignedByUserId String
+  remark           String?
+  assignedAt       DateTime       @default(now())
+  code             IdentifierCode @relation(fields: [codeId], references: [id], onDelete: Cascade)
+  assignedTo       User           @relation("CodeAssignmentRecipient", fields: [assignedToUserId], references: [id], onDelete: Cascade)
+  assignedBy       User           @relation("CodeAssignmentSender", fields: [assignedByUserId], references: [id], onDelete: Cascade)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([assignedToUserId, assignedAt])
+  @@index([assignedByUserId, assignedAt])
+  @@index([codeId, assignedAt])
+  @@map("code_assignments")
+}
+
+model ProspectImportBatch {
+  id             String         @id @default(cuid())
+  sourceFileName String
+  importedByUserId String
+  successCount   Int            @default(0)
+  skippedCount   Int            @default(0)
+  importedBy     User           @relation("ProspectImportBatchImporter", fields: [importedByUserId], references: [id], onDelete: Cascade)
+  leads          ProspectLead[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([importedByUserId, createdAt])
+  @@map("prospect_import_batches")
+}
+
+model ProspectLead {
+  id               String                 @id @default(cuid())
+  qqNumber         String                 @unique
+  major            String
+  importBatchId    String?
+  sourceType       ProspectLeadSourceType @default(ADMIN_IMPORT)
+  createdByUserId  String?
+  status           ProspectLeadStatus     @default(UNASSIGNED)
+  assignedToUserId String?
+  assignedGroupId  String?
+  assignedAt       DateTime?
+  importBatch      ProspectImportBatch?   @relation(fields: [importBatchId], references: [id], onDelete: Cascade)
+  createdByUser    User?                  @relation("ProspectLeadCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  assignedToUser   User?                  @relation("ProspectLeadAssignee", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  assignedGroup    Group?                 @relation("ProspectLeadAssignedGroup", fields: [assignedGroupId], references: [id], onDelete: SetNull)
+  sale             IdentifierSale?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+
+  @@index([sourceType, createdByUserId])
+  @@index([status, assignedToUserId])
+  @@index([status, assignedGroupId])
+  @@map("prospect_leads")
+}
+
+model IdentifierSale {
+  id            String    @id @default(cuid())
+  codeId        String    @unique
+  sellerUserId  String
+  groupId       String
+  prospectLeadId String   @unique
+  planType      PlanType
+  saleDate      DateTime  @db.Date
+  remark        String?
+  code          IdentifierCode @relation(fields: [codeId], references: [id], onDelete: Cascade)
+  seller        User      @relation("IdentifierSaleSeller", fields: [sellerUserId], references: [id], onDelete: Cascade)
+  group         Group     @relation("IdentifierSaleGroup", fields: [groupId], references: [id], onDelete: Restrict)
+  prospectLead  ProspectLead @relation(fields: [prospectLeadId], references: [id], onDelete: Restrict)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([sellerUserId, saleDate])
+  @@index([groupId, saleDate])
+  @@index([saleDate, planType])
+  @@map("identifier_sales")
+}
