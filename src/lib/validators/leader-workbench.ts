@@ -20,14 +20,10 @@ const followUpStatusSchema = z.enum(
 );
 
 const optionalUserIdSchema = z
-  .union([z.string(), z.null(), z.undefined()])
-  .transform((value) => {
-    if (value == null) {
-      return undefined;
-    }
-    const trimmed = value.trim();
-    return trimmed === "" ? undefined : trimmed;
-  });
+  .string()
+  .trim()
+  .transform((value) => (value === "" ? undefined : value))
+  .optional();
 
 export const createManualFollowUpSchema = z.object({
   groupId: groupIdSchema,

@@ -79,6 +79,17 @@ describe("leader workbench validation", () => {
     expect(whitespaceOwner.nextOwnerUserId).toBeUndefined();
   });
 
+  test("follow-up reassignment rejects null nextOwnerUserId", () => {
+    const result = reassignFollowUpSchema.safeParse({
+      followUpItemId: "item-1",
+      nextOwnerUserId: null,
+      reason: "重新安排",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues.some((issue) => issue.path.includes("nextOwnerUserId"))).toBe(true);
+  });
+
   test("reassign follow-up trims owner and reason", () => {
     const parsed = reassignFollowUpSchema.parse({
       followUpItemId: "item-1",
