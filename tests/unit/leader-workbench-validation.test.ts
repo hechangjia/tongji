@@ -10,9 +10,11 @@ describe("leader workbench validation", () => {
   test("manual follow-up creation requires summaryNote and allows clearing owner", () => {
     const parsed = createManualFollowUpSchema.parse({
       summaryNote: "跟进进度",
+      groupId: "group-1",
     });
 
     expect(parsed.currentOwnerUserId).toBeUndefined();
+    expect((parsed as Record<string, unknown>).groupId).toBeUndefined();
 
     expect(() =>
       createManualFollowUpSchema.parse({
@@ -26,6 +28,15 @@ describe("leader workbench validation", () => {
     });
 
     expect(ownerCleared.currentOwnerUserId).toBeUndefined();
+  });
+
+  test("manual create ignores explicit groupId input", () => {
+    const manual = createManualFollowUpSchema.parse({
+      summaryNote: "另起",
+      groupId: "ignored",
+    });
+
+    expect((manual as Record<string, unknown>).groupId).toBeUndefined();
   });
 
   test("follow-up reassignment requires followUpItemId and reason", () => {
@@ -126,6 +137,14 @@ describe("leader workbench validation", () => {
         followUpItemId: "item-1",
         status: "FOLLOWING_UP",
         reason: "   ",
+      }),
+    ).toThrow();
+
+    expect(() =>
+      updateFollowUpStatusSchema.parse({
+        followUpItemId: "item-1",
+        status: "CONVERTED" as const,
+        reason: "状态变更",
       }),
     ).toThrow();
   });

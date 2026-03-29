@@ -17,10 +17,12 @@ const optionalUserIdSchema = z
   .transform((value) => (value === "" ? undefined : value))
   .optional();
 
-export const createManualFollowUpSchema = z.object({
-  summaryNote: summaryNoteSchema,
-  currentOwnerUserId: optionalUserIdSchema,
-});
+export const createManualFollowUpSchema = z
+  .object({
+    summaryNote: summaryNoteSchema,
+    currentOwnerUserId: optionalUserIdSchema,
+  })
+  .strip();
 
 export const reassignFollowUpSchema = z.object({
   followUpItemId: followUpItemIdSchema,
