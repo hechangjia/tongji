@@ -94,4 +94,45 @@ describe("prisma schema", () => {
     expect(schema).toMatch(/prospectLeadId\s+String/);
     expect(schema).toMatch(/planType\s+PlanType/);
   });
+
+  test("locks leader workbench schema contract", () => {
+    const schema = readFileSync("prisma/schema.prisma", "utf8");
+
+    expect(schema).toContain("enum GroupFollowUpSourceType");
+    expect(schema).toContain("PROSPECT_LEAD");
+    expect(schema).toContain("MANUAL_DISCOVERY");
+
+    expect(schema).toContain("enum GroupFollowUpStatus");
+    expect(schema).toContain("UNTOUCHED");
+    expect(schema).toContain("FOLLOWING_UP");
+    expect(schema).toContain("APPOINTED");
+    expect(schema).toContain("READY_TO_CONVERT");
+    expect(schema).toContain("INVALID");
+    expect(schema).toContain("CONVERTED");
+
+    expect(schema).toContain("enum GroupResourceAuditResourceType");
+    expect(schema).toContain("FOLLOW_UP_ITEM");
+    expect(schema).toContain("PROSPECT_LEAD");
+    expect(schema).toContain("IDENTIFIER_CODE");
+
+    expect(schema).toContain("enum GroupResourceAuditActionType");
+    expect(schema).toContain("CREATE_MANUAL_FOLLOW_UP");
+    expect(schema).toContain("REASSIGN");
+    expect(schema).toContain("RETURN_TO_GROUP_POOL");
+    expect(schema).toContain("STATUS_CHANGE");
+    expect(schema).toContain("CONVERTED_LINKED");
+
+    expect(schema).toContain("model GroupFollowUpItem");
+    expect(schema).toContain("model GroupResourceAuditLog");
+    expect(schema).toMatch(
+      /model IdentifierCode[\s\S]*assignedGroupId\s+String\?/,
+    );
+    expect(schema).toMatch(/beforeSnapshot\s+Json\?/);
+    expect(schema).toMatch(/afterSnapshot\s+Json\?/);
+
+    expect(schema).toMatch(/@@index\(\[assignedGroupId,\s*status\]\)/);
+    expect(schema).toMatch(/@@index\(\[groupId,\s*status,\s*lastActionAt\]\)/);
+    expect(schema).toMatch(/@@index\(\[currentOwnerUserId,\s*status\]\)/);
+    expect(schema).toMatch(/@@index\(\[groupId,\s*createdAt\]\)/);
+  });
 });

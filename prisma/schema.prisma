@@ -73,6 +73,34 @@ enum PlanType {
   PLAN_60
 }
 
+enum GroupFollowUpSourceType {
+  PROSPECT_LEAD
+  MANUAL_DISCOVERY
+}
+
+enum GroupFollowUpStatus {
+  UNTOUCHED
+  FOLLOWING_UP
+  APPOINTED
+  READY_TO_CONVERT
+  INVALID
+  CONVERTED
+}
+
+enum GroupResourceAuditResourceType {
+  FOLLOW_UP_ITEM
+  PROSPECT_LEAD
+  IDENTIFIER_CODE
+}
+
+enum GroupResourceAuditActionType {
+  CREATE_MANUAL_FOLLOW_UP
+  REASSIGN
+  RETURN_TO_GROUP_POOL
+  STATUS_CHANGE
+  CONVERTED_LINKED
+}
+
 model User {
   id                     String                  @id @default(cuid())
   username               String                  @unique
@@ -99,6 +127,9 @@ model User {
   assignedProspectLeads  ProspectLead[]          @relation("ProspectLeadAssignee")
   createdProspectLeads   ProspectLead[]          @relation("ProspectLeadCreator")
   identifierSales        IdentifierSale[]        @relation("IdentifierSaleSeller")
+  currentGroupFollowUpItems GroupFollowUpItem[]  @relation("GroupFollowUpItemCurrentOwner")
+  createdGroupFollowUpItems GroupFollowUpItem[]  @relation("GroupFollowUpItemCreator")
+  operatedGroupResourceAuditLogs GroupResourceAuditLog[] @relation("GroupResourceAuditLogOperator")
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
 
@@ -115,6 +146,9 @@ model Group {
   members              User[]         @relation("GroupMembers")
   assignedProspectLeads ProspectLead[] @relation("ProspectLeadAssignedGroup")
   identifierSales      IdentifierSale[] @relation("IdentifierSaleGroup")
+  assignedIdentifierCodes IdentifierCode[] @relation("IdentifierCodeAssignedGroup")
+  followUpItems        GroupFollowUpItem[]
+  resourceAuditLogs    GroupResourceAuditLog[]
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
 
@@ -256,16 +290,19 @@ model IdentifierCode {
   status           IdentifierCodeStatus @default(UNASSIGNED)
   importBatchId    String
   currentOwnerUserId String?
+  assignedGroupId  String?
   assignedAt       DateTime?
   soldAt           DateTime?
   importBatch      IdentifierImportBatch @relation(fields: [importBatchId], references: [id], onDelete: Cascade)
   currentOwner     User?                @relation("IdentifierCodeCurrentOwner", fields: [currentOwnerUserId], references: [id], onDelete: SetNull)
+  assignedGroup    Group?               @relation("IdentifierCodeAssignedGroup", fields: [assignedGroupId], references: [id], onDelete: SetNull)
   assignments      CodeAssignment[]
   sale             IdentifierSale?
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @updatedAt
 
   @@index([status])
+  @@index([assignedGroupId, status])
   @@index([currentOwnerUserId, status])
   @@map("identifier_codes")
 }
@@ -319,6 +356,7 @@ model ProspectLead {
   createdByUser    User?                  @relation("ProspectLeadCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
   assignedToUser   User?                  @relation("ProspectLeadAssignee", fields: [assignedToUserId], references: [id], onDelete: SetNull)
   assignedGroup    Group?                 @relation("ProspectLeadAssignedGroup", fields: [assignedGroupId], references: [id], onDelete: SetNull)
+  followUpItems    GroupFollowUpItem[]    @relation("GroupFollowUpItemProspectLead")
   sale             IdentifierSale?
   createdAt        DateTime               @default(now())
   updatedAt        DateTime               @updatedAt
@@ -349,4 +387,45 @@ model IdentifierSale {
   @@index([groupId, saleDate])
   @@index([saleDate, planType])
   @@map("identifier_sales")
+}
+
+model GroupFollowUpItem {
+  id                 String                  @id @default(cuid())
+  groupId            String
+  currentOwnerUserId String?
+  sourceType         GroupFollowUpSourceType
+  prospectLeadId     String?
+  status             GroupFollowUpStatus     @default(UNTOUCHED)
+  summaryNote        String?
+  createdByUserId    String
+  lastActionAt       DateTime                @default(now())
+  convertedAt        DateTime?
+  group              Group                   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  currentOwnerUser   User?                   @relation("GroupFollowUpItemCurrentOwner", fields: [currentOwnerUserId], references: [id], onDelete: SetNull)
+  prospectLead       ProspectLead?           @relation("GroupFollowUpItemProspectLead", fields: [prospectLeadId], references: [id], onDelete: SetNull)
+  createdByUser      User                    @relation("GroupFollowUpItemCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+
+  @@index([groupId, status, lastActionAt])
+  @@index([currentOwnerUserId, status])
+  @@map("group_follow_up_items")
+}
+
+model GroupResourceAuditLog {
+  id             String                       @id @default(cuid())
+  groupId        String
+  operatorUserId String
+  resourceType   GroupResourceAuditResourceType
+  resourceId     String
+  actionType     GroupResourceAuditActionType
+  beforeSnapshot Json?
+  afterSnapshot  Json?
+  reason         String?
+  group          Group                        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  operatorUser   User                         @relation("GroupResourceAuditLogOperator", fields: [operatorUserId], references: [id], onDelete: Restrict)
+  createdAt      DateTime                     @default(now())
+
+  @@index([groupId, createdAt])
+  @@map("group_resource_audit_logs")
 }
