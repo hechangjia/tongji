@@ -5,6 +5,7 @@ const saleDateSchema = z.string().trim().min(1, "请选择成交日期");
 const planTypeSchema = z.enum(["PLAN_40", "PLAN_60"], {
   message: "请选择套餐类型",
 });
+const followUpItemIdSchema = z.string().trim().min(1, "请选择跟进项").optional();
 const remarkSchema = z
   .string()
   .optional()
@@ -30,6 +31,7 @@ const assignedLeadSchema = z
     qqNumber: z.string().optional(),
     major: z.string().optional(),
     remark: remarkSchema,
+    followUpItemId: followUpItemIdSchema,
   })
   .superRefine((value, context) => {
     if ((value.qqNumber?.trim() ?? "") || (value.major?.trim() ?? "")) {
@@ -51,6 +53,7 @@ const manualInputSchema = z
     qqNumber: z.string().trim().min(1, "请输入 QQ 号"),
     major: z.string().trim().min(1, "请输入专业"),
     remark: remarkSchema,
+    followUpItemId: followUpItemIdSchema,
   })
   .superRefine((value, context) => {
     if ((value.prospectLeadId?.trim() ?? "") !== "") {

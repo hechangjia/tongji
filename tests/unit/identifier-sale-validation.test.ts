@@ -28,6 +28,34 @@ describe("identifier sale validation", () => {
     ).not.toThrow();
   });
 
+  test("accepts an optional followUpItemId when using an assigned lead", () => {
+    expect(() =>
+      identifierSaleSchema.parse({
+        codeId: "code-1",
+        planType: "PLAN_40",
+        saleDate: "2026-03-28",
+        sourceMode: "ASSIGNED_LEAD",
+        prospectLeadId: "lead-1",
+        remark: "现场转化",
+        followUpItemId: "follow-up-1",
+      }),
+    ).not.toThrow();
+  });
+
+  test("accepts an optional followUpItemId when using manual input", () => {
+    expect(() =>
+      identifierSaleSchema.parse({
+        codeId: "code-1",
+        planType: "PLAN_60",
+        saleDate: "2026-03-28",
+        sourceMode: "MANUAL_INPUT",
+        qqNumber: "123456",
+        major: "计算机",
+        followUpItemId: "follow-up-2",
+      }),
+    ).not.toThrow();
+  });
+
   test("requires prospectLeadId when using an assigned lead", () => {
     expect(() =>
       identifierSaleSchema.parse({
