@@ -2,6 +2,19 @@ import { describe, expect, test } from "vitest";
 import { readFileSync } from "node:fs";
 import { salesReviewActionSchema } from "@/lib/validators/sales";
 
+function getPrismaBlock(
+  schema: string,
+  blockType: "enum" | "model",
+  name: string,
+): string {
+  const match = schema.match(
+    new RegExp(`${blockType}\\s+${name}\\s+\\{[\\s\\S]*?\\n\\}`, "m"),
+  );
+
+  expect(match, `Missing ${blockType} ${name}`).not.toBeNull();
+  return match![0];
+}
+
 describe("prisma schema", () => {
   test("contains core models", () => {
     const schema = readFileSync("prisma/schema.prisma", "utf8");
@@ -97,45 +110,119 @@ describe("prisma schema", () => {
 
   test("locks leader workbench schema contract", () => {
     const schema = readFileSync("prisma/schema.prisma", "utf8");
-
-    expect(schema).toContain("enum GroupFollowUpSourceType");
-    expect(schema).toContain("PROSPECT_LEAD");
-    expect(schema).toContain("MANUAL_DISCOVERY");
-
-    expect(schema).toContain("enum GroupFollowUpStatus");
-    expect(schema).toContain("UNTOUCHED");
-    expect(schema).toContain("FOLLOWING_UP");
-    expect(schema).toContain("APPOINTED");
-    expect(schema).toContain("READY_TO_CONVERT");
-    expect(schema).toContain("INVALID");
-    expect(schema).toContain("CONVERTED");
-
-    expect(schema).toContain("enum GroupResourceAuditResourceType");
-    expect(schema).toContain("FOLLOW_UP_ITEM");
-    expect(schema).toContain("PROSPECT_LEAD");
-    expect(schema).toContain("IDENTIFIER_CODE");
-
-    expect(schema).toContain("enum GroupResourceAuditActionType");
-    expect(schema).toContain("CREATE_MANUAL_FOLLOW_UP");
-    expect(schema).toContain("REASSIGN");
-    expect(schema).toContain("RETURN_TO_GROUP_POOL");
-    expect(schema).toContain("STATUS_CHANGE");
-    expect(schema).toContain("CONVERTED_LINKED");
-
-    expect(schema).toContain("model GroupFollowUpItem");
-    expect(schema).toContain("model GroupResourceAuditLog");
-    expect(schema).toMatch(
-      /model IdentifierCode[\s\S]*assignedGroupId\s+String\?/,
+    const identifierCodeBlock = getPrismaBlock(schema, "model", "IdentifierCode");
+    const followUpSourceTypeBlock = getPrismaBlock(
+      schema,
+      "enum",
+      "GroupFollowUpSourceType",
     );
-    expect(schema).toMatch(/beforeSnapshot\s+Json\?/);
-    expect(schema).toMatch(/afterSnapshot\s+Json\?/);
-    expect(schema).toMatch(
-      /model GroupResourceAuditLog[\s\S]*reason\s+String(?!\?)/,
+    const followUpStatusBlock = getPrismaBlock(
+      schema,
+      "enum",
+      "GroupFollowUpStatus",
+    );
+    const auditResourceTypeBlock = getPrismaBlock(
+      schema,
+      "enum",
+      "GroupResourceAuditResourceType",
+    );
+    const auditActionTypeBlock = getPrismaBlock(
+      schema,
+      "enum",
+      "GroupResourceAuditActionType",
+    );
+    const followUpItemBlock = getPrismaBlock(schema, "model", "GroupFollowUpItem");
+    const auditLogBlock = getPrismaBlock(schema, "model", "GroupResourceAuditLog");
+
+    expect(followUpSourceTypeBlock).toMatch(
+      /enum GroupFollowUpSourceType\s+\{\s*PROSPECT_LEAD\s+MANUAL_DISCOVERY\s*\}/,
+    );
+    expect(followUpStatusBlock).toMatch(
+      /enum GroupFollowUpStatus\s+\{\s*UNTOUCHED\s+FOLLOWING_UP\s+APPOINTED\s+READY_TO_CONVERT\s+INVALID\s+CONVERTED\s*\}/,
+    );
+    expect(auditResourceTypeBlock).toMatch(
+      /enum GroupResourceAuditResourceType\s+\{\s*FOLLOW_UP_ITEM\s+PROSPECT_LEAD\s+IDENTIFIER_CODE\s*\}/,
+    );
+    expect(auditActionTypeBlock).toMatch(
+      /enum GroupResourceAuditActionType\s+\{\s*CREATE_MANUAL_FOLLOW_UP\s+REASSIGN\s+RETURN_TO_GROUP_POOL\s+STATUS_CHANGE\s+CONVERTED_LINKED\s*\}/,
     );
 
-    expect(schema).toMatch(/@@index\(\[assignedGroupId,\s*status\]\)/);
-    expect(schema).toMatch(/@@index\(\[groupId,\s*status,\s*lastActionAt\]\)/);
-    expect(schema).toMatch(/@@index\(\[currentOwnerUserId,\s*status\]\)/);
-    expect(schema).toMatch(/@@index\(\[groupId,\s*createdAt\]\)/);
+    expect(identifierCodeBlock).toContain("assignedGroupId  String?");
+    expect(identifierCodeBlock).toContain("@@index([assignedGroupId, status])");
+
+    expect(followUpItemBlock).toContain("groupId            String");
+    expect(followUpItemBlock).toContain("currentOwnerUserId String?");
+    expect(followUpItemBlock).toContain("sourceType         GroupFollowUpSourceType");
+    expect(followUpItemBlock).toContain("prospectLeadId     String?");
+    expect(followUpItemBlock).toContain(
+      "status             GroupFollowUpStatus     @default(UNTOUCHED)",
+    );
+    expect(followUpItemBlock).toContain("summaryNote        String?");
+    expect(followUpItemBlock).toContain("createdByUserId    String");
+    expect(followUpItemBlock).toContain(
+      "lastActionAt       DateTime                @default(now())",
+    );
+    expect(followUpItemBlock).toContain("convertedAt        DateTime?");
+    expect(followUpItemBlock).toContain(
+      "@@index([groupId, status, lastActionAt])",
+    );
+    expect(followUpItemBlock).toContain("@@index([currentOwnerUserId, status])");
+
+    expect(auditLogBlock).toContain("groupId        String");
+    expect(auditLogBlock).toContain("operatorUserId String");
+    expect(auditLogBlock).toContain(
+      "resourceType   GroupResourceAuditResourceType",
+    );
+    expect(auditLogBlock).toContain("resourceId     String");
+    expect(auditLogBlock).toContain("actionType     GroupResourceAuditActionType");
+    expect(auditLogBlock).toContain("beforeSnapshot Json?");
+    expect(auditLogBlock).toContain("afterSnapshot  Json?");
+    expect(auditLogBlock).toContain("reason         String");
+    expect(auditLogBlock).toContain("createdAt      DateTime                     @default(now())");
+    expect(auditLogBlock).toContain("@@index([groupId, createdAt])");
+  });
+
+  test("locks leader workbench migration contract", () => {
+    const migration = readFileSync(
+      "prisma/migrations/20260329183000_add_leader_workbench_and_group_leaderboard/migration.sql",
+      "utf8",
+    );
+
+    expect(migration).toContain(
+      'CREATE TYPE "GroupFollowUpSourceType" AS ENUM (\'PROSPECT_LEAD\', \'MANUAL_DISCOVERY\');',
+    );
+    expect(migration).toContain(
+      'CREATE TYPE "GroupFollowUpStatus" AS ENUM (\'UNTOUCHED\', \'FOLLOWING_UP\', \'APPOINTED\', \'READY_TO_CONVERT\', \'INVALID\', \'CONVERTED\');',
+    );
+    expect(migration).toContain(
+      'CREATE TYPE "GroupResourceAuditResourceType" AS ENUM (\'FOLLOW_UP_ITEM\', \'PROSPECT_LEAD\', \'IDENTIFIER_CODE\');',
+    );
+    expect(migration).toContain(
+      'CREATE TYPE "GroupResourceAuditActionType" AS ENUM (\'CREATE_MANUAL_FOLLOW_UP\', \'REASSIGN\', \'RETURN_TO_GROUP_POOL\', \'STATUS_CHANGE\', \'CONVERTED_LINKED\');',
+    );
+
+    expect(migration).toContain('CREATE TABLE "group_follow_up_items"');
+    expect(migration).toContain('CREATE TABLE "group_resource_audit_logs"');
+    expect(migration).toContain('"reason" TEXT NOT NULL');
+
+    expect(migration).toContain(
+      'CREATE INDEX "identifier_codes_assignedGroupId_status_idx"',
+    );
+    expect(migration).toContain(
+      'CREATE INDEX "group_follow_up_items_groupId_status_lastActionAt_idx"',
+    );
+    expect(migration).toContain(
+      'CREATE INDEX "group_follow_up_items_currentOwnerUserId_status_idx"',
+    );
+    expect(migration).toContain(
+      'CREATE INDEX "group_resource_audit_logs_groupId_createdAt_idx"',
+    );
+
+    expect(migration).toContain(
+      'ADD CONSTRAINT "group_follow_up_items_sourceType_prospectLeadId_check"',
+    );
+    expect(migration).toContain(
+      'CHECK (("sourceType" = \'PROSPECT_LEAD\' AND "prospectLeadId" IS NOT NULL) OR ("sourceType" = \'MANUAL_DISCOVERY\' AND "prospectLeadId" IS NULL))',
+    );
   });
 });

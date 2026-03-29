@@ -48,6 +48,11 @@ CREATE TABLE "group_resource_audit_logs" (
     CONSTRAINT "group_resource_audit_logs_pkey" PRIMARY KEY ("id")
 );
 
+-- AddConstraint
+ALTER TABLE "group_follow_up_items"
+ADD CONSTRAINT "group_follow_up_items_sourceType_prospectLeadId_check"
+CHECK (("sourceType" = 'PROSPECT_LEAD' AND "prospectLeadId" IS NOT NULL) OR ("sourceType" = 'MANUAL_DISCOVERY' AND "prospectLeadId" IS NULL));
+
 -- CreateIndex
 CREATE INDEX "identifier_codes_assignedGroupId_status_idx"
 ON "identifier_codes"("assignedGroupId", "status");
