@@ -39,6 +39,7 @@ export type IdentifierSaleFormValues = {
   qqNumber: string;
   major: string;
   remark: string;
+  followUpItemId: string;
 };
 
 export type IdentifierSaleSummary = {

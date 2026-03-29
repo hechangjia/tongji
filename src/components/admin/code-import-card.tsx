@@ -34,7 +34,6 @@ export function CodeImportCard() {
   return (
     <form
       action={formAction}
-      encType="multipart/form-data"
       className="space-y-5 rounded-[28px] border border-white/70 bg-white/84 p-6 shadow-[0_22px_60px_rgba(8,47,73,0.08)]"
     >
       <div className="space-y-2">

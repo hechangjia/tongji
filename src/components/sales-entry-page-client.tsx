@@ -7,6 +7,7 @@ import {
   saveSalesEntryAction,
 } from "@/app/(member)/entry/actions";
 import type {
+  IdentifierSaleFormValues,
   IdentifierSaleFormState,
   SalesEntryFormState,
 } from "@/app/(member)/entry/form-state";
@@ -56,6 +57,7 @@ export function SalesEntryPageClient({
   initialSelfTrend,
   initialRecentReminders,
   initialIdentifierWorkspace,
+  initialIdentifierValues,
   initialDailyRhythmSummary,
 }: {
   initialValues: SalesEntryDefaults;
@@ -65,6 +67,7 @@ export function SalesEntryPageClient({
   initialSelfTrend: EntrySelfTrendSummaryData;
   initialRecentReminders: EntryReminderListItem[];
   initialIdentifierWorkspace: MemberIdentifierWorkspace;
+  initialIdentifierValues: IdentifierSaleFormValues;
   initialDailyRhythmSummary: EntryDailyRhythmSummaryData;
 }) {
   const saleDateInputRef = useRef<HTMLInputElement>(null);
@@ -80,16 +83,7 @@ export function SalesEntryPageClient({
   const initialIdentifierState: IdentifierSaleFormState = {
     status: "idle",
     message: null,
-    values: {
-      codeId: "",
-      planType: "PLAN_40",
-      saleDate: initialValues.saleDate,
-      sourceMode: "ASSIGNED_LEAD",
-      prospectLeadId: "",
-      qqNumber: "",
-      major: "",
-      remark: "",
-    },
+    values: initialIdentifierValues,
     summary: null,
     workspace: initialIdentifierWorkspace,
   };

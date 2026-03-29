@@ -7,6 +7,7 @@ const redirectMock = vi.hoisted(() =>
   }),
 );
 const revalidatePathMock = vi.hoisted(() => vi.fn());
+const refreshLeaderWorkbenchCachesMock = vi.hoisted(() => vi.fn());
 const importIdentifierCodesMock = vi.hoisted(() => vi.fn());
 const importProspectLeadsMock = vi.hoisted(() => vi.fn());
 const assignIdentifierCodesToUserMock = vi.hoisted(() => vi.fn());
@@ -22,6 +23,10 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("next/cache", () => ({
   revalidatePath: revalidatePathMock,
+}));
+
+vi.mock("@/server/services/leaderboard-cache", () => ({
+  refreshLeaderWorkbenchCaches: refreshLeaderWorkbenchCachesMock,
 }));
 
 vi.mock("@/server/services/admin-code-service", () => ({
@@ -110,6 +115,7 @@ describe("admin codes actions", () => {
       remark: null,
     });
     expect(revalidatePathMock).toHaveBeenCalledWith("/admin/codes");
+    expect(refreshLeaderWorkbenchCachesMock).toHaveBeenCalledTimes(1);
   });
 
   test("assigns prospect leads and redirects with a success notice", async () => {
@@ -130,6 +136,7 @@ describe("admin codes actions", () => {
       leadIds: ["lead-1", "lead-2"],
       userId: "member-1",
     });
+    expect(refreshLeaderWorkbenchCachesMock).toHaveBeenCalledTimes(1);
   });
 
   test("rejects non-admin users before assignment", async () => {

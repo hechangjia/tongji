@@ -22,11 +22,11 @@ export type GroupLeaderboardCurrentGroupDelta = {
 
 export type GroupLeaderboardResult = {
   rows: GroupLeaderboardRow[];
-  currentGroupDelta: GroupLeaderboardCurrentGroupDelta | null;
+  viewerGroupDelta: GroupLeaderboardCurrentGroupDelta | null;
 };
 
 export type GroupLeaderboardInput = {
-  currentUserId: string;
+  currentUserId?: string | null;
   todaySaleDate?: DateValue;
 };
 
@@ -40,7 +40,7 @@ export type GroupMemberLeaderboardRow = {
 };
 
 export type VisibleGroupMemberRowsInput = {
-  currentUserId: string;
+  currentUserId?: string | null;
   groupId: string;
   todaySaleDate?: DateValue;
 };
@@ -62,7 +62,14 @@ function rankRows<T extends { total: number; userName: string }>(rows: T[]) {
     }));
 }
 
-async function resolveCurrentUserAccess(currentUserId: string) {
+async function resolveCurrentUserAccess(currentUserId?: string | null) {
+  if (!currentUserId) {
+    return {
+      role: null,
+      groupId: null,
+    };
+  }
+
   const currentUser = await db.user.findUnique({
     where: { id: currentUserId },
     select: {
@@ -77,7 +84,9 @@ async function resolveCurrentUserAccess(currentUserId: string) {
   };
 }
 
-export async function getGroupLeaderboard(input: GroupLeaderboardInput): Promise<GroupLeaderboardResult> {
+export async function getGroupLeaderboard(
+  input: GroupLeaderboardInput = {},
+): Promise<GroupLeaderboardResult> {
   const todaySaleDate = input.todaySaleDate ?? getTodaySaleDateValue();
   const [rows, groups, currentUserAccess] = await Promise.all([
     getAggregatedSalesDayRows({
@@ -141,10 +150,19 @@ export async function getGroupLeaderboard(input: GroupLeaderboardInput): Promise
     current.total += row.count40 + row.count60;
   }
 
-  const rankedRows = rankRows(Array.from(totalsByGroupId.values()).map((row) => ({
-    userName: row.groupName,
-    ...row,
-  }))).map(({ userName: _userName, ...row }) => row);
+  const rankedRows = rankRows(
+    Array.from(totalsByGroupId.values()).map((row) => ({
+      userName: row.groupName,
+      ...row,
+    })),
+  ).map((row) => ({
+    rank: row.rank,
+    groupId: row.groupId,
+    groupName: row.groupName,
+    count40: row.count40,
+    count60: row.count60,
+    total: row.total,
+  }));
 
   const currentGroupId =
     currentUserAccess.role === "LEADER" ? currentUserAccess.groupId : null;
@@ -152,7 +170,7 @@ export async function getGroupLeaderboard(input: GroupLeaderboardInput): Promise
   if (!currentGroupId) {
     return {
       rows: rankedRows,
-      currentGroupDelta: null,
+      viewerGroupDelta: null,
     };
   }
 
@@ -161,7 +179,7 @@ export async function getGroupLeaderboard(input: GroupLeaderboardInput): Promise
   if (currentIndex < 0) {
     return {
       rows: rankedRows,
-      currentGroupDelta: null,
+      viewerGroupDelta: null,
     };
   }
 
@@ -171,7 +189,7 @@ export async function getGroupLeaderboard(input: GroupLeaderboardInput): Promise
 
   return {
     rows: rankedRows,
-    currentGroupDelta: {
+    viewerGroupDelta: {
       groupId: current.groupId,
       gapToPrevious: previous ? previous.total - current.total : null,
       gapToNext: next ? current.total - next.total : null,

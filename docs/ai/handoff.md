@@ -9,9 +9,12 @@
   - 小组管理、组长指派、成员分组与角色维护
   - 管理员识别码 / 新生线索导入与按成员分发
   - 成员识别码成交工作台
+  - 组长督战工作台与组内调度 mutation
+  - 共享小组榜单与成员明细权限裁剪
+  - 组长工作台状态桥接与强审计链路
   - 成员历史记录中的识别码成交明细
   - 旧 `40 / 60` 日汇总与新 `IdentifierSale` 事实流的桥接
-- 当前代码已经覆盖“管理员导入和分发 -> 成员录单 -> 旧汇总同步保留”的 phase-1.5 闭环。
+- 当前代码已经覆盖“管理员导入和分发 -> 组长督战与组内调度 -> 成员录单 -> 旧汇总同步保留”的 phase-1.5 闭环。
 - 当前还没有对真实 Neon 数据库执行最新 migration；这一步还停留在代码已准备、数据库未落地的状态。
 
 ## 已实现功能
@@ -96,9 +99,25 @@
 - `/leader/group`
   - 已接通权限与基础页
 - `/leader/sales`
-  - 仍是占位页
+  - 已升级为组长督战工作台
+  - 已接通：
+    - 顶部摘要条
+    - 组内成员冲榜视图
+    - 各组排名变化视图
+    - 线索推进区
+    - 识别码调度区
+    - 审计时间线
+  - 已接通 server actions：
+    - 手工创建自主获客跟进项
+    - 组内改派跟进项
+    - 跟进状态推进
+    - 识别码组内改派 / 回收组池
 - `/leaderboard/groups`
-  - 仍是占位页
+  - 已升级为共享小组榜单
+  - 匿名访客可看小组级汇总
+  - `MEMBER` 仅看小组级汇总
+  - `LEADER` 只可展开自己组的成员细节
+  - `ADMIN` 可展开任意组成员细节
 - `/leaderboard/daily`、`/leaderboard/range`
   - 可继续使用现有排行榜能力
 
@@ -119,6 +138,10 @@
   - 旧版日汇总录入必须拒绝写入
   - 避免新旧两套数据同时写乱当天口径
 - 识别码成交会固化 `groupId`，避免后续换组影响历史归属
+- 管理员分发识别码时会同步写入 `IdentifierCode.assignedGroupId`
+- 管理员分配新生线索时会创建或重开 `PROSPECT_LEAD` 类型的 `GroupFollowUpItem`
+- 成员录单若携带 `followUpItemId`，必须校验同组后才能关闭该跟进项
+- 组长侧所有重操作都会落 `GroupResourceAuditLog`
 
 ## 数据模型变化
 
@@ -126,15 +149,19 @@
   - `Group`
   - `User.role = ADMIN | LEADER | MEMBER`
   - `IdentifierCode`
+  - `IdentifierCode.assignedGroupId`
   - `IdentifierCodeImportBatch`
   - `IdentifierCodeAssignment`
   - `ProspectLead`
   - `ProspectLeadImportBatch`
   - `IdentifierSale`
+  - `GroupFollowUpItem`
+  - `GroupResourceAuditLog`
   - `ProspectLeadStatus.CONVERTED`
 - 本轮新增 migration：
   - `prisma/migrations/20260328101000_add_identifier_codes_and_prospect_leads/`
   - `prisma/migrations/20260328112000_add_member_identifier_sales/`
+  - `prisma/migrations/20260329183000_add_leader_workbench_and_group_leaderboard/`
 
 ## 尚未完全实现的功能
 
@@ -142,15 +169,13 @@
 
 - 还没有“预发放记录”这一层过程数据
 - 还没有成员端异常状态回退 / 售后回退流
-- 还没有组长侧识别码 / 线索看板
 - 还没有“按组分配线索”能力，当前仍是按成员分配
 - 还没有识别码历史流转审计页
 
 ### 组长与榜单
 
-- `/leader/sales` 仍是占位页
-- `/leaderboard/groups` 仍是占位页
-- 小组维度的榜单、导出、分析口径还没有接到新事实模型上
+- 小组榜单导出和更深趋势分析还没接上
+- 小组维度与结算口径还没有统一切到新事实模型
 
 ### 结算与规则
 
@@ -162,6 +187,7 @@
 
 - 最新 schema / migration 尚未应用到真实 Neon
 - 线上还没有针对 `/admin/codes`、`/entry` 新流程做正式联调验收
+- 组长工作台与共享小组榜单只在本地 / 测试库完成 smoke 验证，线上还没有正式验收
 
 ## 新电脑快速重启项目
 
@@ -238,6 +264,8 @@ http://localhost:3000
 - `/entry`
 - `/records`
 - `/admin/settlements`
+- `/leader/sales`
+- `/leaderboard/groups`
 
 ## 推荐先看的文档
 
@@ -258,6 +286,13 @@ http://localhost:3000
 - 成员识别码工作台：
   - [page.tsx](/home/chia/Code/maika/src/app/%28member%29/entry/page.tsx)
   - [sales-entry-page-client.tsx](/home/chia/Code/maika/src/components/sales-entry-page-client.tsx)
+  - [member-identifier-sale-service.ts](/home/chia/Code/maika/src/server/services/member-identifier-sale-service.ts)
+- 组长工作台与共享榜单：
+  - [page.tsx](/home/chia/Code/maika/src/app/%28leader%29/leader/sales/page.tsx)
+  - [actions.ts](/home/chia/Code/maika/src/app/%28leader%29/leader/sales/actions.ts)
+  - [leader-workbench-service.ts](/home/chia/Code/maika/src/server/services/leader-workbench-service.ts)
+  - [group-leaderboard-service.ts](/home/chia/Code/maika/src/server/services/group-leaderboard-service.ts)
+  - [page.tsx](/home/chia/Code/maika/src/app/%28shared%29/leaderboard/groups/page.tsx)
   - [member-identifier-sale-form.tsx](/home/chia/Code/maika/src/components/member-identifier-sale-form.tsx)
   - [member-identifier-sale-service.ts](/home/chia/Code/maika/src/server/services/member-identifier-sale-service.ts)
 - 旧汇总桥接：

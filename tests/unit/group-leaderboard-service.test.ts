@@ -111,7 +111,7 @@ describe("group leaderboard service", () => {
           total: 1,
         },
       ],
-      currentGroupDelta: {
+      viewerGroupDelta: {
         groupId: "group-1",
         gapToPrevious: 1,
         gapToNext: 1,
@@ -122,6 +122,52 @@ describe("group leaderboard service", () => {
       startDate: "2026-03-29",
       endDate: "2026-03-29",
     });
+  });
+
+  test("returns shared group rows for anonymous viewers without resolving viewer access", async () => {
+    getAggregatedSalesDayRowsMock.mockResolvedValue([
+      {
+        userId: "member-1",
+        userName: "成员甲",
+        saleDate: new Date("2026-03-29T00:00:00.000Z"),
+        count40: 1,
+        count60: 0,
+        source: "IDENTIFIER_SALE",
+      },
+    ]);
+    groupFindManyMock.mockResolvedValue([
+      { id: "group-1", name: "北极星组", leaderUserId: "leader-1" },
+      { id: "group-2", name: "开拓者组", leaderUserId: "leader-2" },
+    ]);
+    userFindManyMock.mockResolvedValue([{ id: "member-1", groupId: "group-1" }]);
+
+    await expect(
+      getGroupLeaderboard({
+        todaySaleDate: "2026-03-29",
+      }),
+    ).resolves.toEqual({
+      rows: [
+        {
+          rank: 1,
+          groupId: "group-1",
+          groupName: "北极星组",
+          count40: 1,
+          count60: 0,
+          total: 1,
+        },
+        {
+          rank: 2,
+          groupId: "group-2",
+          groupName: "开拓者组",
+          count40: 0,
+          count60: 0,
+          total: 0,
+        },
+      ],
+      viewerGroupDelta: null,
+    });
+
+    expect(userFindUniqueMock).not.toHaveBeenCalled();
   });
 
   test("hides member rows based on persisted role even if caller claims LEADER", async () => {

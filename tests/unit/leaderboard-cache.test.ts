@@ -157,11 +157,18 @@ describe("leaderboard cache", () => {
     });
     getGroupLeaderboardMock.mockResolvedValueOnce({
       rows: [{ groupName: "G" }],
-      currentGroupDelta: null,
+      viewerGroupDelta: null,
     });
     getLeaderWorkbenchSnapshotMock.mockResolvedValueOnce({
       group: { id: "group-1", name: "北极星组", slogan: null, remark: null },
-      summary: { memberCount: 2, todayCount40: 1, todayCount60: 1, todayTotal: 2 },
+      summary: {
+        memberCount: 2,
+        todayCount40: 1,
+        todayCount60: 1,
+        todayTotal: 2,
+        pendingFollowUpCount: 1,
+        groupPoolCodeCount: 0,
+      },
       memberRanking: [],
       codePool: [],
       followUpQueue: [],
@@ -215,12 +222,11 @@ describe("leaderboard cache", () => {
     });
     await expect(
       getCachedGroupLeaderboard({
-        currentUserId: "leader-1",
         todaySaleDate: "2026-03-27",
       }),
     ).resolves.toEqual({
       rows: [{ groupName: "G" }],
-      currentGroupDelta: null,
+      viewerGroupDelta: null,
     });
     await expect(
       getCachedLeaderWorkbenchSnapshot({
@@ -229,7 +235,14 @@ describe("leaderboard cache", () => {
       }),
     ).resolves.toEqual({
       group: { id: "group-1", name: "北极星组", slogan: null, remark: null },
-      summary: { memberCount: 2, todayCount40: 1, todayCount60: 1, todayTotal: 2 },
+      summary: {
+        memberCount: 2,
+        todayCount40: 1,
+        todayCount60: 1,
+        todayTotal: 2,
+        pendingFollowUpCount: 1,
+        groupPoolCodeCount: 0,
+      },
       memberRanking: [],
       codePool: [],
       followUpQueue: [],
@@ -247,7 +260,6 @@ describe("leaderboard cache", () => {
       todaySaleDate: "2026-03-27",
     });
     expect(getGroupLeaderboardMock).toHaveBeenCalledWith({
-      currentUserId: "leader-1",
       todaySaleDate: "2026-03-27",
     });
     expect(getLeaderWorkbenchSnapshotMock).toHaveBeenCalledWith({

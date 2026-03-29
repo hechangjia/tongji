@@ -9,8 +9,16 @@ const redirectMock = vi.hoisted(() =>
 const saveIdentifierSaleForUserMock = vi.hoisted(() => vi.fn());
 const getMemberIdentifierWorkspaceMock = vi.hoisted(() => vi.fn());
 const refreshLeaderboardCachesMock = vi.hoisted(() => vi.fn());
+const refreshLeaderWorkbenchCachesMock = vi.hoisted(() => vi.fn());
 const refreshEntryInsightsCacheMock = vi.hoisted(() => vi.fn());
 const refreshMemberRecordsCacheMock = vi.hoisted(() => vi.fn());
+const getTodaySaleDateValueMock = vi.hoisted(() => vi.fn(() => "2026-03-28"));
+const saveSalesRecordForUserMock = vi.hoisted(() => vi.fn());
+const saleDateToValueMock = vi.hoisted(() => vi.fn((value: string | Date) => String(value)));
+const getMemberDailyTargetFeedbackMock = vi.hoisted(() => vi.fn());
+const getMemberSelfTrendSummaryMock = vi.hoisted(() => vi.fn());
+const getMemberDailyRhythmSummaryMock = vi.hoisted(() => vi.fn());
+const getMemberRecentRemindersMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/auth", () => ({
   auth: authMock,
@@ -27,6 +35,7 @@ vi.mock("@/server/services/member-identifier-sale-service", () => ({
 
 vi.mock("@/server/services/leaderboard-cache", () => ({
   refreshLeaderboardCaches: refreshLeaderboardCachesMock,
+  refreshLeaderWorkbenchCaches: refreshLeaderWorkbenchCachesMock,
 }));
 
 vi.mock("@/server/services/entry-insights-cache", () => ({
@@ -35,6 +44,25 @@ vi.mock("@/server/services/entry-insights-cache", () => ({
 
 vi.mock("@/server/services/member-records-cache", () => ({
   refreshMemberRecordsCache: refreshMemberRecordsCacheMock,
+}));
+
+vi.mock("@/server/services/sales-service", () => ({
+  getTodaySaleDateValue: getTodaySaleDateValueMock,
+  saveSalesRecordForUser: saveSalesRecordForUserMock,
+  saleDateToValue: saleDateToValueMock,
+}));
+
+vi.mock("@/server/services/daily-target-service", () => ({
+  getMemberDailyTargetFeedback: getMemberDailyTargetFeedbackMock,
+  getMemberSelfTrendSummary: getMemberSelfTrendSummaryMock,
+}));
+
+vi.mock("@/server/services/daily-rhythm-service", () => ({
+  getMemberDailyRhythmSummary: getMemberDailyRhythmSummaryMock,
+}));
+
+vi.mock("@/server/services/member-reminder-service", () => ({
+  getMemberRecentReminders: getMemberRecentRemindersMock,
 }));
 
 import { saveIdentifierSaleAction } from "@/app/(member)/entry/actions";
@@ -84,6 +112,7 @@ describe("member identifier entry action", () => {
     formData.set("saleDate", "2026-03-28");
     formData.set("sourceMode", "ASSIGNED_LEAD");
     formData.set("prospectLeadId", "lead-1");
+    formData.set("followUpItemId", "follow-1");
     formData.set("remark", "现场转化");
 
     await expect(saveIdentifierSaleAction(undefined, formData)).resolves.toMatchObject({
@@ -109,10 +138,12 @@ describe("member identifier entry action", () => {
         saleDate: "2026-03-28",
         sourceMode: "ASSIGNED_LEAD",
         prospectLeadId: "lead-1",
+        followUpItemId: "follow-1",
         remark: "现场转化",
       }),
     );
     expect(refreshLeaderboardCachesMock).toHaveBeenCalledTimes(1);
+    expect(refreshLeaderWorkbenchCachesMock).toHaveBeenCalledTimes(1);
     expect(refreshEntryInsightsCacheMock).toHaveBeenCalledTimes(1);
     expect(refreshMemberRecordsCacheMock).toHaveBeenCalledTimes(1);
   });
@@ -129,6 +160,7 @@ describe("member identifier entry action", () => {
     formData.set("sourceMode", "MANUAL_INPUT");
     formData.set("qqNumber", "123456");
     formData.set("major", "计算机");
+    formData.set("followUpItemId", "follow-manual-1");
     formData.set("remark", "现场转化");
 
     await expect(saveIdentifierSaleAction(undefined, formData)).resolves.toMatchObject({
@@ -138,9 +170,11 @@ describe("member identifier entry action", () => {
         qqNumber: "123456",
         major: "计算机",
         sourceMode: "MANUAL_INPUT",
+        followUpItemId: "follow-manual-1",
       },
     });
 
     expect(refreshLeaderboardCachesMock).not.toHaveBeenCalled();
+    expect(refreshLeaderWorkbenchCachesMock).not.toHaveBeenCalled();
   });
 });

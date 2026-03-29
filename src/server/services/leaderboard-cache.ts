@@ -151,10 +151,10 @@ export function getCachedDailyTop3Status(input: DailyTop3StatusInput) {
   return cachedDailyTop3Status(input);
 }
 
-export function getCachedGroupLeaderboard(input: GroupLeaderboardInput) {
+export function getCachedGroupLeaderboard(input: GroupLeaderboardInput = {}) {
   if (!cachedGroupLeaderboard) {
     cachedGroupLeaderboard = unstable_cache(
-      async (payload: GroupLeaderboardInput): Promise<GroupLeaderboardResult> => {
+      async (payload: GroupLeaderboardInput = {}): Promise<GroupLeaderboardResult> => {
         const { getGroupLeaderboard } = await import(
           "@/server/services/group-leaderboard-service"
         );

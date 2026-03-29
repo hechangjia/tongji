@@ -37,6 +37,8 @@ export function MemberIdentifierSaleForm({
       action={formAction}
       className="space-y-6 rounded-[28px] border border-white/70 bg-white/84 p-6 shadow-[0_22px_60px_rgba(8,47,73,0.08)] backdrop-blur-xl sm:p-7"
     >
+      <input type="hidden" name="followUpItemId" value={state.values.followUpItemId} readOnly />
+
       <div className="space-y-3">
         <div>
           <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-cyan-700">

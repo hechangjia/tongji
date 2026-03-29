@@ -1,31 +1,58 @@
-import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { AppShell } from "@/components/app-shell";
-import { EmptyState } from "@/components/empty-state";
+import { GroupLeaderboardTable } from "@/components/leader/group-leaderboard-table";
+import { MetricCard } from "@/components/metric-card";
 import { PageHeader } from "@/components/page-header";
+import { getVisibleGroupMemberRows } from "@/server/services/group-leaderboard-service";
+import { getCachedGroupLeaderboard } from "@/server/services/leaderboard-cache";
+import { getTodaySaleDateValue } from "@/server/services/sales-service";
 
 export default async function GroupLeaderboardPage() {
   const session = await auth();
+  const todaySaleDate = getTodaySaleDateValue();
+  const leaderboard = await getCachedGroupLeaderboard({
+    currentUserId: session?.user?.id,
+    todaySaleDate,
+  });
+  const memberRowsByGroupId = Object.fromEntries(
+    await Promise.all(
+      leaderboard.rows.map(async (row) => [
+        row.groupId,
+        await getVisibleGroupMemberRows({
+          currentUserId: session?.user?.id,
+          groupId: row.groupId,
+          todaySaleDate,
+        }),
+      ]),
+    ),
+  );
 
   const content = (
     <section className="space-y-6">
       <PageHeader
         eyebrow="共享榜单"
         title="小组榜单"
-        description="小组维度的排行榜入口已经预留，后续阶段会接入各组销量、冲榜节奏和阶段趋势对比。"
-      />
+        description="公开层展示小组总榜；登录后再按角色决定是否展开成员层细节，不在页面层复制权限逻辑。"
+      >
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <MetricCard label="统计日期" value={todaySaleDate} />
+          <MetricCard label="上榜小组数" value={leaderboard.rows.length} tone="dark" />
+          <MetricCard
+            label="与上一组差距"
+            value={leaderboard.viewerGroupDelta?.gapToPrevious ?? "-"}
+            tone="accent"
+          />
+          <MetricCard
+            label="与下一组差距"
+            value={leaderboard.viewerGroupDelta?.gapToNext ?? "-"}
+          />
+        </div>
+      </PageHeader>
 
-      <EmptyState
-        title="小组排行榜建设中"
-        description="当前阶段先完成共享路由和导航入口，后续阶段会补上小组排名、榜单筛选和管理员/组长可共用的复盘视图。"
-        action={
-          <Link
-            href="/leaderboard/range"
-            className="inline-flex h-11 items-center justify-center rounded-[18px] bg-slate-950 px-5 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-800"
-          >
-            先看现有总榜
-          </Link>
-        }
+      <GroupLeaderboardTable
+        rows={leaderboard.rows}
+        viewerGroupDelta={leaderboard.viewerGroupDelta}
+        memberRowsByGroupId={memberRowsByGroupId}
       />
     </section>
   );

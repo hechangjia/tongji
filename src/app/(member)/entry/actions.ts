@@ -10,7 +10,10 @@ import {
   getMemberSelfTrendSummary,
 } from "@/server/services/daily-target-service";
 import { getMemberDailyRhythmSummary } from "@/server/services/daily-rhythm-service";
-import { refreshLeaderboardCaches } from "@/server/services/leaderboard-cache";
+import {
+  refreshLeaderWorkbenchCaches,
+  refreshLeaderboardCaches,
+} from "@/server/services/leaderboard-cache";
 import { getMemberRecentReminders } from "@/server/services/member-reminder-service";
 import {
   getMemberIdentifierWorkspace,
@@ -149,6 +152,7 @@ export async function saveIdentifierSaleAction(
     qqNumber: String(formData.get("qqNumber") ?? ""),
     major: String(formData.get("major") ?? ""),
     remark: String(formData.get("remark") ?? ""),
+    followUpItemId: String(formData.get("followUpItemId") ?? ""),
   };
 
   try {
@@ -161,6 +165,7 @@ export async function saveIdentifierSaleAction(
       qqNumber: formData.get("qqNumber"),
       major: formData.get("major"),
       remark: formData.get("remark"),
+      followUpItemId: formData.get("followUpItemId"),
     });
     const workspace = await getMemberIdentifierWorkspace({
       userId: session.user.id,
@@ -168,6 +173,7 @@ export async function saveIdentifierSaleAction(
     });
 
     refreshLeaderboardCaches();
+    refreshLeaderWorkbenchCaches();
     refreshEntryInsightsCache();
     refreshMemberRecordsCache();
 
@@ -183,6 +189,7 @@ export async function saveIdentifierSaleAction(
         qqNumber: "",
         major: "",
         remark: "",
+        followUpItemId: "",
       },
       summary: {
         saleId: result.sale.id,

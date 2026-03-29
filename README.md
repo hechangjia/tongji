@@ -30,8 +30,13 @@
 - 新增 `LEADER` 角色与 `Group` 数据模型
 - 管理员可在 `/admin/groups` 创建小组、维护口号/备注、指定或更换组长
 - 管理员可在 `/admin/members` 维护成员角色、所属小组与备注，系统会保持“小组仅有一个组长”和“组长必须属于自己的小组”约束
-- 管理员可在 `/admin/codes` 导入识别码、导入新生 QQ、查看库存和线索池，并按成员批量分发
-- 组长专属路由 `/leader/group`、`/leader/sales` 和共享榜单入口 `/leaderboard/groups` 已接入导航与权限保护，其中后两者目前仍是后续阶段占位页
+- 管理员可在 `/admin/codes` 导入识别码、导入新生 QQ、查看库存和线索池，并按成员批量分发；分发会同步桥接到组长工作台状态
+- 组长专属路由 `/leader/group`、`/leader/sales` 和共享榜单 `/leaderboard/groups` 已全部接通真实页面、权限保护与组内调度流
+- 已新增组长工作台过程状态：
+  - `GroupFollowUpItem`
+  - `GroupResourceAuditLog`
+  - `IdentifierCode.assignedGroupId`
+  - 成员录单可选 `followUpItemId` 关联
 
 当前仍未完成的外部步骤：
 
@@ -40,7 +45,7 @@
 当前仍未进入实现的后续 phase：
 
 - `40 / 60` 佣金规则迁移与结算重写
-- 小组榜单、导出与分析口径对齐
+- 小组榜单导出、更深趋势分析与结算口径统一
 
 ## 技术栈
 
@@ -125,6 +130,7 @@ src/
     announcement-list
     sales-entry-form
     leaderboard-table
+    leader/*
     my-records-table
     admin/*
   lib/
@@ -133,6 +139,8 @@ src/
   server/services/
     sales-service
     leaderboard-service
+    group-leaderboard-service
+    leader-workbench-service
     commission-service
     settlement-service
     export-service

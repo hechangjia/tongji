@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
+import { refreshLeaderWorkbenchCaches } from "@/server/services/leaderboard-cache";
 import {
   assignIdentifierCodesToUser,
   assignProspectLeadsToUser,
@@ -109,6 +110,7 @@ export async function assignIdentifierCodesAction(formData: FormData) {
   });
 
   revalidatePath("/admin/codes");
+  refreshLeaderWorkbenchCaches();
   redirect(appendNotice(`识别码已分发 ${parsedInput.codeIds.length} 条`));
 }
 
@@ -125,5 +127,6 @@ export async function assignProspectLeadsAction(formData: FormData) {
   });
 
   revalidatePath("/admin/codes");
+  refreshLeaderWorkbenchCaches();
   redirect(appendNotice(`新生线索已分配 ${parsedInput.leadIds.length} 条`));
 }

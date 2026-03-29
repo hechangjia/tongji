@@ -12,6 +12,11 @@ const getCachedMemberDailyRhythmSummaryMock = vi.hoisted(() => vi.fn());
 const getCachedMemberEntryInsightsMock = vi.hoisted(() => vi.fn());
 const getMemberIdentifierWorkspaceMock = vi.hoisted(() => vi.fn());
 const salesEntryPageClientMock = vi.hoisted(() => vi.fn());
+const buildSalesEntryDefaultsMock = vi.hoisted(() => vi.fn());
+const getTodaySaleDateValueMock = vi.hoisted(() => vi.fn(() => "2026-03-28"));
+const saleDateToValueMock = vi.hoisted(
+  () => vi.fn((value: string | Date) => (typeof value === "string" ? value : value.toISOString().slice(0, 10))),
+);
 
 vi.mock("@/lib/auth", () => ({
   auth: authMock,
@@ -46,19 +51,14 @@ vi.mock("@/server/services/member-identifier-sale-service", () => ({
   getMemberIdentifierWorkspace: getMemberIdentifierWorkspaceMock,
 }));
 
-vi.mock("@/server/services/sales-service", async () => {
-  const actual = await vi.importActual<typeof import("@/server/services/sales-service")>(
-    "@/server/services/sales-service",
-  );
-
-  return {
-    ...actual,
-    getSalesRecordForUserOnDate: getSalesRecordForUserOnDateMock,
-  };
-});
+vi.mock("@/server/services/sales-service", () => ({
+  buildSalesEntryDefaults: buildSalesEntryDefaultsMock,
+  getSalesRecordForUserOnDate: getSalesRecordForUserOnDateMock,
+  getTodaySaleDateValue: getTodaySaleDateValueMock,
+  saleDateToValue: saleDateToValueMock,
+}));
 
 import EntryPage from "@/app/(member)/entry/page";
-import { getTodaySaleDateValue } from "@/server/services/sales-service";
 
 describe("entry page", () => {
   beforeEach(() => {
@@ -73,6 +73,12 @@ describe("entry page", () => {
       },
     });
     getSalesRecordForUserOnDateMock.mockResolvedValue(null);
+    buildSalesEntryDefaultsMock.mockReturnValue({
+      saleDate: "2026-03-28",
+      count40: "0",
+      count60: "0",
+      remark: "",
+    });
     getCachedMemberDailyRhythmSummaryMock.mockResolvedValue({
       state: "MISSING",
       title: "今天还没有提交记录",
@@ -119,7 +125,7 @@ describe("entry page", () => {
   });
 
   test("uses cached member entry insights and identifier workspace for the initial page payload", async () => {
-    const todaySaleDate = getTodaySaleDateValue();
+    const todaySaleDate = getTodaySaleDateValueMock();
 
     render(await EntryPage());
 
@@ -145,6 +151,17 @@ describe("entry page", () => {
           },
           codeOptions: [{ id: "code-1", code: "A001" }],
         }),
+        initialIdentifierValues: {
+          codeId: "",
+          planType: "PLAN_40",
+          saleDate: todaySaleDate,
+          sourceMode: "ASSIGNED_LEAD",
+          prospectLeadId: "",
+          qqNumber: "",
+          major: "",
+          remark: "",
+          followUpItemId: "",
+        },
         initialTargetFeedback: {
           targetTotal: 8,
           currentTotal: 0,
@@ -153,6 +170,34 @@ describe("entry page", () => {
           status: "BEHIND",
         },
         initialRecentReminders: [],
+      }),
+    );
+  });
+
+  test("seeds an optional followUpItemId from search params without changing other identifier defaults", async () => {
+    const todaySaleDate = getTodaySaleDateValueMock();
+
+    render(
+      await EntryPage({
+        searchParams: Promise.resolve({
+          followUpItemId: "follow-1",
+        }),
+      }),
+    );
+
+    expect(salesEntryPageClientMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        initialIdentifierValues: {
+          codeId: "",
+          planType: "PLAN_40",
+          saleDate: todaySaleDate,
+          sourceMode: "ASSIGNED_LEAD",
+          prospectLeadId: "",
+          qqNumber: "",
+          major: "",
+          remark: "",
+          followUpItemId: "follow-1",
+        },
       }),
     );
   });

@@ -1,6 +1,32 @@
 import ExcelJS from "exceljs";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
+vi.mock("@prisma/client", () => ({
+  IdentifierCodeStatus: {
+    UNASSIGNED: "UNASSIGNED",
+    ASSIGNED: "ASSIGNED",
+    SOLD: "SOLD",
+  },
+  ProspectLeadStatus: {
+    UNASSIGNED: "UNASSIGNED",
+    ASSIGNED: "ASSIGNED",
+    CONVERTED: "CONVERTED",
+  },
+  ProspectLeadSourceType: {
+    ADMIN_IMPORT: "ADMIN_IMPORT",
+    MEMBER_MANUAL: "MEMBER_MANUAL",
+  },
+  Role: {
+    MEMBER: "MEMBER",
+    LEADER: "LEADER",
+    ADMIN: "ADMIN",
+  },
+  UserStatus: {
+    ACTIVE: "ACTIVE",
+    INACTIVE: "INACTIVE",
+  },
+}));
+
 const dbTransactionMock = vi.hoisted(() => vi.fn());
 const identifierCodeFindManyMock = vi.hoisted(() => vi.fn());
 const identifierCodeCreateManyMock = vi.hoisted(() => vi.fn());
@@ -10,6 +36,9 @@ const codeAssignmentCreateManyMock = vi.hoisted(() => vi.fn());
 const prospectLeadFindManyMock = vi.hoisted(() => vi.fn());
 const prospectLeadCreateManyMock = vi.hoisted(() => vi.fn());
 const prospectLeadUpdateManyMock = vi.hoisted(() => vi.fn());
+const groupFollowUpItemFindManyMock = vi.hoisted(() => vi.fn());
+const groupFollowUpItemCreateManyMock = vi.hoisted(() => vi.fn());
+const groupFollowUpItemUpdateManyMock = vi.hoisted(() => vi.fn());
 const prospectImportBatchCreateMock = vi.hoisted(() => vi.fn());
 const userFindUniqueMock = vi.hoisted(() => vi.fn());
 const userFindManyMock = vi.hoisted(() => vi.fn());
@@ -32,6 +61,11 @@ vi.mock("@/lib/db", () => ({
       findMany: prospectLeadFindManyMock,
       updateMany: prospectLeadUpdateManyMock,
       createMany: prospectLeadCreateManyMock,
+    },
+    groupFollowUpItem: {
+      findMany: groupFollowUpItemFindManyMock,
+      createMany: groupFollowUpItemCreateManyMock,
+      updateMany: groupFollowUpItemUpdateManyMock,
     },
     prospectImportBatch: {
       create: prospectImportBatchCreateMock,
@@ -91,6 +125,11 @@ describe("admin code service", () => {
         prospectLead: {
           createMany: prospectLeadCreateManyMock,
           updateMany: prospectLeadUpdateManyMock,
+        },
+        groupFollowUpItem: {
+          findMany: groupFollowUpItemFindManyMock,
+          createMany: groupFollowUpItemCreateManyMock,
+          updateMany: groupFollowUpItemUpdateManyMock,
         },
         prospectImportBatch: {
           create: prospectImportBatchCreateMock,
@@ -178,6 +217,20 @@ describe("admin code service", () => {
     ).resolves.toMatchObject({
       assignedCount: 2,
     });
+
+    expect(identifierCodeUpdateManyMock).toHaveBeenCalledWith({
+      where: {
+        id: {
+          in: ["code-1", "code-2"],
+        },
+      },
+      data: expect.objectContaining({
+        status: "ASSIGNED",
+        currentOwnerUserId: "member-1",
+        assignedGroupId: "group-1",
+        assignedAt: expect.any(Date),
+      }),
+    });
   });
 
   test("rejects assignments to inactive or admin users", async () => {
@@ -197,7 +250,7 @@ describe("admin code service", () => {
     ).rejects.toThrow("只能分配给启用中的成员或组长");
   });
 
-  test("assigns prospect leads to an active non-admin user", async () => {
+  test("assigns prospect leads to an active non-admin user and creates or reopens workbench follow-up items", async () => {
     userFindUniqueMock.mockResolvedValue({
       id: "member-1",
       role: "LEADER",
@@ -209,6 +262,15 @@ describe("admin code service", () => {
       { id: "lead-2", status: "UNASSIGNED" },
     ]);
     prospectLeadUpdateManyMock.mockResolvedValue({ count: 2 });
+    groupFollowUpItemFindManyMock.mockResolvedValue([
+      {
+        id: "follow-1",
+        prospectLeadId: "lead-1",
+        status: "INVALID",
+      },
+    ]);
+    groupFollowUpItemUpdateManyMock.mockResolvedValue({ count: 1 });
+    groupFollowUpItemCreateManyMock.mockResolvedValue({ count: 1 });
 
     await expect(
       assignProspectLeadsToUser({
@@ -217,6 +279,58 @@ describe("admin code service", () => {
       }),
     ).resolves.toMatchObject({
       assignedCount: 2,
+    });
+
+    expect(prospectLeadUpdateManyMock).toHaveBeenCalledWith({
+      where: {
+        id: {
+          in: ["lead-1", "lead-2"],
+        },
+      },
+      data: expect.objectContaining({
+        status: "ASSIGNED",
+        assignedToUserId: "member-1",
+        assignedGroupId: "group-1",
+        assignedAt: expect.any(Date),
+      }),
+    });
+    expect(groupFollowUpItemFindManyMock).toHaveBeenCalledWith({
+      where: {
+        prospectLeadId: {
+          in: ["lead-1", "lead-2"],
+        },
+        sourceType: "PROSPECT_LEAD",
+      },
+      select: {
+        id: true,
+        prospectLeadId: true,
+        status: true,
+      },
+    });
+    expect(groupFollowUpItemUpdateManyMock).toHaveBeenCalledWith({
+      where: {
+        id: {
+          in: ["follow-1"],
+        },
+      },
+      data: expect.objectContaining({
+        groupId: "group-1",
+        currentOwnerUserId: "member-1",
+        status: "UNTOUCHED",
+        lastActionAt: expect.any(Date),
+      }),
+    });
+    expect(groupFollowUpItemCreateManyMock).toHaveBeenCalledWith({
+      data: [
+        expect.objectContaining({
+          groupId: "group-1",
+          currentOwnerUserId: "member-1",
+          sourceType: "PROSPECT_LEAD",
+          prospectLeadId: "lead-2",
+          status: "UNTOUCHED",
+          lastActionAt: expect.any(Date),
+        }),
+      ],
     });
   });
 

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { canAccessMemberArea } from "@/lib/permissions";
+import type { IdentifierSaleFormValues } from "@/app/(member)/entry/form-state";
 import { AppShell } from "@/components/app-shell";
 import { SalesEntryPageClient } from "@/components/sales-entry-page-client";
 import { getMemberIdentifierWorkspace } from "@/server/services/member-identifier-sale-service";
@@ -13,7 +14,21 @@ import {
   saleDateToValue,
 } from "@/server/services/sales-service";
 
-export default async function EntryPage() {
+type EntryPageProps = {
+  searchParams?: Promise<{
+    followUpItemId?: string | string[] | undefined;
+  }>;
+};
+
+function normalizeSingleSearchParam(value: string | string[] | undefined) {
+  if (Array.isArray(value)) {
+    return value[0]?.trim() ?? "";
+  }
+
+  return value?.trim() ?? "";
+}
+
+export default async function EntryPage({ searchParams }: EntryPageProps = {}) {
   const session = await auth();
 
   if (!session?.user) {
@@ -25,6 +40,18 @@ export default async function EntryPage() {
   }
 
   const saleDate = getTodaySaleDateValue();
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const initialIdentifierValues: IdentifierSaleFormValues = {
+    codeId: "",
+    planType: "PLAN_40",
+    saleDate,
+    sourceMode: "ASSIGNED_LEAD",
+    prospectLeadId: "",
+    qqNumber: "",
+    major: "",
+    remark: "",
+    followUpItemId: normalizeSingleSearchParam(resolvedSearchParams?.followUpItemId),
+  };
   const [currentRecord, dailyRhythmSummary, entryInsights, identifierWorkspace] = await Promise.all([
     getSalesRecordForUserOnDate(session.user.id, saleDate),
     getCachedMemberDailyRhythmSummary({
@@ -69,6 +96,7 @@ export default async function EntryPage() {
         initialSelfTrend={entryInsights.selfTrend}
         initialRecentReminders={entryInsights.recentReminders}
         initialIdentifierWorkspace={identifierWorkspace}
+        initialIdentifierValues={initialIdentifierValues}
         initialDailyRhythmSummary={{
           lastSubmittedAtIso:
             (currentRecord?.lastSubmittedAt ?? currentRecord?.updatedAt)?.toISOString() ?? null,

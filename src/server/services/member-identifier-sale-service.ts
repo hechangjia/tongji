@@ -289,6 +289,92 @@ export async function saveIdentifierSaleForUser(
   const now = new Date();
 
   return db.$transaction(async (tx) => {
+    const closeFollowUpItemIds = new Set<string>();
+    const explicitFollowUpItem = payload.followUpItemId
+      ? await tx.groupFollowUpItem.findUnique({
+          where: { id: payload.followUpItemId },
+          select: {
+            id: true,
+            groupId: true,
+            sourceType: true,
+            prospectLeadId: true,
+          },
+        })
+      : null;
+
+    async function closeFollowUpItemById(followUpItemId: string) {
+      if (closeFollowUpItemIds.has(followUpItemId)) {
+        return;
+      }
+
+      const followUpItem = await tx.groupFollowUpItem.findUnique({
+        where: { id: followUpItemId },
+        select: {
+          id: true,
+          groupId: true,
+        },
+      });
+
+      if (!followUpItem) {
+        throw new Error("所选跟进项不存在");
+      }
+
+      if (followUpItem.groupId !== currentGroupId) {
+        throw new Error("所选跟进项不属于你所在小组");
+      }
+
+      await tx.groupFollowUpItem.update({
+        where: { id: followUpItem.id },
+        data: {
+          status: "CONVERTED",
+          convertedAt: now,
+          lastActionAt: now,
+        },
+      });
+
+      closeFollowUpItemIds.add(followUpItem.id);
+    }
+
+    async function closeProspectLeadFollowUpItem(prospectLeadId: string) {
+      const followUpItem = await tx.groupFollowUpItem.findFirst({
+        where: {
+          groupId: currentGroupId,
+          prospectLeadId,
+          sourceType: "PROSPECT_LEAD",
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!followUpItem) {
+        return;
+      }
+
+      if (closeFollowUpItemIds.has(followUpItem.id)) {
+        return;
+      }
+
+      await tx.groupFollowUpItem.update({
+        where: { id: followUpItem.id },
+        data: {
+          status: "CONVERTED",
+          convertedAt: now,
+          lastActionAt: now,
+        },
+      });
+
+      closeFollowUpItemIds.add(followUpItem.id);
+    }
+
+    if (payload.followUpItemId && !explicitFollowUpItem) {
+      throw new Error("所选跟进项不存在");
+    }
+
+    if (explicitFollowUpItem && explicitFollowUpItem.groupId !== currentGroupId) {
+      throw new Error("所选跟进项不属于你所在小组");
+    }
+
     let prospectLead:
       | {
           id: string;
@@ -316,7 +402,21 @@ export async function saveIdentifierSaleForUser(
       ) {
         throw new Error("所选新生线索不存在、未分配给你或已被转化");
       }
+
+      if (
+        explicitFollowUpItem &&
+        (
+          explicitFollowUpItem.sourceType !== "PROSPECT_LEAD" ||
+          explicitFollowUpItem.prospectLeadId !== prospectLead.id
+        )
+      ) {
+        throw new Error("所选跟进项与当前成交线索不匹配");
+      }
     } else {
+      if (explicitFollowUpItem && explicitFollowUpItem.sourceType !== "MANUAL_DISCOVERY") {
+        throw new Error("手动录单只能关闭自主获客跟进项");
+      }
+
       const existingLead = await tx.prospectLead.findFirst({
         where: {
           qqNumber: payload.qqNumber,
@@ -361,6 +461,10 @@ export async function saveIdentifierSaleForUser(
       }
     }
 
+    if (explicitFollowUpItem) {
+      await closeFollowUpItemById(explicitFollowUpItem.id);
+    }
+
     const sale = await tx.identifierSale.create({
       data: {
         codeId: payload.codeId,
@@ -394,6 +498,10 @@ export async function saveIdentifierSaleForUser(
         sourceType: true,
       },
     });
+
+    if (payload.sourceMode === "ASSIGNED_LEAD") {
+      await closeProspectLeadFollowUpItem(prospectLead.id);
+    }
 
     const legacyRecord = await syncLegacySalesRecordFromIdentifierSales(tx, userId, payload.saleDate);
 

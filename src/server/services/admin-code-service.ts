@@ -351,6 +351,7 @@ export async function assignIdentifierCodesToUser({
       data: {
         status: IdentifierCodeStatus.ASSIGNED,
         currentOwnerUserId: userId,
+        assignedGroupId: targetUser.groupId ?? null,
         assignedAt: now,
       },
     });
@@ -383,6 +384,11 @@ export async function assignProspectLeadsToUser({ leadIds, userId }: ProspectAss
   });
   assertAssignableTarget(targetUser);
 
+  if (!targetUser.groupId) {
+    throw new Error("目标成员还没有绑定小组，不能分配新生线索");
+  }
+
+  const targetGroupId = targetUser.groupId;
   const availableLeads = await db.prospectLead.findMany({
     where: {
       id: {
@@ -412,10 +418,62 @@ export async function assignProspectLeadsToUser({ leadIds, userId }: ProspectAss
       data: {
         status: ProspectLeadStatus.ASSIGNED,
         assignedToUserId: userId,
-        assignedGroupId: targetUser.groupId ?? null,
+        assignedGroupId: targetUser.groupId,
         assignedAt: now,
       },
     });
+
+    const existingFollowUpItems = await tx.groupFollowUpItem.findMany({
+      where: {
+        prospectLeadId: {
+          in: leadIds,
+        },
+        sourceType: "PROSPECT_LEAD",
+      },
+      select: {
+        id: true,
+        prospectLeadId: true,
+        status: true,
+      },
+    });
+
+    const existingLeadIds = new Set(
+      existingFollowUpItems
+        .map((item) => item.prospectLeadId)
+        .filter((value): value is string => Boolean(value)),
+    );
+
+    if (existingFollowUpItems.length > 0) {
+      await tx.groupFollowUpItem.updateMany({
+        where: {
+          id: {
+            in: existingFollowUpItems.map((item) => item.id),
+          },
+        },
+        data: {
+          groupId: targetGroupId,
+          currentOwnerUserId: userId,
+          status: "UNTOUCHED",
+          lastActionAt: now,
+          convertedAt: null,
+        },
+      });
+    }
+
+    const leadIdsNeedingFollowUp = leadIds.filter((leadId) => !existingLeadIds.has(leadId));
+
+    if (leadIdsNeedingFollowUp.length > 0) {
+      await tx.groupFollowUpItem.createMany({
+        data: leadIdsNeedingFollowUp.map((leadId) => ({
+          groupId: targetGroupId,
+          currentOwnerUserId: userId,
+          sourceType: "PROSPECT_LEAD",
+          prospectLeadId: leadId,
+          status: "UNTOUCHED",
+          lastActionAt: now,
+        })),
+      });
+    }
   });
 
   return {
