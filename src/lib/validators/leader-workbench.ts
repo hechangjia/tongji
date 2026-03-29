@@ -29,8 +29,6 @@ const optionalUserIdSchema = z
     return trimmed === "" ? undefined : trimmed;
   });
 
-const destinationOwnerUserIdSchema = z.string().trim().min(1, "请选择接收负责人");
-
 export const createManualFollowUpSchema = z.object({
   groupId: groupIdSchema,
   summaryNote: summaryNoteSchema,
@@ -39,7 +37,7 @@ export const createManualFollowUpSchema = z.object({
 
 export const reassignFollowUpSchema = z.object({
   followUpItemId: followUpItemIdSchema,
-  nextOwnerUserId: destinationOwnerUserIdSchema,
+  nextOwnerUserId: optionalUserIdSchema,
   reason: reasonSchema,
 });
 

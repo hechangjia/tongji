@@ -40,28 +40,43 @@ describe("leader workbench validation", () => {
       }),
     ).not.toThrow();
 
-    expect(() =>
-      reassignFollowUpSchema.parse({
-        nextOwnerUserId: "member-1",
-        reason: "重新安排",
-      }),
-    ).toThrow();
+    const missingFollowUpItem = reassignFollowUpSchema.safeParse({
+      nextOwnerUserId: "member-1",
+      reason: "重新安排",
+    });
 
-    expect(() =>
-      reassignFollowUpSchema.parse({
-        followUpItemId: "item-1",
-        nextOwnerUserId: "member-1",
-        reason: "  ",
-      }),
-    ).toThrow();
+    expect(missingFollowUpItem.success).toBe(false);
+    expect(
+      missingFollowUpItem.error?.issues.some((issue) =>
+        issue.path.includes("followUpItemId"),
+      ),
+    ).toBe(true);
 
-    expect(() =>
-      reassignFollowUpSchema.parse({
-        followUpItemId: "item-1",
-        nextOwnerUserId: "   ",
-        reason: "重新安排",
-      }),
-    ).toThrow();
+    const whitespaceReason = reassignFollowUpSchema.safeParse({
+      followUpItemId: "item-1",
+      nextOwnerUserId: "member-1",
+      reason: "  ",
+    });
+
+    expect(whitespaceReason.success).toBe(false);
+
+  });
+
+  test("follow-up reassignment allows clearing nextOwnerUserId for the group pool", () => {
+    const withoutOwner = reassignFollowUpSchema.parse({
+      followUpItemId: "item-1",
+      reason: "重新安排",
+    });
+
+    expect(withoutOwner.nextOwnerUserId).toBeUndefined();
+
+    const whitespaceOwner = reassignFollowUpSchema.parse({
+      followUpItemId: "item-1",
+      nextOwnerUserId: "   ",
+      reason: "重新安排",
+    });
+
+    expect(whitespaceOwner.nextOwnerUserId).toBeUndefined();
   });
 
   test("reassign follow-up trims owner and reason", () => {
