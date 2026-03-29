@@ -128,8 +128,6 @@ model User {
   createdProspectLeads   ProspectLead[]          @relation("ProspectLeadCreator")
   identifierSales        IdentifierSale[]        @relation("IdentifierSaleSeller")
   currentGroupFollowUpItems GroupFollowUpItem[]  @relation("GroupFollowUpItemCurrentOwner")
-  createdGroupFollowUpItems GroupFollowUpItem[]  @relation("GroupFollowUpItemCreator")
-  operatedGroupResourceAuditLogs GroupResourceAuditLog[] @relation("GroupResourceAuditLogOperator")
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
 
@@ -148,7 +146,6 @@ model Group {
   identifierSales      IdentifierSale[] @relation("IdentifierSaleGroup")
   assignedIdentifierCodes IdentifierCode[] @relation("IdentifierCodeAssignedGroup")
   followUpItems        GroupFollowUpItem[]
-  resourceAuditLogs    GroupResourceAuditLog[]
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
 
@@ -403,7 +400,6 @@ model GroupFollowUpItem {
   group              Group                   @relation(fields: [groupId], references: [id], onDelete: Cascade)
   currentOwnerUser   User?                   @relation("GroupFollowUpItemCurrentOwner", fields: [currentOwnerUserId], references: [id], onDelete: SetNull)
   prospectLead       ProspectLead?           @relation("GroupFollowUpItemProspectLead", fields: [prospectLeadId], references: [id], onDelete: SetNull)
-  createdByUser      User                    @relation("GroupFollowUpItemCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
   createdAt          DateTime                @default(now())
   updatedAt          DateTime                @updatedAt
 
@@ -422,8 +418,6 @@ model GroupResourceAuditLog {
   beforeSnapshot Json?
   afterSnapshot  Json?
   reason         String
-  group          Group                        @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  operatorUser   User                         @relation("GroupResourceAuditLogOperator", fields: [operatorUserId], references: [id], onDelete: Restrict)
   createdAt      DateTime                     @default(now())
 
   @@index([groupId, createdAt])

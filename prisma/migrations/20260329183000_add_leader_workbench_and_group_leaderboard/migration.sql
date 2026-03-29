@@ -88,18 +88,3 @@ FOREIGN KEY ("currentOwnerUserId") REFERENCES "users"("id") ON DELETE SET NULL O
 ALTER TABLE "group_follow_up_items"
 ADD CONSTRAINT "group_follow_up_items_prospectLeadId_fkey"
 FOREIGN KEY ("prospectLeadId") REFERENCES "prospect_leads"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "group_follow_up_items"
-ADD CONSTRAINT "group_follow_up_items_createdByUserId_fkey"
-FOREIGN KEY ("createdByUserId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "group_resource_audit_logs"
-ADD CONSTRAINT "group_resource_audit_logs_groupId_fkey"
-FOREIGN KEY ("groupId") REFERENCES "groups"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "group_resource_audit_logs"
-ADD CONSTRAINT "group_resource_audit_logs_operatorUserId_fkey"
-FOREIGN KEY ("operatorUserId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
