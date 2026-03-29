@@ -29,31 +29,45 @@ describe("identifier sale validation", () => {
   });
 
   test("accepts an optional followUpItemId when using an assigned lead", () => {
-    expect(() =>
-      identifierSaleSchema.parse({
-        codeId: "code-1",
-        planType: "PLAN_40",
-        saleDate: "2026-03-28",
-        sourceMode: "ASSIGNED_LEAD",
-        prospectLeadId: "lead-1",
-        remark: "现场转化",
-        followUpItemId: "follow-up-1",
-      }),
-    ).not.toThrow();
+    const parsed = identifierSaleSchema.parse({
+      codeId: "code-1",
+      planType: "PLAN_40",
+      saleDate: "2026-03-28",
+      sourceMode: "ASSIGNED_LEAD",
+      prospectLeadId: "lead-1",
+      remark: "现场转化",
+      followUpItemId: "follow-up-1",
+    });
+
+    expect(parsed.followUpItemId).toBe("follow-up-1");
   });
 
   test("accepts an optional followUpItemId when using manual input", () => {
+    const parsed = identifierSaleSchema.parse({
+      codeId: "code-1",
+      planType: "PLAN_60",
+      saleDate: "2026-03-28",
+      sourceMode: "MANUAL_INPUT",
+      qqNumber: "123456",
+      major: "计算机",
+      followUpItemId: "follow-up-2",
+    });
+
+    expect(parsed.followUpItemId).toBe("follow-up-2");
+  });
+
+  test("rejects manual input when prospectLeadId is provided", () => {
     expect(() =>
       identifierSaleSchema.parse({
         codeId: "code-1",
         planType: "PLAN_60",
         saleDate: "2026-03-28",
         sourceMode: "MANUAL_INPUT",
+        prospectLeadId: "lead-2",
         qqNumber: "123456",
         major: "计算机",
-        followUpItemId: "follow-up-2",
       }),
-    ).not.toThrow();
+    ).toThrow("手动录入模式下不能选择已分配线索");
   });
 
   test("requires prospectLeadId when using an assigned lead", () => {

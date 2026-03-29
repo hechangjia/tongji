@@ -176,6 +176,14 @@ describe("leader workbench validation", () => {
       }),
     ).not.toThrow();
 
+    const pooled = reassignIdentifierCodeSchema.parse({
+      codeId: "code-1",
+      nextOwnerUserId: "   ",
+      reason: "回收到组池",
+    });
+
+    expect(pooled.nextOwnerUserId).toBeUndefined();
+
     expect(() =>
       reassignIdentifierCodeSchema.parse({
         codeId: "code-1",
