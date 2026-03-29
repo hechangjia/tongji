@@ -64,6 +64,17 @@ describe("leader workbench validation", () => {
     ).toThrow();
   });
 
+  test("reassign follow-up trims owner and reason", () => {
+    const parsed = reassignFollowUpSchema.parse({
+      followUpItemId: "item-1",
+      nextOwnerUserId: " member-1  ",
+      reason: "  重新安排  ",
+    });
+
+    expect(parsed.nextOwnerUserId).toBe("member-1");
+    expect(parsed.reason).toBe("重新安排");
+  });
+
   test("follow-up status updates require followUpItemId, status, and reason", () => {
     expect(() =>
       updateFollowUpStatusSchema.parse({
@@ -96,6 +107,16 @@ describe("leader workbench validation", () => {
     ).toThrow();
   });
 
+  test("update follow-up status trims reason", () => {
+    const parsed = updateFollowUpStatusSchema.parse({
+      followUpItemId: "item-1",
+      status: "READY_TO_CONVERT",
+      reason: "  状态更新  ",
+    });
+
+    expect(parsed.reason).toBe("状态更新");
+  });
+
   test("code reassignment allows an empty nextOwnerUserId but still requires a reason", () => {
     expect(() =>
       reassignIdentifierCodeSchema.parse({
@@ -108,8 +129,26 @@ describe("leader workbench validation", () => {
     expect(() =>
       reassignIdentifierCodeSchema.parse({
         codeId: "code-1",
+        nextOwnerUserId: "   ",
+        reason: "回收到组池",
+      }),
+    ).not.toThrow();
+
+    expect(() =>
+      reassignIdentifierCodeSchema.parse({
+        codeId: "code-1",
         reason: "",
       }),
     ).toThrow();
+  });
+
+  test("reassign identifier code trims reason", () => {
+    const parsed = reassignIdentifierCodeSchema.parse({
+      codeId: "code-1",
+      nextOwnerUserId: "",
+      reason: "  组池回收  ",
+    });
+
+    expect(parsed.reason).toBe("组池回收");
   });
 });
