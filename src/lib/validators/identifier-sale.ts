@@ -5,7 +5,11 @@ const saleDateSchema = z.string().trim().min(1, "请选择成交日期");
 const planTypeSchema = z.enum(["PLAN_40", "PLAN_60"], {
   message: "请选择套餐类型",
 });
-const followUpItemIdSchema = z.string().trim().min(1, "请选择跟进项").optional();
+const followUpItemIdSchema = z
+  .string()
+  .trim()
+  .transform((value) => (value === "" ? undefined : value))
+  .optional();
 const remarkSchema = z
   .string()
   .optional()

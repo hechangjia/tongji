@@ -56,6 +56,34 @@ describe("identifier sale validation", () => {
     expect(parsed.followUpItemId).toBe("follow-up-2");
   });
 
+  test("assigned lead normalizes blank followUpItemId", () => {
+    const parsed = identifierSaleSchema.parse({
+      codeId: "code-1",
+      planType: "PLAN_40",
+      saleDate: "2026-03-28",
+      sourceMode: "ASSIGNED_LEAD",
+      prospectLeadId: "lead-1",
+      remark: "现场转化",
+      followUpItemId: "",
+    });
+
+    expect(parsed.followUpItemId).toBeUndefined();
+  });
+
+  test("manual input normalizes whitespace followUpItemId", () => {
+    const parsed = identifierSaleSchema.parse({
+      codeId: "code-1",
+      planType: "PLAN_60",
+      saleDate: "2026-03-28",
+      sourceMode: "MANUAL_INPUT",
+      qqNumber: "123456",
+      major: "计算机",
+      followUpItemId: "   ",
+    });
+
+    expect(parsed.followUpItemId).toBeUndefined();
+  });
+
   test("rejects manual input when prospectLeadId is provided", () => {
     expect(() =>
       identifierSaleSchema.parse({
