@@ -82,7 +82,6 @@ describe("group leaderboard service", () => {
     await expect(
       getGroupLeaderboard({
         currentUserId: "leader-1",
-        currentUserRole: "MEMBER",
         todaySaleDate: "2026-03-29",
       }),
     ).resolves.toEqual({
@@ -135,7 +134,6 @@ describe("group leaderboard service", () => {
     await expect(
       getVisibleGroupMemberRows({
         currentUserId: "member-1",
-        currentUserRole: "LEADER",
         groupId: "group-1",
         todaySaleDate: "2026-03-29",
       }),
@@ -150,7 +148,6 @@ describe("group leaderboard service", () => {
     await expect(
       getVisibleGroupMemberRows({
         currentUserId: "leader-1",
-        currentUserRole: "LEADER",
         groupId: "group-2",
         todaySaleDate: "2026-03-29",
       }),
@@ -190,7 +187,6 @@ describe("group leaderboard service", () => {
     await expect(
       getVisibleGroupMemberRows({
         currentUserId: "leader-1",
-        currentUserRole: "LEADER",
         groupId: "group-1",
         todaySaleDate: "2026-03-29",
       }),

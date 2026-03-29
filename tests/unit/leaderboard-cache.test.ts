@@ -12,6 +12,8 @@ const getAdminCumulativeTrendMock = vi.hoisted(() => vi.fn());
 const getMemberDailyRhythmSummaryMock = vi.hoisted(() => vi.fn());
 const getAdminDailyRhythmSummaryMock = vi.hoisted(() => vi.fn());
 const getDailyTop3StatusMock = vi.hoisted(() => vi.fn());
+const getGroupLeaderboardMock = vi.hoisted(() => vi.fn());
+const getLeaderWorkbenchSnapshotMock = vi.hoisted(() => vi.fn());
 
 vi.mock("next/cache", () => ({
   unstable_cache: unstableCacheMock,
@@ -35,16 +37,28 @@ vi.mock("@/server/services/daily-rhythm-service", () => ({
   getDailyTop3Status: getDailyTop3StatusMock,
 }));
 
+vi.mock("@/server/services/group-leaderboard-service", () => ({
+  getGroupLeaderboard: getGroupLeaderboardMock,
+}));
+
+vi.mock("@/server/services/leader-workbench-service", () => ({
+  getLeaderWorkbenchSnapshot: getLeaderWorkbenchSnapshotMock,
+}));
+
 import {
+  LEADER_GROUP_CACHE_TAG,
   LEADERBOARD_CACHE_REVALIDATE_SECONDS,
   LEADERBOARD_CACHE_TAG,
   getCachedAdminCumulativeTrend,
   getCachedAdminDailyRhythmSummary,
   getCachedDailyLeaderboard,
   getCachedDailyTop3Status,
+  getCachedGroupLeaderboard,
+  getCachedLeaderWorkbenchSnapshot,
   getCachedMemberCumulativeRanking,
   getCachedMemberDailyRhythmSummary,
   getCachedRangeLeaderboard,
+  refreshLeaderWorkbenchCaches,
   refreshLeaderboardCaches,
 } from "@/server/services/leaderboard-cache";
 
@@ -59,6 +73,8 @@ describe("leaderboard cache", () => {
     getMemberDailyRhythmSummaryMock.mockClear();
     getAdminDailyRhythmSummaryMock.mockClear();
     getDailyTop3StatusMock.mockClear();
+    getGroupLeaderboardMock.mockClear();
+    getLeaderWorkbenchSnapshotMock.mockClear();
   });
 
   test("wraps leaderboard readers in Next cache with shared tag", () => {
@@ -139,6 +155,18 @@ describe("leaderboard cache", () => {
       temporaryTop3: [{ userName: "E" }],
       formalTop3: [{ userName: "F" }],
     });
+    getGroupLeaderboardMock.mockResolvedValueOnce({
+      rows: [{ groupName: "G" }],
+      currentGroupDelta: null,
+    });
+    getLeaderWorkbenchSnapshotMock.mockResolvedValueOnce({
+      group: { id: "group-1", name: "北极星组", slogan: null, remark: null },
+      summary: { memberCount: 2, todayCount40: 1, todayCount60: 1, todayTotal: 2 },
+      memberRanking: [],
+      codePool: [],
+      followUpQueue: [],
+      auditRows: [],
+    });
 
     await expect(getCachedDailyLeaderboard("2026-03-26")).resolves.toEqual([
       { userName: "A" },
@@ -185,6 +213,28 @@ describe("leaderboard cache", () => {
       temporaryTop3: [{ userName: "E" }],
       formalTop3: [{ userName: "F" }],
     });
+    await expect(
+      getCachedGroupLeaderboard({
+        currentUserId: "leader-1",
+        todaySaleDate: "2026-03-27",
+      }),
+    ).resolves.toEqual({
+      rows: [{ groupName: "G" }],
+      currentGroupDelta: null,
+    });
+    await expect(
+      getCachedLeaderWorkbenchSnapshot({
+        leaderUserId: "leader-1",
+        todaySaleDate: "2026-03-27",
+      }),
+    ).resolves.toEqual({
+      group: { id: "group-1", name: "北极星组", slogan: null, remark: null },
+      summary: { memberCount: 2, todayCount40: 1, todayCount60: 1, todayTotal: 2 },
+      memberRanking: [],
+      codePool: [],
+      followUpQueue: [],
+      auditRows: [],
+    });
 
     expect(getMemberDailyRhythmSummaryMock).toHaveBeenCalledWith({
       currentUserId: "member-1",
@@ -196,6 +246,32 @@ describe("leaderboard cache", () => {
     expect(getDailyTop3StatusMock).toHaveBeenCalledWith({
       todaySaleDate: "2026-03-27",
     });
+    expect(getGroupLeaderboardMock).toHaveBeenCalledWith({
+      currentUserId: "leader-1",
+      todaySaleDate: "2026-03-27",
+    });
+    expect(getLeaderWorkbenchSnapshotMock).toHaveBeenCalledWith({
+      leaderUserId: "leader-1",
+      todaySaleDate: "2026-03-27",
+    });
+    expect(unstableCacheMock).toHaveBeenNthCalledWith(
+      8,
+      expect.any(Function),
+      ["leaderboard-groups"],
+      {
+        tags: [LEADER_GROUP_CACHE_TAG],
+        revalidate: LEADERBOARD_CACHE_REVALIDATE_SECONDS,
+      },
+    );
+    expect(unstableCacheMock).toHaveBeenNthCalledWith(
+      9,
+      expect.any(Function),
+      ["leader-workbench-snapshot"],
+      {
+        tags: [LEADER_GROUP_CACHE_TAG],
+        revalidate: LEADERBOARD_CACHE_REVALIDATE_SECONDS,
+      },
+    );
   });
 
   test("refreshes the shared leaderboard tag and leaderboard/admin pages", () => {
@@ -208,5 +284,15 @@ describe("leaderboard cache", () => {
     expect(revalidatePathMock).toHaveBeenCalledWith("/admin/sales");
     expect(revalidatePathMock).toHaveBeenCalledWith("/leaderboard/daily");
     expect(revalidatePathMock).toHaveBeenCalledWith("/leaderboard/range");
+  });
+
+  test("refreshes only the leader/group cache tag and related pages", () => {
+    refreshLeaderWorkbenchCaches();
+
+    expect(updateTagMock).toHaveBeenCalledWith(LEADER_GROUP_CACHE_TAG);
+    expect(updateTagMock).not.toHaveBeenCalledWith(LEADERBOARD_CACHE_TAG);
+    expect(revalidatePathMock).toHaveBeenCalledTimes(2);
+    expect(revalidatePathMock).toHaveBeenCalledWith("/leader/sales");
+    expect(revalidatePathMock).toHaveBeenCalledWith("/leaderboard/groups");
   });
 });

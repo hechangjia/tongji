@@ -1,3 +1,9 @@
+import type {
+  GroupFollowUpSourceType,
+  GroupFollowUpStatus,
+  GroupResourceAuditActionType,
+  GroupResourceAuditResourceType,
+} from "@prisma/client";
 import { db } from "@/lib/db";
 import { getAggregatedSalesDayRows } from "@/server/services/sales-reporting-service";
 import { getTodaySaleDateValue, type DateValue } from "@/server/services/sales-service";
@@ -38,15 +44,15 @@ export type LeaderWorkbenchSnapshot = {
   }>;
   followUpQueue: Array<{
     id: string;
-    sourceType: "PROSPECT_LEAD" | "MANUAL_DISCOVERY";
-    status: string;
+    sourceType: GroupFollowUpSourceType;
+    status: GroupFollowUpStatus;
     summaryNote: string | null;
   }>;
   auditRows: Array<{
     id: string;
-    resourceType: string;
+    resourceType: GroupResourceAuditResourceType;
     resourceId: string;
-    actionType: string;
+    actionType: GroupResourceAuditActionType;
     reason: string;
   }>;
 };

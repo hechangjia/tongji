@@ -24,6 +24,7 @@ import type {
 import type { DateValue } from "@/server/services/sales-service";
 
 export const LEADERBOARD_CACHE_TAG = "leaderboard";
+export const LEADER_GROUP_CACHE_TAG = "leader-group";
 export const LEADERBOARD_CACHE_REVALIDATE_SECONDS = 30;
 
 const cachedDailyLeaderboard = unstable_cache(
@@ -162,7 +163,7 @@ export function getCachedGroupLeaderboard(input: GroupLeaderboardInput) {
       },
       ["leaderboard-groups"],
       {
-        tags: [LEADERBOARD_CACHE_TAG],
+        tags: [LEADER_GROUP_CACHE_TAG],
         revalidate: LEADERBOARD_CACHE_REVALIDATE_SECONDS,
       },
     );
@@ -185,7 +186,7 @@ export function getCachedLeaderWorkbenchSnapshot(input: LeaderWorkbenchSnapshotI
       },
       ["leader-workbench-snapshot"],
       {
-        tags: [LEADERBOARD_CACHE_TAG],
+        tags: [LEADER_GROUP_CACHE_TAG],
         revalidate: LEADERBOARD_CACHE_REVALIDATE_SECONDS,
       },
     );
@@ -205,7 +206,7 @@ export function refreshLeaderboardCaches() {
 }
 
 export function refreshLeaderWorkbenchCaches() {
-  updateTag(LEADERBOARD_CACHE_TAG);
+  updateTag(LEADER_GROUP_CACHE_TAG);
   revalidatePath("/leader/sales");
   revalidatePath("/leaderboard/groups");
 }

@@ -27,7 +27,6 @@ export type GroupLeaderboardResult = {
 
 export type GroupLeaderboardInput = {
   currentUserId: string;
-  currentUserRole: "MEMBER" | "LEADER" | "ADMIN";
   todaySaleDate?: DateValue;
 };
 
@@ -42,7 +41,6 @@ export type GroupMemberLeaderboardRow = {
 
 export type VisibleGroupMemberRowsInput = {
   currentUserId: string;
-  currentUserRole: "MEMBER" | "LEADER" | "ADMIN";
   groupId: string;
   todaySaleDate?: DateValue;
 };
