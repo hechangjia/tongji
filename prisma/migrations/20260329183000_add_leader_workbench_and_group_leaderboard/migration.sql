@@ -30,7 +30,7 @@ CREATE TABLE "group_follow_up_items" (
     "prospectLeadId" TEXT,
     "status" "GroupFollowUpStatus" NOT NULL DEFAULT 'UNTOUCHED',
     "summaryNote" TEXT,
-    "createdByUserId" TEXT NOT NULL,
+    "createdByUserId" TEXT,
     "lastActionAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "convertedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -43,7 +43,7 @@ CREATE TABLE "group_follow_up_items" (
 CREATE TABLE "group_resource_audit_logs" (
     "id" TEXT NOT NULL,
     "groupId" TEXT NOT NULL,
-    "operatorUserId" TEXT NOT NULL,
+    "operatorUserId" TEXT,
     "resourceType" "GroupResourceAuditResourceType" NOT NULL,
     "resourceId" TEXT NOT NULL,
     "actionType" "GroupResourceAuditActionType" NOT NULL,
@@ -101,4 +101,19 @@ FOREIGN KEY ("currentOwnerUserId") REFERENCES "users"("id") ON DELETE SET NULL O
 -- AddForeignKey
 ALTER TABLE "group_follow_up_items"
 ADD CONSTRAINT "group_follow_up_items_prospectLeadId_fkey"
-FOREIGN KEY ("prospectLeadId") REFERENCES "prospect_leads"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+FOREIGN KEY ("prospectLeadId") REFERENCES "prospect_leads"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "group_follow_up_items"
+ADD CONSTRAINT "group_follow_up_items_createdByUserId_fkey"
+FOREIGN KEY ("createdByUserId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "group_resource_audit_logs"
+ADD CONSTRAINT "group_resource_audit_logs_groupId_fkey"
+FOREIGN KEY ("groupId") REFERENCES "groups"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "group_resource_audit_logs"
+ADD CONSTRAINT "group_resource_audit_logs_operatorUserId_fkey"
+FOREIGN KEY ("operatorUserId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;

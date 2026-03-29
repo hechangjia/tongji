@@ -161,17 +161,22 @@ describe("prisma schema", () => {
       /status\s+GroupFollowUpStatus\s+@default\(UNTOUCHED\)/,
     );
     expect(followUpItemBlock).toMatch(/summaryNote\s+String\?/);
-    expect(followUpItemBlock).toMatch(/createdByUserId\s+String/);
+    expect(followUpItemBlock).toMatch(/createdByUserId\s+String\?/);
     expect(followUpItemBlock).toMatch(/lastActionAt\s+DateTime\s+@default\(now\(\)\)/);
     expect(followUpItemBlock).toMatch(/convertedAt\s+DateTime\?/);
     expect(followUpItemBlock).toMatch(/group\s+Group\s+@relation\(/);
     expect(followUpItemBlock).toMatch(/currentOwnerUser\s+User\?\s+@relation\(/);
-    expect(followUpItemBlock).toMatch(/prospectLead\s+ProspectLead\?\s+@relation\(/);
+    expect(followUpItemBlock).toMatch(
+      /prospectLead\s+ProspectLead\?\s+@relation\([\s\S]*onDelete:\s*Restrict\)/,
+    );
+    expect(followUpItemBlock).toMatch(
+      /createdByUser\s+User\?\s+@relation\("GroupFollowUpItemCreator"[\s\S]*onDelete:\s*SetNull\)/,
+    );
     expect(followUpItemBlock).toMatch(/@@index\(\[groupId,\s*status,\s*lastActionAt\]\)/);
     expect(followUpItemBlock).toMatch(/@@index\(\[currentOwnerUserId,\s*status\]\)/);
 
     expect(auditLogBlock).toMatch(/groupId\s+String/);
-    expect(auditLogBlock).toMatch(/operatorUserId\s+String/);
+    expect(auditLogBlock).toMatch(/operatorUserId\s+String\?/);
     expect(auditLogBlock).toMatch(
       /resourceType\s+GroupResourceAuditResourceType/,
     );
@@ -180,6 +185,12 @@ describe("prisma schema", () => {
     expect(auditLogBlock).toMatch(/beforeSnapshot\s+Json\?/);
     expect(auditLogBlock).toMatch(/afterSnapshot\s+Json\?/);
     expect(auditLogBlock).toMatch(/reason\s+String/);
+    expect(auditLogBlock).toMatch(
+      /group\s+Group\s+@relation\([\s\S]*onDelete:\s*Restrict\)/,
+    );
+    expect(auditLogBlock).toMatch(
+      /operatorUser\s+User\?\s+@relation\("GroupResourceAuditLogOperator"[\s\S]*onDelete:\s*SetNull\)/,
+    );
     expect(auditLogBlock).toMatch(/createdAt\s+DateTime\s+@default\(now\(\)\)/);
     expect(auditLogBlock).toMatch(/@@index\(\[groupId,\s*createdAt\]\)/);
   });
@@ -236,6 +247,27 @@ describe("prisma schema", () => {
 
     expect(migration).toContain(
       'ADD CONSTRAINT "identifier_codes_assignedGroupId_fkey"',
+    );
+    expect(migration).toContain(
+      'ADD CONSTRAINT "group_follow_up_items_createdByUserId_fkey"',
+    );
+    expect(migration).toContain(
+      'ADD CONSTRAINT "group_resource_audit_logs_groupId_fkey"',
+    );
+    expect(migration).toContain(
+      'ADD CONSTRAINT "group_resource_audit_logs_operatorUserId_fkey"',
+    );
+    expect(migration).toContain(
+      'FOREIGN KEY ("prospectLeadId") REFERENCES "prospect_leads"("id") ON DELETE RESTRICT ON UPDATE CASCADE',
+    );
+    expect(migration).toContain(
+      'FOREIGN KEY ("createdByUserId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE',
+    );
+    expect(migration).toContain(
+      'FOREIGN KEY ("groupId") REFERENCES "groups"("id") ON DELETE RESTRICT ON UPDATE CASCADE',
+    );
+    expect(migration).toContain(
+      'FOREIGN KEY ("operatorUserId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE',
     );
   });
 });
