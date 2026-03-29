@@ -7,28 +7,25 @@ import {
 } from "@/lib/validators/leader-workbench";
 
 describe("leader workbench validation", () => {
-  test("manual follow-up creation requires summaryNote and allows an empty owner", () => {
-    expect(() =>
-      createManualFollowUpSchema.parse({
-        groupId: "group-1",
-        summaryNote: "跟进进度",
-      }),
-    ).not.toThrow();
+  test("manual follow-up creation requires summaryNote and allows clearing owner", () => {
+    const parsed = createManualFollowUpSchema.parse({
+      summaryNote: "跟进进度",
+    });
+
+    expect(parsed.currentOwnerUserId).toBeUndefined();
 
     expect(() =>
       createManualFollowUpSchema.parse({
-        groupId: "group-1",
         summaryNote: "    ",
       }),
     ).toThrow();
 
-    expect(() =>
-      createManualFollowUpSchema.parse({
-        groupId: "group-1",
-        summaryNote: "再跟进",
-        currentOwnerUserId: "",
-      }),
-    ).not.toThrow();
+    const ownerCleared = createManualFollowUpSchema.parse({
+      summaryNote: "再跟进",
+      currentOwnerUserId: "   ",
+    });
+
+    expect(ownerCleared.currentOwnerUserId).toBeUndefined();
   });
 
   test("follow-up reassignment requires followUpItemId and reason", () => {
