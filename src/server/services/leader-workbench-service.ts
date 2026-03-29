@@ -121,6 +121,7 @@ export async function getLeaderWorkbenchSnapshot(
     db.identifierCode.findMany({
       where: {
         assignedGroupId: group.id,
+        status: "ASSIGNED",
       },
       orderBy: [{ assignedAt: "asc" }, { createdAt: "asc" }],
       select: {
@@ -234,16 +235,6 @@ export async function getLeaderWorkbenchSnapshot(
   }));
 
   const followUpQueue = followUpItems
-    .slice()
-    .sort((left, right) => {
-      const timeDiff = right.lastActionAt.getTime() - left.lastActionAt.getTime();
-
-      if (timeDiff !== 0) {
-        return timeDiff;
-      }
-
-      return left.id.localeCompare(right.id, "zh-CN");
-    })
     .map((item) => ({
       id: item.id,
       sourceType: item.sourceType,

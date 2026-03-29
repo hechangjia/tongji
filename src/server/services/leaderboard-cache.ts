@@ -13,6 +13,14 @@ import {
   getDailyLeaderboard,
   getRangeLeaderboard,
 } from "@/server/services/leaderboard-service";
+import type {
+  GroupLeaderboardInput,
+  GroupLeaderboardResult,
+} from "@/server/services/group-leaderboard-service";
+import type {
+  LeaderWorkbenchSnapshot,
+  LeaderWorkbenchSnapshotInput,
+} from "@/server/services/leader-workbench-service";
 import type { DateValue } from "@/server/services/sales-service";
 
 export const LEADERBOARD_CACHE_TAG = "leaderboard";
@@ -95,18 +103,11 @@ const cachedDailyTop3Status = unstable_cache(
 );
 
 let cachedGroupLeaderboard:
-  | ((input: {
-      currentUserId: string;
-      currentUserRole: "MEMBER" | "LEADER" | "ADMIN";
-      todaySaleDate?: DateValue;
-    }) => Promise<unknown>)
+  | ((input: GroupLeaderboardInput) => Promise<GroupLeaderboardResult>)
   | null = null;
 
 let cachedLeaderWorkbenchSnapshot:
-  | ((input: {
-      leaderUserId: string;
-      todaySaleDate?: DateValue;
-    }) => Promise<unknown>)
+  | ((input: LeaderWorkbenchSnapshotInput) => Promise<LeaderWorkbenchSnapshot>)
   | null = null;
 
 export function getCachedDailyLeaderboard(date: DateValue) {
@@ -149,18 +150,10 @@ export function getCachedDailyTop3Status(input: DailyTop3StatusInput) {
   return cachedDailyTop3Status(input);
 }
 
-export function getCachedGroupLeaderboard(input: {
-  currentUserId: string;
-  currentUserRole: "MEMBER" | "LEADER" | "ADMIN";
-  todaySaleDate?: DateValue;
-}) {
+export function getCachedGroupLeaderboard(input: GroupLeaderboardInput) {
   if (!cachedGroupLeaderboard) {
     cachedGroupLeaderboard = unstable_cache(
-      async (payload: {
-        currentUserId: string;
-        currentUserRole: "MEMBER" | "LEADER" | "ADMIN";
-        todaySaleDate?: DateValue;
-      }) => {
+      async (payload: GroupLeaderboardInput): Promise<GroupLeaderboardResult> => {
         const { getGroupLeaderboard } = await import(
           "@/server/services/group-leaderboard-service"
         );
@@ -178,16 +171,12 @@ export function getCachedGroupLeaderboard(input: {
   return cachedGroupLeaderboard(input);
 }
 
-export function getCachedLeaderWorkbenchSnapshot(input: {
-  leaderUserId: string;
-  todaySaleDate?: DateValue;
-}) {
+export function getCachedLeaderWorkbenchSnapshot(input: LeaderWorkbenchSnapshotInput) {
   if (!cachedLeaderWorkbenchSnapshot) {
     cachedLeaderWorkbenchSnapshot = unstable_cache(
-      async (payload: {
-        leaderUserId: string;
-        todaySaleDate?: DateValue;
-      }) => {
+      async (
+        payload: LeaderWorkbenchSnapshotInput,
+      ): Promise<LeaderWorkbenchSnapshot> => {
         const { getLeaderWorkbenchSnapshot } = await import(
           "@/server/services/leader-workbench-service"
         );

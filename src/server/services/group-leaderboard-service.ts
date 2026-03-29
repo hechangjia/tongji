@@ -64,24 +64,24 @@ function rankRows<T extends { total: number; userName: string }>(rows: T[]) {
     }));
 }
 
-async function resolveCurrentUserGroupId(input: Pick<GroupLeaderboardInput, "currentUserId" | "currentUserRole">) {
-  if (input.currentUserRole !== "LEADER") {
-    return null;
-  }
-
+async function resolveCurrentUserAccess(currentUserId: string) {
   const currentUser = await db.user.findUnique({
-    where: { id: input.currentUserId },
+    where: { id: currentUserId },
     select: {
+      role: true,
       groupId: true,
     },
   });
 
-  return currentUser?.groupId ?? null;
+  return {
+    role: currentUser?.role ?? null,
+    groupId: currentUser?.groupId ?? null,
+  };
 }
 
 export async function getGroupLeaderboard(input: GroupLeaderboardInput): Promise<GroupLeaderboardResult> {
   const todaySaleDate = input.todaySaleDate ?? getTodaySaleDateValue();
-  const [rows, groups, currentGroupId] = await Promise.all([
+  const [rows, groups, currentUserAccess] = await Promise.all([
     getAggregatedSalesDayRows({
       startDate: todaySaleDate,
       endDate: todaySaleDate,
@@ -93,7 +93,7 @@ export async function getGroupLeaderboard(input: GroupLeaderboardInput): Promise
         name: true,
       },
     }),
-    resolveCurrentUserGroupId(input),
+    resolveCurrentUserAccess(input.currentUserId),
   ]);
 
   const userIds = Array.from(new Set(rows.map((row) => row.userId)));
@@ -148,6 +148,9 @@ export async function getGroupLeaderboard(input: GroupLeaderboardInput): Promise
     ...row,
   }))).map(({ userName: _userName, ...row }) => row);
 
+  const currentGroupId =
+    currentUserAccess.role === "LEADER" ? currentUserAccess.groupId : null;
+
   if (!currentGroupId) {
     return {
       rows: rankedRows,
@@ -179,22 +182,17 @@ export async function getGroupLeaderboard(input: GroupLeaderboardInput): Promise
 }
 
 async function canExpandGroupMemberRows(input: VisibleGroupMemberRowsInput) {
-  if (input.currentUserRole === "ADMIN") {
+  const currentUser = await resolveCurrentUserAccess(input.currentUserId);
+
+  if (currentUser.role === "ADMIN") {
     return true;
   }
 
-  if (input.currentUserRole === "MEMBER") {
+  if (currentUser.role === "MEMBER") {
     return false;
   }
 
-  const currentUser = await db.user.findUnique({
-    where: { id: input.currentUserId },
-    select: {
-      groupId: true,
-    },
-  });
-
-  return currentUser?.groupId === input.groupId;
+  return currentUser.role === "LEADER" && currentUser.groupId === input.groupId;
 }
 
 export async function getVisibleGroupMemberRows(

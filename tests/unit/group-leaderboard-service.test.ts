@@ -31,7 +31,7 @@ describe("group leaderboard service", () => {
     vi.clearAllMocks();
   });
 
-  test("ranks groups by today's totals, preserves 40/60 splits, keeps mixed source rows, and returns current leader adjacent deltas", async () => {
+  test("ranks groups by today's totals, preserves 40/60 splits, keeps mixed source rows, and returns current leader adjacent deltas based on persisted role/group binding", async () => {
     getAggregatedSalesDayRowsMock.mockResolvedValue([
       {
         userId: "member-1",
@@ -77,12 +77,12 @@ describe("group leaderboard service", () => {
       { id: "member-3", groupId: "group-2" },
       { id: "member-4", groupId: "group-3" },
     ]);
-    userFindUniqueMock.mockResolvedValue({ id: "leader-1", groupId: "group-1" });
+    userFindUniqueMock.mockResolvedValue({ id: "leader-1", role: "LEADER", groupId: "group-1" });
 
     await expect(
       getGroupLeaderboard({
         currentUserId: "leader-1",
-        currentUserRole: "LEADER",
+        currentUserRole: "MEMBER",
         todaySaleDate: "2026-03-29",
       }),
     ).resolves.toEqual({
@@ -125,11 +125,17 @@ describe("group leaderboard service", () => {
     });
   });
 
-  test("hides member rows from MEMBER role", async () => {
+  test("hides member rows based on persisted role even if caller claims LEADER", async () => {
+    userFindUniqueMock.mockResolvedValue({
+      id: "member-1",
+      role: "MEMBER",
+      groupId: "group-1",
+    });
+
     await expect(
       getVisibleGroupMemberRows({
         currentUserId: "member-1",
-        currentUserRole: "MEMBER",
+        currentUserRole: "LEADER",
         groupId: "group-1",
         todaySaleDate: "2026-03-29",
       }),
@@ -139,7 +145,7 @@ describe("group leaderboard service", () => {
   });
 
   test("allows LEADER to expand only their own group", async () => {
-    userFindUniqueMock.mockResolvedValue({ id: "leader-1", groupId: "group-1" });
+    userFindUniqueMock.mockResolvedValue({ id: "leader-1", role: "LEADER", groupId: "group-1" });
 
     await expect(
       getVisibleGroupMemberRows({

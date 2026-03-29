@@ -251,6 +251,7 @@ describe("leader workbench service", () => {
     expect(identifierCodeFindManyMock).toHaveBeenCalledWith({
       where: {
         assignedGroupId: "group-1",
+        status: "ASSIGNED",
       },
       orderBy: [{ assignedAt: "asc" }, { createdAt: "asc" }],
       select: expect.any(Object),
