@@ -14,6 +14,13 @@ CREATE TYPE "GroupResourceAuditActionType" AS ENUM ('CREATE_MANUAL_FOLLOW_UP', '
 ALTER TABLE "identifier_codes"
 ADD COLUMN "assignedGroupId" TEXT;
 
+-- Backfill assignedGroupId from current owner's group for existing assigned rows.
+UPDATE "identifier_codes" AS "ic"
+SET "assignedGroupId" = "u"."groupId"
+FROM "users" AS "u"
+WHERE "ic"."currentOwnerUserId" = "u"."id"
+  AND "ic"."assignedGroupId" IS NULL;
+
 -- CreateTable
 CREATE TABLE "group_follow_up_items" (
     "id" TEXT NOT NULL,
@@ -69,6 +76,12 @@ ON "group_follow_up_items"("currentOwnerUserId", "status");
 -- CreateIndex
 CREATE INDEX "group_resource_audit_logs_groupId_createdAt_idx"
 ON "group_resource_audit_logs"("groupId", "createdAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "group_follow_up_items_prospectLeadId_active_unique_idx"
+ON "group_follow_up_items"("prospectLeadId")
+WHERE "prospectLeadId" IS NOT NULL
+  AND "status" IN ('UNTOUCHED', 'FOLLOWING_UP', 'APPOINTED', 'READY_TO_CONVERT');
 
 -- AddForeignKey
 ALTER TABLE "identifier_codes"

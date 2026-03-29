@@ -206,6 +206,9 @@ describe("prisma schema", () => {
     expect(migration).toContain('CREATE TABLE "group_follow_up_items"');
     expect(migration).toContain('CREATE TABLE "group_resource_audit_logs"');
     expect(migration).toContain('"reason" TEXT NOT NULL');
+    expect(migration).toMatch(
+      /UPDATE\s+"identifier_codes"\s+AS\s+"ic"[\s\S]*SET\s+"assignedGroupId"\s*=\s*"u"\."groupId"[\s\S]*FROM\s+"users"\s+AS\s+"u"[\s\S]*"ic"\."currentOwnerUserId"\s*=\s*"u"\."id"[\s\S]*"ic"\."assignedGroupId"\s+IS\s+NULL/,
+    );
 
     expect(migration).toMatch(/CREATE INDEX "identifier_codes_assignedGroupId_status_idx"/);
     expect(migration).toMatch(
@@ -216,6 +219,9 @@ describe("prisma schema", () => {
     );
     expect(migration).toMatch(
       /CREATE INDEX "group_resource_audit_logs_groupId_createdAt_idx"/,
+    );
+    expect(migration).toMatch(
+      /CREATE UNIQUE INDEX "group_follow_up_items_prospectLeadId_active_unique_idx"[\s\S]*ON "group_follow_up_items"\("prospectLeadId"\)[\s\S]*WHERE "prospectLeadId" IS NOT NULL[\s\S]*AND "status" IN \('UNTOUCHED', 'FOLLOWING_UP', 'APPOINTED', 'READY_TO_CONVERT'\)/,
     );
 
     expect(migration).toContain(
