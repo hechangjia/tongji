@@ -129,6 +129,9 @@ describe("prisma schema", () => {
     );
     expect(schema).toMatch(/beforeSnapshot\s+Json\?/);
     expect(schema).toMatch(/afterSnapshot\s+Json\?/);
+    expect(schema).toMatch(
+      /model GroupResourceAuditLog[\s\S]*reason\s+String(?!\?)/,
+    );
 
     expect(schema).toMatch(/@@index\(\[assignedGroupId,\s*status\]\)/);
     expect(schema).toMatch(/@@index\(\[groupId,\s*status,\s*lastActionAt\]\)/);

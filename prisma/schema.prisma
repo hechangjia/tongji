@@ -421,7 +421,7 @@ model GroupResourceAuditLog {
   actionType     GroupResourceAuditActionType
   beforeSnapshot Json?
   afterSnapshot  Json?
-  reason         String?
+  reason         String
   group          Group                        @relation(fields: [groupId], references: [id], onDelete: Cascade)
   operatorUser   User                         @relation("GroupResourceAuditLogOperator", fields: [operatorUserId], references: [id], onDelete: Restrict)
   createdAt      DateTime                     @default(now())

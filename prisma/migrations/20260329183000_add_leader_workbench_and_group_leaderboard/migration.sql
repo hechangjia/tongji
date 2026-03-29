@@ -42,7 +42,7 @@ CREATE TABLE "group_resource_audit_logs" (
     "actionType" "GroupResourceAuditActionType" NOT NULL,
     "beforeSnapshot" JSONB,
     "afterSnapshot" JSONB,
-    "reason" TEXT,
+    "reason" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "group_resource_audit_logs_pkey" PRIMARY KEY ("id")
