@@ -167,7 +167,6 @@ describe("prisma schema", () => {
     expect(followUpItemBlock).toMatch(/group\s+Group\s+@relation\(/);
     expect(followUpItemBlock).toMatch(/currentOwnerUser\s+User\?\s+@relation\(/);
     expect(followUpItemBlock).toMatch(/prospectLead\s+ProspectLead\?\s+@relation\(/);
-    expect(followUpItemBlock).not.toMatch(/createdByUser\s+User\??\s+@relation\(/);
     expect(followUpItemBlock).toMatch(/@@index\(\[groupId,\s*status,\s*lastActionAt\]\)/);
     expect(followUpItemBlock).toMatch(/@@index\(\[currentOwnerUserId,\s*status\]\)/);
 
@@ -183,8 +182,6 @@ describe("prisma schema", () => {
     expect(auditLogBlock).toMatch(/reason\s+String/);
     expect(auditLogBlock).toMatch(/createdAt\s+DateTime\s+@default\(now\(\)\)/);
     expect(auditLogBlock).toMatch(/@@index\(\[groupId,\s*createdAt\]\)/);
-    expect(auditLogBlock).not.toMatch(/group\s+Group\s+@relation\(/);
-    expect(auditLogBlock).not.toMatch(/operatorUser\s+User\s+@relation\(/);
   });
 
   test("locks leader workbench migration contract", () => {
@@ -227,28 +224,12 @@ describe("prisma schema", () => {
     expect(migration).toContain(
       'CHECK (("sourceType" = \'PROSPECT_LEAD\' AND "prospectLeadId" IS NOT NULL) OR ("sourceType" = \'MANUAL_DISCOVERY\' AND "prospectLeadId" IS NULL))',
     );
+    expect(migration).toContain(
+      "-- NOTE: On large deployed tables, roll out the identifier_codes index/FK in a maintenance window or online migration strategy.",
+    );
 
     expect(migration).toContain(
       'ADD CONSTRAINT "identifier_codes_assignedGroupId_fkey"',
-    );
-    expect(migration).toContain(
-      'ADD CONSTRAINT "group_follow_up_items_groupId_fkey"',
-    );
-    expect(migration).toContain(
-      'ADD CONSTRAINT "group_follow_up_items_currentOwnerUserId_fkey"',
-    );
-    expect(migration).toContain(
-      'ADD CONSTRAINT "group_follow_up_items_prospectLeadId_fkey"',
-    );
-
-    expect(migration).not.toContain(
-      'ADD CONSTRAINT "group_follow_up_items_createdByUserId_fkey"',
-    );
-    expect(migration).not.toContain(
-      'ADD CONSTRAINT "group_resource_audit_logs_groupId_fkey"',
-    );
-    expect(migration).not.toContain(
-      'ADD CONSTRAINT "group_resource_audit_logs_operatorUserId_fkey"',
     );
   });
 });

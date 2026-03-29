@@ -53,6 +53,7 @@ ALTER TABLE "group_follow_up_items"
 ADD CONSTRAINT "group_follow_up_items_sourceType_prospectLeadId_check"
 CHECK (("sourceType" = 'PROSPECT_LEAD' AND "prospectLeadId" IS NOT NULL) OR ("sourceType" = 'MANUAL_DISCOVERY' AND "prospectLeadId" IS NULL));
 
+-- NOTE: On large deployed tables, roll out the identifier_codes index/FK in a maintenance window or online migration strategy.
 -- CreateIndex
 CREATE INDEX "identifier_codes_assignedGroupId_status_idx"
 ON "identifier_codes"("assignedGroupId", "status");
