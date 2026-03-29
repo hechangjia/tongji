@@ -54,6 +54,14 @@ describe("leader workbench validation", () => {
         reason: "  ",
       }),
     ).toThrow();
+
+    expect(() =>
+      reassignFollowUpSchema.parse({
+        followUpItemId: "item-1",
+        nextOwnerUserId: "   ",
+        reason: "重新安排",
+      }),
+    ).toThrow();
   });
 
   test("follow-up status updates require followUpItemId, status, and reason", () => {
