@@ -94,6 +94,21 @@ const cachedDailyTop3Status = unstable_cache(
   },
 );
 
+let cachedGroupLeaderboard:
+  | ((input: {
+      currentUserId: string;
+      currentUserRole: "MEMBER" | "LEADER" | "ADMIN";
+      todaySaleDate?: DateValue;
+    }) => Promise<unknown>)
+  | null = null;
+
+let cachedLeaderWorkbenchSnapshot:
+  | ((input: {
+      leaderUserId: string;
+      todaySaleDate?: DateValue;
+    }) => Promise<unknown>)
+  | null = null;
+
 export function getCachedDailyLeaderboard(date: DateValue) {
   return cachedDailyLeaderboard(date);
 }
@@ -134,6 +149,62 @@ export function getCachedDailyTop3Status(input: DailyTop3StatusInput) {
   return cachedDailyTop3Status(input);
 }
 
+export function getCachedGroupLeaderboard(input: {
+  currentUserId: string;
+  currentUserRole: "MEMBER" | "LEADER" | "ADMIN";
+  todaySaleDate?: DateValue;
+}) {
+  if (!cachedGroupLeaderboard) {
+    cachedGroupLeaderboard = unstable_cache(
+      async (payload: {
+        currentUserId: string;
+        currentUserRole: "MEMBER" | "LEADER" | "ADMIN";
+        todaySaleDate?: DateValue;
+      }) => {
+        const { getGroupLeaderboard } = await import(
+          "@/server/services/group-leaderboard-service"
+        );
+
+        return getGroupLeaderboard(payload);
+      },
+      ["leaderboard-groups"],
+      {
+        tags: [LEADERBOARD_CACHE_TAG],
+        revalidate: LEADERBOARD_CACHE_REVALIDATE_SECONDS,
+      },
+    );
+  }
+
+  return cachedGroupLeaderboard(input);
+}
+
+export function getCachedLeaderWorkbenchSnapshot(input: {
+  leaderUserId: string;
+  todaySaleDate?: DateValue;
+}) {
+  if (!cachedLeaderWorkbenchSnapshot) {
+    cachedLeaderWorkbenchSnapshot = unstable_cache(
+      async (payload: {
+        leaderUserId: string;
+        todaySaleDate?: DateValue;
+      }) => {
+        const { getLeaderWorkbenchSnapshot } = await import(
+          "@/server/services/leader-workbench-service"
+        );
+
+        return getLeaderWorkbenchSnapshot(payload);
+      },
+      ["leader-workbench-snapshot"],
+      {
+        tags: [LEADERBOARD_CACHE_TAG],
+        revalidate: LEADERBOARD_CACHE_REVALIDATE_SECONDS,
+      },
+    );
+  }
+
+  return cachedLeaderWorkbenchSnapshot(input);
+}
+
 export function refreshLeaderboardCaches() {
   updateTag(LEADERBOARD_CACHE_TAG);
   revalidatePath("/entry");
@@ -142,4 +213,10 @@ export function refreshLeaderboardCaches() {
   revalidatePath("/admin");
   revalidatePath("/admin/insights");
   revalidatePath("/admin/sales");
+}
+
+export function refreshLeaderWorkbenchCaches() {
+  updateTag(LEADERBOARD_CACHE_TAG);
+  revalidatePath("/leader/sales");
+  revalidatePath("/leaderboard/groups");
 }
