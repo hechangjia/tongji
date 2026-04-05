@@ -1,19 +1,22 @@
 import type { ReactNode } from "react";
+import { BentoCard } from "@/components/ui/bento-card";
+import { clsx } from "clsx";
 
 type MetricCardProps = {
   label: string;
   value: ReactNode;
   tone?: "light" | "dark" | "accent";
   hint?: string;
+  delta?: {
+    value: string;
+    trend: "up" | "down" | "neutral";
+  };
 };
 
 const toneClassNames: Record<NonNullable<MetricCardProps["tone"]>, string> = {
-  light:
-    "border-white/70 bg-white/82 text-slate-950 shadow-[0_16px_36px_rgba(8,47,73,0.08)]",
-  dark:
-    "border-slate-950/10 bg-slate-950 text-white shadow-[0_18px_42px_rgba(8,47,73,0.2)]",
-  accent:
-    "border-cyan-300/40 bg-cyan-100/80 text-slate-950 shadow-[0_18px_40px_rgba(34,211,238,0.14)]",
+  light: "text-maika-ink",
+  dark: "bg-maika-ink text-white border-maika-ink/20",
+  accent: "bg-gradient-to-br from-maika-accent/20 to-transparent border-maika-accent/30 text-maika-ink",
 };
 
 export function MetricCard({
@@ -21,14 +24,42 @@ export function MetricCard({
   value,
   tone = "light",
   hint,
+  delta,
 }: MetricCardProps) {
+  // 当使用了 tone="dark" 或 "accent" 时，我们关闭毛玻璃以强化对比
+  const isSpecialTone = tone === "dark" || tone === "accent";
+  
   return (
-    <div className={`rounded-[24px] border px-5 py-4 ${toneClassNames[tone]}`}>
-      <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] opacity-75">
+    <BentoCard 
+      radius="md" 
+      glass={!isSpecialTone} 
+      className={clsx("p-5 flex flex-col justify-between h-full shadow-card", toneClassNames[tone])}
+    >
+      <p className={clsx("eyebrow mb-3", tone === "dark" ? "text-white/60" : "text-maika-muted")}>
         {label}
       </p>
-      <div className="mt-3 text-2xl font-semibold sm:text-[1.9rem]">{value}</div>
-      {hint ? <p className="mt-2 text-sm opacity-75">{hint}</p> : null}
-    </div>
+      
+      <div className="flex items-baseline gap-2">
+        {/* MetricCard 的核心数值强制使用 Geist Mono 及 tabular-nums */}
+        <div className="text-3xl font-semibold mono-accent leading-none">{value}</div>
+        
+        {delta && (
+          <span className={clsx(
+            "text-xs font-medium px-1.5 py-0.5 rounded",
+            delta.trend === "up" && "text-green-600 bg-green-500/10",
+            delta.trend === "down" && "text-rose-600 bg-rose-500/10",
+            delta.trend === "neutral" && "text-maika-muted bg-maika-muted/10"
+          )}>
+            {delta.trend === "up" ? "↑" : delta.trend === "down" ? "↓" : "−"} {delta.value}
+          </span>
+        )}
+      </div>
+      
+      {hint ? (
+        <p className={clsx("mt-3 text-xs leading-relaxed", tone === "dark" ? "text-white/70" : "text-maika-foreground/70")}>
+          {hint}
+        </p> 
+      ) : null}
+    </BentoCard>
   );
 }
