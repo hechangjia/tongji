@@ -241,3 +241,13 @@ Always read DESIGN.md before making any visual or UI decisions.
 All font choices, colors, spacing, and aesthetic direction are defined there.
 Do not deviate without explicit user approval.
 In QA mode, flag any code that doesn't match DESIGN.md.
+
+## .context 项目上下文
+
+> 项目使用 `.context/` 管理开发决策上下文。
+
+- 编码规范：`.context/prefs/coding-style.md`
+- 工作流规则：`.context/prefs/workflow.md`
+- 决策历史：`.context/history/commits.md`
+
+**规则**：修改代码前必读 prefs/，做决策时按 workflow.md 规则记录日志。
