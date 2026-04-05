@@ -3,11 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
 import { refreshEntryInsightsCache } from "@/server/services/entry-insights-cache";
-import { refreshLeaderboardCaches } from "@/server/services/leaderboard-cache";
+import { refreshLeaderboardCaches, refreshLeaderWorkbenchCaches } from "@/server/services/leaderboard-cache";
 import { refreshMemberRecordsCache } from "@/server/services/member-records-cache";
+import { updateSalesRecord, reviewSalesRecord } from "@/server/services/sales-service";
 import { salesRecordUpdateSchema, salesReviewActionSchema } from "@/lib/validators/sales";
 
 function appendNotice(returnTo: string, notice: string) {
@@ -40,17 +40,16 @@ export async function updateSalesRecordAction(formData: FormData) {
     returnTo: formData.get("returnTo"),
   });
 
-  await db.salesRecord.update({
-    where: { id: parsedInput.id },
-    data: {
-      count40: parsedInput.count40,
-      count60: parsedInput.count60,
-      remark: parsedInput.remark,
-    },
+  await updateSalesRecord({
+    id: parsedInput.id,
+    count40: parsedInput.count40,
+    count60: parsedInput.count60,
+    remark: parsedInput.remark,
   });
 
   revalidatePath("/admin/sales");
   refreshLeaderboardCaches();
+  refreshLeaderWorkbenchCaches();
   refreshEntryInsightsCache();
   refreshMemberRecordsCache();
   redirect(appendNotice(parsedInput.returnTo, "销售记录已更新"));
@@ -69,17 +68,15 @@ export async function reviewSalesRecordAction(
     returnTo: formData.get("returnTo"),
   });
 
-  await db.salesRecord.update({
-    where: { id: parsedInput.id },
-    data: {
-      reviewStatus: parsedInput.decision,
-      reviewedAt: new Date(),
-      reviewNote: parsedInput.decision === "REJECTED" ? parsedInput.reviewNote || null : null,
-    },
+  await reviewSalesRecord({
+    id: parsedInput.id,
+    decision: parsedInput.decision,
+    reviewNote: parsedInput.reviewNote,
   });
 
   revalidatePath("/admin/sales");
   refreshLeaderboardCaches();
+  refreshLeaderWorkbenchCaches();
   redirect(
     appendNotice(parsedInput.returnTo, parsedInput.decision === "APPROVED" ? "审核已通过" : "审核已驳回"),
   );

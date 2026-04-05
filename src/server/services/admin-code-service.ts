@@ -322,26 +322,27 @@ export async function assignIdentifierCodesToUser({
   });
   assertAssignableTarget(targetUser);
 
-  const availableCodes = await db.identifierCode.findMany({
-    where: {
-      id: {
-        in: codeIds,
-      },
-      status: IdentifierCodeStatus.UNASSIGNED,
-    },
-    select: {
-      id: true,
-      status: true,
-    },
-  });
-
-  if (availableCodes.length !== codeIds.length) {
-    throw new Error("所选识别码已被分发、售出或不存在，请刷新页面后重试");
-  }
-
   const now = new Date();
 
   await db.$transaction(async (tx) => {
+    // Check code availability inside transaction to prevent TOCTOU race
+    const availableCodes = await tx.identifierCode.findMany({
+      where: {
+        id: {
+          in: codeIds,
+        },
+        status: IdentifierCodeStatus.UNASSIGNED,
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+
+    if (availableCodes.length !== codeIds.length) {
+      throw new Error("所选识别码已被分发、售出或不存在，请刷新页面后重试");
+    }
+
     await tx.identifierCode.updateMany({
       where: {
         id: {
@@ -389,26 +390,27 @@ export async function assignProspectLeadsToUser({ leadIds, userId }: ProspectAss
   }
 
   const targetGroupId = targetUser.groupId;
-  const availableLeads = await db.prospectLead.findMany({
-    where: {
-      id: {
-        in: leadIds,
-      },
-      status: ProspectLeadStatus.UNASSIGNED,
-    },
-    select: {
-      id: true,
-      status: true,
-    },
-  });
-
-  if (availableLeads.length !== leadIds.length) {
-    throw new Error("所选新生线索已被分配或不存在，请刷新页面后重试");
-  }
-
   const now = new Date();
 
   await db.$transaction(async (tx) => {
+    // Check lead availability inside transaction to prevent TOCTOU race
+    const availableLeads = await tx.prospectLead.findMany({
+      where: {
+        id: {
+          in: leadIds,
+        },
+        status: ProspectLeadStatus.UNASSIGNED,
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+
+    if (availableLeads.length !== leadIds.length) {
+      throw new Error("所选新生线索已被分配或不存在，请刷新页面后重试");
+    }
+
     await tx.prospectLead.updateMany({
       where: {
         id: {

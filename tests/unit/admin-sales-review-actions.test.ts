@@ -11,6 +11,7 @@ const unstableCacheMock = vi.hoisted(() =>
   vi.fn((callback: (...args: unknown[]) => unknown) => callback),
 );
 const refreshLeaderboardCachesMock = vi.hoisted(() => vi.fn());
+const refreshLeaderWorkbenchCachesMock = vi.hoisted(() => vi.fn());
 const salesRecordUpdateMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/auth", () => ({
@@ -28,6 +29,7 @@ vi.mock("next/cache", () => ({
 
 vi.mock("@/server/services/leaderboard-cache", () => ({
   refreshLeaderboardCaches: refreshLeaderboardCachesMock,
+  refreshLeaderWorkbenchCaches: refreshLeaderWorkbenchCachesMock,
 }));
 
 vi.mock("@/lib/db", () => ({

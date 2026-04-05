@@ -49,3 +49,4 @@ yarn-error.log*
 next-env.d.ts
 .ace-tool/
 .gstack/
+.env*.local

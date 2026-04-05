@@ -113,6 +113,7 @@ describe("admin code service", () => {
     dbTransactionMock.mockImplementation(async (callback: (tx: typeof import("@/lib/db").db) => Promise<unknown>) =>
       callback({
         identifierCode: {
+          findMany: identifierCodeFindManyMock,
           createMany: identifierCodeCreateManyMock,
           updateMany: identifierCodeUpdateManyMock,
         },
@@ -123,6 +124,7 @@ describe("admin code service", () => {
           createMany: codeAssignmentCreateManyMock,
         },
         prospectLead: {
+          findMany: prospectLeadFindManyMock,
           createMany: prospectLeadCreateManyMock,
           updateMany: prospectLeadUpdateManyMock,
         },

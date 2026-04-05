@@ -13,6 +13,17 @@ vi.mock("@/lib/db", () => ({
     identifierSale: {
       count: identifierSaleCountMock,
     },
+    $transaction: vi.fn(async (fn: (tx: unknown) => Promise<unknown>) =>
+      fn({
+        salesRecord: {
+          findUnique: salesRecordFindUniqueMock,
+          upsert: salesRecordUpsertMock,
+        },
+        identifierSale: {
+          count: identifierSaleCountMock,
+        },
+      }),
+    ),
   },
 }));
 

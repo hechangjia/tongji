@@ -1,22 +1,44 @@
 "use server";
 
-import { Role, UserStatus } from "@prisma/client";
+import { Role } from "@prisma/client";
 import { AuthError } from "next-auth";
+import { headers } from "next/headers";
 import { signIn } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { hashPassword } from "@/lib/password";
+import { env } from "@/lib/env";
 import { getDefaultRedirectPath, sanitizeCallbackUrl } from "@/lib/permissions";
+import { checkRateLimit, cleanupExpiredEntries } from "@/lib/rate-limit";
+import { checkUsernameAvailable, createMember } from "@/server/services/member-service";
 import { loginSchema, registerSchema } from "@/lib/validators/auth";
 import type { LoginFormState, RegisterFormState } from "@/app/(auth)/login/form-state";
+
+async function getClientIp(): Promise<string> {
+  const headerStore = await headers();
+  return headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+}
 
 export async function loginAction(
   _previousState: LoginFormState,
   formData: FormData,
 ): Promise<LoginFormState> {
+  const clientIp = await getClientIp();
+  cleanupExpiredEntries();
+
+  const rateLimitResult = checkRateLimit(`login:${clientIp}`, {
+    maxAttempts: 10,
+    windowMs: 15 * 60 * 1000,
+  });
+
+  if (!rateLimitResult.allowed) {
+    const retryMinutes = Math.ceil(rateLimitResult.retryAfterMs / 60_000);
+    return {
+      error: `登录尝试过于频繁，请 ${retryMinutes} 分钟后重试`,
+    };
+  }
+
   const parsedInput = loginSchema.safeParse({
     username: formData.get("username"),
     password: formData.get("password"),
-    callbackUrl: formData.get("callbackUrl"),
+    callbackUrl: formData.get("callbackUrl") ?? undefined,
   });
 
   if (!parsedInput.success) {
@@ -63,6 +85,7 @@ export async function registerMemberAction(
   const parsedInput = registerSchema.safeParse({
     username: formData.get("username"),
     password: formData.get("password"),
+    inviteCode: formData.get("inviteCode"),
     callbackUrl: formData.get("callbackUrl") ?? undefined,
   });
 
@@ -72,17 +95,23 @@ export async function registerMemberAction(
     return {
       status: "error",
       message:
+        fieldErrors.inviteCode?.[0] ??
         fieldErrors.username?.[0] ?? fieldErrors.password?.[0] ?? "请检查注册信息",
     };
   }
 
-  const { username, password, callbackUrl } = parsedInput.data;
-  const existingUser = await db.user.findUnique({
-    where: { username },
-    select: { id: true },
-  });
+  const { username, password, inviteCode, callbackUrl } = parsedInput.data;
 
-  if (existingUser) {
+  if (inviteCode !== env.INVITE_CODE) {
+    return {
+      status: "error",
+      message: "邀请码无效，请联系管理员获取正确的邀请码",
+    };
+  }
+
+  try {
+    await checkUsernameAvailable(username);
+  } catch {
     return {
       status: "error",
       message: "该账号已存在，请更换后重试",
@@ -90,14 +119,11 @@ export async function registerMemberAction(
   }
 
   try {
-    await db.user.create({
-      data: {
-        username,
-        name: username,
-        passwordHash: await hashPassword(password),
-        role: Role.MEMBER,
-        status: UserStatus.ACTIVE,
-      },
+    await createMember({
+      username,
+      name: username,
+      password,
+      status: "ACTIVE",
     });
   } catch (error) {
     if (

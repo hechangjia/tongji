@@ -69,11 +69,27 @@ export function RegisterForm({ callbackUrl }: { callbackUrl?: string }) {
             className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition duration-200 focus:border-cyan-400 focus:bg-cyan-50/40"
           />
         </div>
+
+        <div className="space-y-2">
+          <label
+            htmlFor="register-invite-code"
+            className="text-sm font-medium text-slate-700"
+          >
+            邀请码
+          </label>
+          <input
+            id="register-invite-code"
+            name="inviteCode"
+            type="text"
+            autoComplete="off"
+            className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition duration-200 focus:border-cyan-400 focus:bg-cyan-50/40"
+          />
+        </div>
       </div>
 
       <div className="rounded-[20px] border border-cyan-100 bg-cyan-50/80 px-4 py-3">
         <p className="text-sm leading-6 text-cyan-800/80">
-          注册后将自动创建为激活成员账号，并进入录入页面。
+          请输入邀请码完成注册，注册后将自动创建为激活成员账号。
         </p>
       </div>
 

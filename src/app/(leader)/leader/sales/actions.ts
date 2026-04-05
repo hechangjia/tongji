@@ -4,6 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getDefaultRedirectPath } from "@/lib/permissions";
+import {
+  createManualFollowUpSchema,
+  reassignFollowUpSchema,
+  updateFollowUpStatusSchema,
+  reassignIdentifierCodeSchema,
+} from "@/lib/validators/leader-workbench";
 import { refreshLeaderWorkbenchCaches } from "@/server/services/leaderboard-cache";
 import {
   createManualFollowUpForLeader,
@@ -45,11 +51,16 @@ export async function createManualFollowUpAction(formData: FormData) {
   let destination = appendNotice("已新增跟进项");
 
   try {
-    await createManualFollowUpForLeader(session.user.id, {
-      summaryNote: String(formData.get("summaryNote") ?? ""),
-      currentOwnerUserId: String(formData.get("currentOwnerUserId") ?? ""),
+    const parsed = createManualFollowUpSchema.safeParse({
+      summaryNote: formData.get("summaryNote"),
+      currentOwnerUserId: formData.get("currentOwnerUserId"),
     });
 
+    if (!parsed.success) {
+      redirect(appendNotice(parsed.error.issues[0]?.message ?? "输入有误", "error"));
+    }
+
+    await createManualFollowUpForLeader(session.user.id, parsed.data);
     refreshLeaderWorkbenchPageState();
   } catch (error) {
     destination = appendNotice(pickErrorMessage(error), "error");
@@ -63,12 +74,17 @@ export async function reassignFollowUpAction(formData: FormData) {
   let destination = appendNotice("跟进项已更新");
 
   try {
-    await reassignFollowUpForLeader(session.user.id, {
-      followUpItemId: String(formData.get("followUpItemId") ?? ""),
-      nextOwnerUserId: String(formData.get("nextOwnerUserId") ?? ""),
-      reason: String(formData.get("reason") ?? ""),
+    const parsed = reassignFollowUpSchema.safeParse({
+      followUpItemId: formData.get("followUpItemId"),
+      nextOwnerUserId: formData.get("nextOwnerUserId"),
+      reason: formData.get("reason"),
     });
 
+    if (!parsed.success) {
+      redirect(appendNotice(parsed.error.issues[0]?.message ?? "输入有误", "error"));
+    }
+
+    await reassignFollowUpForLeader(session.user.id, parsed.data);
     refreshLeaderWorkbenchPageState();
   } catch (error) {
     destination = appendNotice(pickErrorMessage(error), "error");
@@ -82,12 +98,17 @@ export async function updateFollowUpStatusAction(formData: FormData) {
   let destination = appendNotice("跟进状态已更新");
 
   try {
-    await updateFollowUpStatusForLeader(session.user.id, {
-      followUpItemId: String(formData.get("followUpItemId") ?? ""),
-      status: String(formData.get("status") ?? ""),
-      reason: String(formData.get("reason") ?? ""),
+    const parsed = updateFollowUpStatusSchema.safeParse({
+      followUpItemId: formData.get("followUpItemId"),
+      status: formData.get("status"),
+      reason: formData.get("reason"),
     });
 
+    if (!parsed.success) {
+      redirect(appendNotice(parsed.error.issues[0]?.message ?? "输入有误", "error"));
+    }
+
+    await updateFollowUpStatusForLeader(session.user.id, parsed.data);
     refreshLeaderWorkbenchPageState();
   } catch (error) {
     destination = appendNotice(pickErrorMessage(error), "error");
@@ -101,12 +122,17 @@ export async function reassignIdentifierCodeAction(formData: FormData) {
   let destination = appendNotice("识别码已更新");
 
   try {
-    await reassignIdentifierCodeForLeader(session.user.id, {
-      codeId: String(formData.get("codeId") ?? ""),
-      nextOwnerUserId: String(formData.get("nextOwnerUserId") ?? ""),
-      reason: String(formData.get("reason") ?? ""),
+    const parsed = reassignIdentifierCodeSchema.safeParse({
+      codeId: formData.get("codeId"),
+      nextOwnerUserId: formData.get("nextOwnerUserId"),
+      reason: formData.get("reason"),
     });
 
+    if (!parsed.success) {
+      redirect(appendNotice(parsed.error.issues[0]?.message ?? "输入有误", "error"));
+    }
+
+    await reassignIdentifierCodeForLeader(session.user.id, parsed.data);
     refreshLeaderWorkbenchPageState();
   } catch (error) {
     destination = appendNotice(pickErrorMessage(error), "error");

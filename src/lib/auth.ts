@@ -20,6 +20,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: env.AUTH_TRUST_HOST === "true",
   session: {
     strategy: "jwt",
+    maxAge: 2 * 60 * 60, // 2 hours — short window so deactivated users lose access quickly
   },
   pages: {
     signIn: "/login",
@@ -69,6 +70,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.role = user.role;
         token.status = user.status;
         token.username = user.username;
+      } else if (token.id) {
+        // On subsequent requests, re-check user status from DB
+        const dbUser = await db.user.findUnique({
+          where: { id: token.id as string },
+          select: { role: true, status: true },
+        });
+
+        if (!dbUser || dbUser.status !== UserStatus.ACTIVE) {
+          // Return empty token to force sign-out
+          return { ...token, status: "INACTIVE" as const };
+        }
+
+        token.role = dbUser.role;
+        token.status = dbUser.status;
       }
 
       return token;

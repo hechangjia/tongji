@@ -86,6 +86,7 @@ describe("member identifier sale service", () => {
     dbTransactionMock.mockImplementation(async (callback: (tx: typeof import("@/lib/db").db) => Promise<unknown>) =>
       callback({
         identifierCode: {
+          findUnique: identifierCodeFindUniqueMock,
           update: identifierCodeUpdateMock,
           findMany: identifierCodeFindManyMock,
         },

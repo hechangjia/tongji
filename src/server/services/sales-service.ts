@@ -147,58 +147,93 @@ export async function getAdminSalesRows(filters: AdminSalesFilters = {}) {
 export async function saveSalesRecordForUser(userId: string, input: SalesInput) {
   const payload = normalizeSalePayload(input);
   const saleDate = saleDateValueToDate(payload.saleDate);
-  const identifierSaleCount = await db.identifierSale.count({
-    where: {
-      sellerUserId: userId,
-      saleDate,
-    },
-  });
-
-  if (identifierSaleCount > 0) {
-    throw new Error("当天已经有识别码成交记录，请改用识别码工作台继续录单");
-  }
-
   const submittedAt = new Date();
-  const existing = await db.salesRecord.findUnique({
-    where: {
-      userId_saleDate: {
-        userId,
+
+  return db.$transaction(async (tx) => {
+    // Check inside transaction to prevent TOCTOU race
+    const identifierSaleCount = await tx.identifierSale.count({
+      where: {
+        sellerUserId: userId,
         saleDate,
       },
-    },
-  });
+    });
 
-  const record = await db.salesRecord.upsert({
-    where: {
-      userId_saleDate: {
+    if (identifierSaleCount > 0) {
+      throw new Error("当天已经有识别码成交记录，请改用识别码工作台继续录单");
+    }
+
+    const existing = await tx.salesRecord.findUnique({
+      where: {
+        userId_saleDate: {
+          userId,
+          saleDate,
+        },
+      },
+    });
+
+    const record = await tx.salesRecord.upsert({
+      where: {
+        userId_saleDate: {
+          userId,
+          saleDate,
+        },
+      },
+      update: {
+        count40: payload.count40,
+        count60: payload.count60,
+        remark: payload.remark,
+        lastSubmittedAt: submittedAt,
+        reviewStatus: "PENDING",
+        reviewedAt: null,
+        reviewNote: null,
+      },
+      create: {
         userId,
         saleDate,
+        count40: payload.count40,
+        count60: payload.count60,
+        remark: payload.remark,
+        lastSubmittedAt: submittedAt,
+        reviewStatus: "PENDING",
+        reviewedAt: null,
+        reviewNote: null,
       },
-    },
-    update: {
-      count40: payload.count40,
-      count60: payload.count60,
-      remark: payload.remark,
-      lastSubmittedAt: submittedAt,
-      reviewStatus: "PENDING",
-      reviewedAt: null,
-      reviewNote: null,
-    },
-    create: {
-      userId,
-      saleDate,
-      count40: payload.count40,
-      count60: payload.count60,
-      remark: payload.remark,
-      lastSubmittedAt: submittedAt,
-      reviewStatus: "PENDING",
-      reviewedAt: null,
-      reviewNote: null,
+    });
+
+    return {
+      isUpdate: Boolean(existing),
+      record,
+    } satisfies SaveSalesRecordResult;
+  });
+}
+
+export async function updateSalesRecord(input: {
+  id: string;
+  count40: number;
+  count60: number;
+  remark?: string | null;
+}) {
+  return db.salesRecord.update({
+    where: { id: input.id },
+    data: {
+      count40: input.count40,
+      count60: input.count60,
+      remark: input.remark,
     },
   });
+}
 
-  return {
-    isUpdate: Boolean(existing),
-    record,
-  } satisfies SaveSalesRecordResult;
+export async function reviewSalesRecord(input: {
+  id: string;
+  decision: "APPROVED" | "REJECTED";
+  reviewNote?: string | null;
+}) {
+  return db.salesRecord.update({
+    where: { id: input.id },
+    data: {
+      reviewStatus: input.decision,
+      reviewedAt: new Date(),
+      reviewNote: input.decision === "REJECTED" ? input.reviewNote || null : null,
+    },
+  });
 }

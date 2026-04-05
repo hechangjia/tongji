@@ -4,10 +4,19 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { UserStatus } from "@prisma/client";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { hashPassword } from "@/lib/password";
 import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
 import { refreshLeaderboardCaches } from "@/server/services/leaderboard-cache";
+import {
+  checkUsernameAvailable,
+  checkGroupExists,
+  createMember,
+  fetchMemberForAssignment,
+  fetchGroupForLeaderAssignment,
+  updateMemberWithAssignment,
+  resetMemberPassword,
+  checkMemberDeletable,
+  deleteMember,
+} from "@/server/services/member-service";
 import {
   memberDeleteSchema,
   memberAssignmentUpdateSchema,
@@ -122,12 +131,10 @@ export async function createMemberAction(
   }
 
   const { username, name, password, groupId, remark, status } = parsedInput.data;
-  const existingUser = await db.user.findUnique({
-    where: { username },
-    select: { id: true },
-  });
 
-  if (existingUser) {
+  try {
+    await checkUsernameAvailable(username);
+  } catch {
     return {
       status: "error",
       message: "该账号已存在，请更换后重试",
@@ -136,12 +143,9 @@ export async function createMemberAction(
   }
 
   if (groupId) {
-    const existingGroup = await db.group.findUnique({
-      where: { id: groupId },
-      select: { id: true },
-    });
-
-    if (!existingGroup) {
+    try {
+      await checkGroupExists(groupId);
+    } catch {
       return {
         status: "error",
         message: MEMBER_GROUP_NOT_FOUND_NOTICE,
@@ -151,16 +155,13 @@ export async function createMemberAction(
   }
 
   try {
-    await db.user.create({
-      data: {
-        username,
-        name,
-        passwordHash: await hashPassword(password),
-        role: "MEMBER",
-        groupId: groupId ?? null,
-        remark: remark ?? null,
-        status: status === "ACTIVE" ? UserStatus.ACTIVE : UserStatus.INACTIVE,
-      },
+    await createMember({
+      username,
+      name,
+      password,
+      groupId: groupId ?? null,
+      remark: remark ?? null,
+      status: status === "ACTIVE" ? "ACTIVE" : "INACTIVE",
     });
   } catch (error) {
     if (isForeignKeyConflictOnField(error, "groupId")) {
@@ -250,12 +251,9 @@ export async function updateMemberAction(formData: FormData) {
   }
 
   if (parsedProfileInput?.success) {
-    const existingUser = await db.user.findUnique({
-      where: { username: parsedProfileInput.data.username },
-      select: { id: true },
-    });
-
-    if (existingUser && existingUser.id !== parsedProfileInput.data.id) {
+    try {
+      await checkUsernameAvailable(parsedProfileInput.data.username, parsedProfileInput.data.id);
+    } catch {
       redirectToMemberNotice("该账号已存在，请更换后重试");
     }
   }
@@ -277,29 +275,12 @@ export async function updateMemberAction(formData: FormData) {
     | null = null;
 
   if (parsedAssignmentInput?.success) {
-    currentMember = await db.user.findUnique({
-      where: { id: parsedAssignmentInput.data.id },
-      select: {
-        role: true,
-        groupId: true,
-        ledGroup: {
-          select: {
-            id: true,
-          },
-        },
-      },
-    });
+    currentMember = await fetchMemberForAssignment(parsedAssignmentInput.data.id);
 
     if (parsedAssignmentInput.data.groupId) {
-      nextGroup = await db.group.findUnique({
-        where: { id: parsedAssignmentInput.data.groupId },
-        select: {
-          id: true,
-          leaderUserId: true,
-        },
-      });
-
-      if (!nextGroup) {
+      try {
+        nextGroup = await fetchGroupForLeaderAssignment(parsedAssignmentInput.data.groupId);
+      } catch {
         redirectToMemberNotice(MEMBER_GROUP_NOT_FOUND_NOTICE);
       }
     }
@@ -327,9 +308,11 @@ export async function updateMemberAction(formData: FormData) {
     }
   }
 
-  const operations: Array<
-    ReturnType<typeof db.group.update> | ReturnType<typeof db.user.update> | ReturnType<typeof db.user.updateMany>
-  > = [];
+  const sideEffects: {
+    clearLeaderFromGroupId?: string;
+    demoteLeaderUserId?: string;
+    setLeaderOnGroupId?: string;
+  } = {};
 
   if (parsedAssignmentInput?.success) {
     updateData.role = parsedAssignmentInput.data.role;
@@ -340,14 +323,7 @@ export async function updateMemberAction(formData: FormData) {
       (parsedAssignmentInput.data.role !== "LEADER" ||
         currentMember.ledGroup.id !== parsedAssignmentInput.data.groupId)
     ) {
-      operations.push(
-        db.group.update({
-          where: { id: currentMember.ledGroup.id },
-          data: {
-            leaderUserId: null,
-          },
-        }),
-      );
+      sideEffects.clearLeaderFromGroupId = currentMember.ledGroup.id;
     }
 
     if (
@@ -355,44 +331,16 @@ export async function updateMemberAction(formData: FormData) {
       nextGroup?.leaderUserId &&
       nextGroup.leaderUserId !== parsedAssignmentInput.data.id
     ) {
-      operations.push(
-        db.user.updateMany({
-          where: {
-            id: nextGroup.leaderUserId,
-            role: "LEADER",
-          },
-          data: {
-            role: "MEMBER",
-          },
-        }),
-      );
+      sideEffects.demoteLeaderUserId = nextGroup.leaderUserId;
+    }
+
+    if (parsedAssignmentInput.data.role === "LEADER" && parsedAssignmentInput.data.groupId) {
+      sideEffects.setLeaderOnGroupId = parsedAssignmentInput.data.groupId;
     }
   }
 
-  operations.push(
-    db.user.update({
-      where: { id: memberId },
-      data: updateData,
-    }),
-  );
-
-  if (
-    parsedAssignmentInput?.success &&
-    parsedAssignmentInput.data.role === "LEADER" &&
-    parsedAssignmentInput.data.groupId
-  ) {
-    operations.push(
-      db.group.update({
-        where: { id: parsedAssignmentInput.data.groupId },
-        data: {
-          leaderUserId: parsedAssignmentInput.data.id,
-        },
-      }),
-    );
-  }
-
   try {
-    await db.$transaction(operations);
+    await updateMemberWithAssignment(memberId, updateData, sideEffects);
   } catch (error) {
     if (isForeignKeyConflictOnField(error, "groupId")) {
       redirectToMemberNotice(MEMBER_GROUP_NOT_FOUND_NOTICE);
@@ -413,19 +361,14 @@ export async function resetMemberPasswordAction(formData: FormData) {
     username: formData.get("username"),
   });
 
-  const resetPassword = `${parsedInput.username}123456`;
+  const resetPasswordValue = `${parsedInput.username}123456`;
 
-  await db.user.update({
-    where: { id: parsedInput.id },
-    data: {
-      passwordHash: await hashPassword(resetPassword),
-    },
-  });
+  await resetMemberPassword(parsedInput.id, resetPasswordValue);
 
   revalidatePath("/admin/members");
   redirect(
     `/admin/members?notice=${encodeURIComponent(
-      `密码已重置为 ${resetPassword}`,
+      `密码已重置为 ${resetPasswordValue}`,
     )}`,
   );
 }
@@ -440,63 +383,13 @@ export async function deleteMemberAction(formData: FormData) {
     redirectToMemberNotice("不能删除当前登录管理员");
   }
 
-  const currentMember = await db.user.findUnique({
-    where: { id: parsedInput.id },
-    select: {
-      id: true,
-      ledGroup: {
-        select: {
-          id: true,
-        },
-      },
-      _count: {
-        select: {
-          salesRecords: true,
-          commissionRules: true,
-          dailyTargets: true,
-          adjustedDailyTargets: true,
-          receivedReminders: true,
-          sentReminders: true,
-          identifierImportBatches: true,
-          importedProspectBatches: true,
-          ownedIdentifierCodes: true,
-          receivedCodeAssignments: true,
-          sentCodeAssignments: true,
-          assignedProspectLeads: true,
-          createdProspectLeads: true,
-          identifierSales: true,
-        },
-      },
-    },
-  });
-
-  if (!currentMember) {
-    redirectToMemberNotice(MEMBER_NOT_FOUND_NOTICE);
+  try {
+    await checkMemberDeletable(parsedInput.id);
+  } catch (error) {
+    redirectToMemberNotice(error instanceof Error ? error.message : "删除失败");
   }
 
-  const blockedRelationCount =
-    currentMember._count.salesRecords +
-    currentMember._count.commissionRules +
-    currentMember._count.dailyTargets +
-    currentMember._count.adjustedDailyTargets +
-    currentMember._count.receivedReminders +
-    currentMember._count.sentReminders +
-    currentMember._count.identifierImportBatches +
-    currentMember._count.importedProspectBatches +
-    currentMember._count.ownedIdentifierCodes +
-    currentMember._count.receivedCodeAssignments +
-    currentMember._count.sentCodeAssignments +
-    currentMember._count.assignedProspectLeads +
-    currentMember._count.createdProspectLeads +
-    currentMember._count.identifierSales;
-
-  if (blockedRelationCount > 0) {
-    redirectToMemberNotice(MEMBER_DELETE_BLOCKED_NOTICE);
-  }
-
-  await db.user.delete({
-    where: { id: parsedInput.id },
-  });
+  await deleteMember(parsedInput.id);
 
   revalidatePath("/admin/members");
   refreshLeaderboardCaches();

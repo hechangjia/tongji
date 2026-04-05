@@ -33,6 +33,17 @@ export const proxy = auth((request) => {
     );
   }
 
+  // Block deactivated users — force them back to login
+  if (user.status !== "ACTIVE") {
+    const response = NextResponse.redirect(
+      new URL("/login", request.url),
+    );
+    // Clear the session cookie so they can't keep retrying
+    response.cookies.delete("authjs.session-token");
+    response.cookies.delete("__Secure-authjs.session-token");
+    return response;
+  }
+
   if (isAdminPath(pathname) && !canAccessAdmin(user)) {
     return NextResponse.redirect(
       new URL(getDefaultRedirectPath(user.role), request.url),
@@ -65,5 +76,7 @@ export const config = {
     "/leader/:path*",
     "/admin",
     "/admin/:path*",
+    "/leaderboard",
+    "/leaderboard/:path*",
   ],
 };

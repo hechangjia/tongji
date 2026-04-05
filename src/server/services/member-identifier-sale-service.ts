@@ -269,26 +269,27 @@ export async function saveIdentifierSaleForUser(
 
   const currentGroupId = currentUser.groupId;
 
-  const identifierCode = await db.identifierCode.findUnique({
-    where: { id: payload.codeId },
-    select: {
-      id: true,
-      currentOwnerUserId: true,
-      status: true,
-    },
-  });
-
-  if (
-    !identifierCode ||
-    identifierCode.currentOwnerUserId !== userId ||
-    identifierCode.status !== IdentifierCodeStatus.ASSIGNED
-  ) {
-    throw new Error("只能成交自己名下、且尚未售出的识别码");
-  }
-
   const now = new Date();
 
   return db.$transaction(async (tx) => {
+    // Check identifier code status inside transaction to prevent TOCTOU race
+    const identifierCode = await tx.identifierCode.findUnique({
+      where: { id: payload.codeId },
+      select: {
+        id: true,
+        currentOwnerUserId: true,
+        status: true,
+      },
+    });
+
+    if (
+      !identifierCode ||
+      identifierCode.currentOwnerUserId !== userId ||
+      identifierCode.status !== IdentifierCodeStatus.ASSIGNED
+    ) {
+      throw new Error("只能成交自己名下、且尚未售出的识别码");
+    }
+
     const closeFollowUpItemIds = new Set<string>();
     const explicitFollowUpItem = payload.followUpItemId
       ? await tx.groupFollowUpItem.findUnique({

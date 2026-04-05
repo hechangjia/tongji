@@ -4,18 +4,23 @@ export type SessionRole = "ADMIN" | "LEADER" | "MEMBER";
 
 type SessionLike = {
   role: SessionRole;
+  status?: string;
 } | null;
 
+function isActive(session: SessionLike): boolean {
+  return session?.status === undefined || session.status === "ACTIVE";
+}
+
 export function canAccessAdmin(session: SessionLike) {
-  return session?.role === "ADMIN";
+  return isActive(session) && session?.role === "ADMIN";
 }
 
 export function canAccessLeader(session: SessionLike) {
-  return session?.role === "ADMIN" || session?.role === "LEADER";
+  return isActive(session) && (session?.role === "ADMIN" || session?.role === "LEADER");
 }
 
 export function canAccessMemberArea(session: SessionLike) {
-  return session?.role === "ADMIN" || session?.role === "MEMBER";
+  return isActive(session) && (session?.role === "ADMIN" || session?.role === "MEMBER");
 }
 
 export function getDefaultRedirectPath(role: SessionRole) {
@@ -63,8 +68,12 @@ export function isLeaderPath(pathname: string) {
   return pathname === "/leader" || pathname.startsWith("/leader/");
 }
 
+export function isSharedPath(pathname: string) {
+  return pathname === "/leaderboard" || pathname.startsWith("/leaderboard/");
+}
+
 export function isProtectedPath(pathname: string) {
-  return isAdminPath(pathname) || isLeaderPath(pathname) || isMemberPath(pathname);
+  return isAdminPath(pathname) || isLeaderPath(pathname) || isMemberPath(pathname) || isSharedPath(pathname);
 }
 
 export function getSessionUser(session: Session | null) {

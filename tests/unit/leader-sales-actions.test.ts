@@ -115,7 +115,7 @@ describe("leader sales actions", () => {
 
     expect(reassignIdentifierCodeForLeaderMock).toHaveBeenCalledWith("leader-1", {
       codeId: "code-1",
-      nextOwnerUserId: "",
+      nextOwnerUserId: undefined,
       reason: "回收到组池",
     });
   });
