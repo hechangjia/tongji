@@ -10,7 +10,7 @@ import {
   type AdminSalesFilters,
   type DateValue,
 } from "@/server/services/sales-service";
-import { getAdminSalesReviewData } from "@/server/services/daily-rhythm-service";
+import { getCachedAdminSalesReviewData } from "@/server/services/leaderboard-cache";
 
 type AdminSalesPageProps = {
   searchParams?: Promise<{
@@ -48,7 +48,7 @@ export default async function AdminSalesPage({
     date: selectedDate,
   };
   const notice = pickQueryValue(params?.notice) ?? null;
-  const { summary: dailySummary, rows } = await getAdminSalesReviewData({
+  const { summary: dailySummary, rows } = await getCachedAdminSalesReviewData({
     keyword: filters.keyword,
     todaySaleDate: selectedDate,
   });

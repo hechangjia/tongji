@@ -147,6 +147,29 @@ export function getCachedAdminDailyRhythmSummary(input: {
   return cachedAdminDailyRhythmSummary(input);
 }
 
+export const cachedAdminSalesReviewData = unstable_cache(
+  async (input: {
+    todaySaleDate?: DateValue;
+    keyword?: string;
+  }) => {
+    // We import dynamically to avoid circular dependencies
+    const { getAdminSalesReviewData } = await import("@/server/services/daily-rhythm-service");
+    return getAdminSalesReviewData(input);
+  },
+  ["leaderboard-admin-sales-review-data"],
+  {
+    tags: [LEADERBOARD_CACHE_TAG],
+    revalidate: LEADERBOARD_CACHE_REVALIDATE_SECONDS,
+  }
+);
+
+export function getCachedAdminSalesReviewData(input: {
+  todaySaleDate?: DateValue;
+  keyword?: string;
+}) {
+  return cachedAdminSalesReviewData(input);
+}
+
 export function getCachedDailyTop3Status(input: DailyTop3StatusInput) {
   return cachedDailyTop3Status(input);
 }
