@@ -19,7 +19,7 @@ export function StatusCallout({
   children,
 }: StatusCalloutProps) {
   return (
-    <div className={`rounded-[22px] border px-4 py-4 shadow-sm ${toneClassNames[tone]}`}>
+    <div className={`rounded-[18px] border px-4 py-4 shadow-sm ${toneClassNames[tone]}`}>
       {title ? <p className="text-sm font-semibold">{title}</p> : null}
       <div className={`${title ? "mt-2" : ""} text-sm leading-6`}>{children}</div>
     </div>

@@ -77,7 +77,7 @@ export default async function LeaderGroupPage({ searchParams }: LeaderGroupPageP
 
         {currentGroup ? (
           <div className="grid gap-4 xl:grid-cols-2">
-            <section className="rounded-[28px] border border-white/70 bg-white/82 p-6 shadow-[0_16px_36px_rgba(8,47,73,0.08)]">
+            <section className="rounded-[24px] border border-white/70 bg-white/82 p-6 shadow-[0_16px_36px_rgba(8,47,73,0.08)]">
               <form action={updateLeaderGroupProfileAction} className="space-y-4">
                 <div className="space-y-2">
                   <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-cyan-700">
@@ -124,7 +124,7 @@ export default async function LeaderGroupPage({ searchParams }: LeaderGroupPageP
               </form>
             </section>
 
-            <section className="rounded-[28px] border border-white/70 bg-white/82 p-6 shadow-[0_16px_36px_rgba(8,47,73,0.08)]">
+            <section className="rounded-[24px] border border-white/70 bg-white/82 p-6 shadow-[0_16px_36px_rgba(8,47,73,0.08)]">
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-cyan-700">
                 当前展示
               </p>

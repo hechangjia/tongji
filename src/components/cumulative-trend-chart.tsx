@@ -41,7 +41,7 @@ export function CumulativeTrendChart({
       <svg
         aria-label={title}
         viewBox="0 0 640 240"
-        className="w-full rounded-[22px] border border-slate-200 bg-white p-4"
+        className="w-full rounded-[18px] border border-slate-200 bg-white p-4"
       >
         {series.map((line, index) => (
           <polyline

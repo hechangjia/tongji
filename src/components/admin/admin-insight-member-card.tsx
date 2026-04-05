@@ -15,7 +15,7 @@ function getRiskTone(riskLevel: AdminInsightMemberCardData["riskLevel"]) {
 
 export function AdminInsightMemberCard({ card }: { card: AdminInsightMemberCardData }) {
   return (
-    <article className="space-y-4 rounded-[28px] border border-white/70 bg-white/84 p-5 shadow-[0_20px_52px_rgba(8,47,73,0.08)]">
+    <article className="space-y-4 rounded-[24px] border border-white/70 bg-white/84 p-5 shadow-[0_20px_52px_rgba(8,47,73,0.08)]">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-slate-950">{card.userName}</h2>

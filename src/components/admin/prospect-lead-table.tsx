@@ -22,7 +22,7 @@ export function ProspectLeadTable({ rows }: { rows: AdminProspectLeadRow[] }) {
   }
 
   return (
-    <div className="overflow-hidden rounded-[28px] border border-white/70 bg-white/82 shadow-[0_22px_60px_rgba(8,47,73,0.08)]">
+    <div className="overflow-hidden rounded-[24px] border border-white/70 bg-white/82 shadow-[0_22px_60px_rgba(8,47,73,0.08)]">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50/90 text-left text-slate-600">

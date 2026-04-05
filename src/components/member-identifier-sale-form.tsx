@@ -11,7 +11,7 @@ function SubmitButton({ pending }: { pending: boolean }) {
   return (
     <button
       type="submit"
-      className="inline-flex w-full items-center justify-center rounded-[20px] bg-slate-950 px-4 py-3.5 text-sm font-semibold text-white shadow-[0_18px_36px_rgba(8,47,73,0.16)] transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+      className="inline-flex w-full items-center justify-center rounded-[18px] bg-slate-950 px-4 py-3.5 text-sm font-semibold text-white shadow-[0_18px_36px_rgba(8,47,73,0.16)] transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-800 disabled:cursor-not-allowed disabled:bg-slate-400"
       disabled={pending}
     >
       {pending ? "保存中..." : "保存识别码成交"}
@@ -35,7 +35,7 @@ export function MemberIdentifierSaleForm({
   return (
     <form
       action={formAction}
-      className="space-y-6 rounded-[28px] border border-white/70 bg-white/84 p-6 shadow-[0_22px_60px_rgba(8,47,73,0.08)] backdrop-blur-xl sm:p-7"
+      className="space-y-6 rounded-[24px] border border-white/70 bg-white/84 p-6 shadow-[0_22px_60px_rgba(8,47,73,0.08)] backdrop-blur-xl sm:p-7"
     >
       <input type="hidden" name="followUpItemId" value={state.values.followUpItemId} readOnly />
 

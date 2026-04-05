@@ -55,7 +55,7 @@ export default async function AdminInsightsPage({
             <p className="text-sm text-slate-500">按风险高到低排序</p>
           </div>
           {insights.memberCards.length === 0 ? (
-            <div className="rounded-[26px] border border-dashed border-slate-200 bg-slate-50/80 px-6 py-8 text-sm text-slate-500">
+            <div className="rounded-[24px] border border-dashed border-slate-200 bg-slate-50/80 px-6 py-8 text-sm text-slate-500">
               今天还没有需要优先处理的成员。
             </div>
           ) : (

@@ -114,7 +114,7 @@ export function AppShellClient({
       <div className="relative mx-auto flex min-h-dvh w-full max-w-[1600px] gap-0 px-3 py-3 sm:px-4 lg:gap-6 lg:px-6 lg:py-6">
         <aside className="maika-fade-up hidden w-[288px] shrink-0 lg:flex translate-z-0">
           <div className="maika-sidebar-surface flex min-h-full w-full flex-col rounded-[30px] border border-white/10 p-6 text-white shadow-[0_28px_80px_rgba(8,47,73,0.28)]">
-            <div className="relative overflow-hidden rounded-[26px] border border-white/8 bg-white/6 p-5">
+            <div className="relative overflow-hidden rounded-[24px] border border-white/8 bg-white/6 p-5">
               <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-cyan-300/30 blur-2xl" />
               <p className="relative text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-cyan-200/90">
                 Maika Ops
@@ -167,7 +167,7 @@ export function AppShellClient({
 
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="maika-fade-up lg:hidden">
-            <div className="rounded-[28px] border border-white/60 bg-white/70 px-4 py-4 shadow-[0_20px_60px_rgba(8,47,73,0.12)] backdrop-blur-xl">
+            <div className="rounded-[24px] border border-white/60 bg-white/70 px-4 py-4 shadow-[0_20px_60px_rgba(8,47,73,0.12)] backdrop-blur-xl">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-cyan-700">
@@ -184,14 +184,14 @@ export function AppShellClient({
                   type="button"
                   aria-label="打开导航菜单"
                   onClick={() => setIsMenuOpen(true)}
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white/90 text-slate-900 shadow-sm transition hover:border-cyan-300 hover:text-cyan-700"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-[18px] border border-slate-200 bg-white/90 text-slate-900 shadow-sm transition hover:border-cyan-300 hover:text-cyan-700"
                 >
                   <span aria-hidden="true" className="text-xl leading-none">
                     ≡
                   </span>
                 </button>
               </div>
-              <div className="mt-4 flex items-center justify-between gap-3 rounded-[22px] bg-slate-950 px-4 py-3 text-white">
+              <div className="mt-4 flex items-center justify-between gap-3 rounded-[18px] bg-slate-950 px-4 py-3 text-white">
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-cyan-200/85">身份</p>
                   <p className="mt-1 text-sm font-semibold">{displayName}</p>
@@ -223,7 +223,7 @@ export function AppShellClient({
                     type="button"
                     aria-label="关闭导航菜单"
                     onClick={() => setIsMenuOpen(false)}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/12 bg-white/8 text-white transition hover:border-cyan-300/40 hover:text-cyan-200"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-[18px] border border-white/12 bg-white/8 text-white transition hover:border-cyan-300/40 hover:text-cyan-200"
                   >
                     ✕
                   </button>

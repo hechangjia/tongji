@@ -119,7 +119,7 @@ export default async function AdminHomePage({ searchParams }: AdminHomePageProps
             <Link
               key={card.href}
               href={card.href}
-              className="group rounded-[28px] border border-white/70 bg-white/82 p-6 shadow-[0_20px_50px_rgba(8,47,73,0.08)] transition duration-200 hover:-translate-y-1 hover:border-cyan-300 hover:bg-cyan-50/60"
+              className="group rounded-[24px] border border-white/70 bg-white/82 p-6 shadow-[0_20px_50px_rgba(8,47,73,0.08)] transition duration-200 hover:-translate-y-1 hover:border-cyan-300 hover:bg-cyan-50/60"
             >
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-cyan-700">
                 Quick Entry

@@ -28,7 +28,7 @@ export function AnnouncementList({
         {announcements.slice(0, 3).map((announcement) => (
           <article
             key={announcement.id}
-            className={`rounded-[20px] border px-4 py-4 ${
+            className={`rounded-[18px] border px-4 py-4 ${
               announcement.isPinned
                 ? "border-cyan-300/50 bg-cyan-50/70"
                 : "border-slate-200/80 bg-slate-50/90"

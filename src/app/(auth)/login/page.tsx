@@ -64,19 +64,19 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </div>
 
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
-              <div className="rounded-[22px] border border-white/10 bg-white/8 px-4 py-4">
+              <div className="rounded-[18px] border border-white/10 bg-white/8 px-4 py-4">
                 <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-cyan-100/70">
                   Member
                 </p>
                 <p className="mt-3 text-2xl font-semibold text-white">每日录入</p>
               </div>
-              <div className="rounded-[22px] border border-white/10 bg-white/8 px-4 py-4">
+              <div className="rounded-[18px] border border-white/10 bg-white/8 px-4 py-4">
                 <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-cyan-100/70">
                   Shared
                 </p>
                 <p className="mt-3 text-2xl font-semibold text-white">榜单追踪</p>
               </div>
-              <div className="rounded-[22px] border border-white/10 bg-white/8 px-4 py-4">
+              <div className="rounded-[18px] border border-white/10 bg-white/8 px-4 py-4">
                 <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-cyan-100/70">
                   Admin
                 </p>

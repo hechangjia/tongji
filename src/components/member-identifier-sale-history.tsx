@@ -7,7 +7,7 @@ export function MemberIdentifierSaleHistory({
 }) {
   return (
     <div className="space-y-4">
-      <section className="rounded-[28px] border border-white/70 bg-white/84 p-5 shadow-[0_18px_50px_rgba(8,47,73,0.08)]">
+      <section className="rounded-[24px] border border-white/70 bg-white/84 p-5 shadow-[0_18px_50px_rgba(8,47,73,0.08)]">
         <h2 className="text-lg font-semibold text-slate-950">当前可用资源</h2>
         <div className="mt-4 space-y-3 text-sm text-slate-600">
           <p>待售识别码：{workspace.codeOptions.length} 个</p>
@@ -15,7 +15,7 @@ export function MemberIdentifierSaleHistory({
         </div>
       </section>
 
-      <section className="rounded-[28px] border border-white/70 bg-white/84 p-5 shadow-[0_18px_50px_rgba(8,47,73,0.08)]">
+      <section className="rounded-[24px] border border-white/70 bg-white/84 p-5 shadow-[0_18px_50px_rgba(8,47,73,0.08)]">
         <h2 className="text-lg font-semibold text-slate-950">最近识别码成交</h2>
         {workspace.recentSales.length === 0 ? (
           <p className="mt-4 text-sm leading-7 text-slate-500">还没有识别码成交记录，完成第一笔后会在这里显示。</p>
@@ -24,7 +24,7 @@ export function MemberIdentifierSaleHistory({
             {workspace.recentSales.map((sale) => (
               <div
                 key={sale.id}
-                className="rounded-[20px] border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-700"
+                className="rounded-[18px] border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-700"
               >
                 <div className="font-medium text-slate-950">
                   {sale.code} · {sale.planType === "PLAN_40" ? "40 套餐" : "60 套餐"}

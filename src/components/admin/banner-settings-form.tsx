@@ -37,7 +37,7 @@ export function BannerSettingsForm({
   return (
     <form
       action={formAction}
-      className="space-y-5 rounded-[28px] border border-white/70 bg-white/84 p-6 shadow-[0_22px_60px_rgba(8,47,73,0.08)]"
+      className="space-y-5 rounded-[24px] border border-white/70 bg-white/84 p-6 shadow-[0_22px_60px_rgba(8,47,73,0.08)]"
     >
       <div className="space-y-2">
         <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-cyan-700">
@@ -46,7 +46,7 @@ export function BannerSettingsForm({
         <h2 className="text-2xl font-semibold text-slate-900">横幅模式</h2>
       </div>
 
-      <label className="flex items-center gap-3 rounded-[20px] border border-slate-200 bg-cyan-50/60 px-4 py-4 text-sm font-medium text-slate-700">
+      <label className="flex items-center gap-3 rounded-[18px] border border-slate-200 bg-cyan-50/60 px-4 py-4 text-sm font-medium text-slate-700">
         <input
           type="checkbox"
           name="isEnabled"

@@ -26,7 +26,7 @@ export function LeaderCodeAssignmentSection({
   memberOptions: LeaderWorkbenchMemberRow[];
 }) {
   return (
-    <section className="rounded-[28px] border border-white/70 bg-white/84 p-6 shadow-[0_16px_36px_rgba(8,47,73,0.08)]">
+    <section className="rounded-[24px] border border-white/70 bg-white/84 p-6 shadow-[0_16px_36px_rgba(8,47,73,0.08)]">
       <div className="space-y-2">
         <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-cyan-700">
           Code Dispatch
@@ -40,7 +40,7 @@ export function LeaderCodeAssignmentSection({
       {items.length > 0 ? (
         <div className="mt-6 space-y-4">
           {items.map((item) => (
-            <article key={item.id} className="rounded-[22px] border border-slate-200/80 bg-slate-50/80 p-4">
+            <article key={item.id} className="rounded-[18px] border border-slate-200/80 bg-slate-50/80 p-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold text-slate-950">{item.code}</p>

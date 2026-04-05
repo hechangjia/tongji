@@ -40,7 +40,7 @@ export function MyRecordsTable({
   return (
     <div className="space-y-6">
       {rows.length > 0 ? (
-        <div className="overflow-hidden rounded-[28px] border border-white/70 bg-white/82 shadow-[0_22px_60px_rgba(8,47,73,0.08)]">
+        <div className="overflow-hidden rounded-[24px] border border-white/70 bg-white/82 shadow-[0_22px_60px_rgba(8,47,73,0.08)]">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200 text-sm">
               <thead className="bg-slate-50/90 text-left text-slate-600">
@@ -77,7 +77,7 @@ export function MyRecordsTable({
       ) : null}
 
       {identifierSales.length > 0 ? (
-        <div className="overflow-hidden rounded-[28px] border border-white/70 bg-white/82 shadow-[0_22px_60px_rgba(8,47,73,0.08)]">
+        <div className="overflow-hidden rounded-[24px] border border-white/70 bg-white/82 shadow-[0_22px_60px_rgba(8,47,73,0.08)]">
           <div className="border-b border-slate-200 bg-slate-50/80 px-5 py-4">
             <h2 className="text-base font-semibold text-slate-950">识别码成交明细</h2>
             <p className="mt-1 text-sm text-slate-500">这里会显示每一笔识别码成交对应的套餐类型和线索来源。</p>

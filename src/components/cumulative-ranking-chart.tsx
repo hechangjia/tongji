@@ -29,7 +29,7 @@ export function CumulativeRankingChart({
   const maxTotal = Math.max(...topRows.map((row) => row.total), 1);
 
   return (
-    <section className="space-y-5 rounded-[28px] border border-white/70 bg-white/82 p-5 shadow-[0_22px_60px_rgba(8,47,73,0.08)]">
+    <section className="space-y-5 rounded-[24px] border border-white/70 bg-white/82 p-5 shadow-[0_22px_60px_rgba(8,47,73,0.08)]">
       <div className="space-y-2">
         <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
         <p className="text-sm text-slate-600">按全体成员累计数量统计</p>
@@ -39,7 +39,7 @@ export function CumulativeRankingChart({
         {topRows.map((row) => (
           <article
             key={`${row.rank}-${row.userName}`}
-            className={`rounded-[22px] border p-4 ${
+            className={`rounded-[18px] border p-4 ${
               row.isCurrentUser
                 ? "border-cyan-300 bg-cyan-50/80"
                 : "border-slate-200 bg-white/80"
@@ -72,7 +72,7 @@ export function CumulativeRankingChart({
       </div>
 
       {myPositionRow ? (
-        <div className="rounded-[22px] border border-cyan-300 bg-cyan-50/75 p-4">
+        <div className="rounded-[18px] border border-cyan-300 bg-cyan-50/75 p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">
             我的位置
           </p>

@@ -16,7 +16,7 @@ function SubmitButton() {
   return (
     <button
       type="submit"
-      className="inline-flex w-full items-center justify-center rounded-[20px] bg-slate-950 px-4 py-3.5 text-sm font-semibold text-white shadow-[0_18px_36px_rgba(8,47,73,0.18)] transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+      className="inline-flex w-full items-center justify-center rounded-[18px] bg-slate-950 px-4 py-3.5 text-sm font-semibold text-white shadow-[0_18px_36px_rgba(8,47,73,0.18)] transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-800 disabled:cursor-not-allowed disabled:bg-slate-400"
       disabled={pending}
     >
       {pending ? "登录中..." : "登录"}
@@ -59,7 +59,7 @@ export function LoginForm({ callbackUrl }: { callbackUrl: string }) {
         </div>
       </div>
 
-      <div className="rounded-[20px] border border-cyan-100 bg-cyan-50/80 px-4 py-3">
+      <div className="rounded-[18px] border border-cyan-100 bg-cyan-50/80 px-4 py-3">
         <p className="text-sm font-medium text-cyan-900">角色自动跳转</p>
         <p className="mt-1 text-sm leading-6 text-cyan-800/80">
           成员登录后进入录入页，管理员登录后进入管理后台。

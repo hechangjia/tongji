@@ -101,7 +101,7 @@ export default async function AdminSalesPage({
           </StatusCallout>
         ) : null}
 
-        <form className="rounded-[26px] border border-white/70 bg-white/82 p-5 shadow-[0_18px_50px_rgba(8,47,73,0.08)]">
+        <form className="rounded-[24px] border border-white/70 bg-white/82 p-5 shadow-[0_18px_50px_rgba(8,47,73,0.08)]">
           <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px_auto] md:items-end">
             <div className="space-y-2">
               <label htmlFor="keyword" className="text-sm font-medium text-slate-700">

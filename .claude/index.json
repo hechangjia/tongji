@@ -1,0 +1,168 @@
+{
+  "timestamp": "2026-04-05T09:49:44.000Z",
+  "projectName": "Maika",
+  "description": "Campus Phone Card Sales Tracking System",
+  "rootClaude": "CLAUDE.md",
+  "modules": [
+    {
+      "name": "Admin Pages",
+      "path": "src/app/(admin)/admin",
+      "claudeMd": "src/app/(admin)/admin/CLAUDE.md",
+      "language": "TypeScript/TSX",
+      "entry": "src/app/(admin)/admin/page.tsx",
+      "interfaces": [
+        "src/app/(admin)/admin/announcements/actions.ts",
+        "src/app/(admin)/admin/banners/actions.ts",
+        "src/app/(admin)/admin/codes/actions.ts",
+        "src/app/(admin)/admin/commission-rules/actions.ts",
+        "src/app/(admin)/admin/groups/actions.ts",
+        "src/app/(admin)/admin/insights/actions.ts",
+        "src/app/(admin)/admin/members/actions.ts",
+        "src/app/(admin)/admin/sales/actions.ts"
+      ],
+      "tests": "tests/unit/admin-*.test.ts",
+      "scannedFiles": 28,
+      "coverage": "FULL"
+    },
+    {
+      "name": "Leader Pages",
+      "path": "src/app/(leader)/leader",
+      "claudeMd": "src/app/(leader)/leader/CLAUDE.md",
+      "language": "TypeScript/TSX",
+      "entry": "src/app/(leader)/leader/group/page.tsx",
+      "interfaces": [
+        "src/app/(leader)/leader/group/actions.ts",
+        "src/app/(leader)/leader/sales/actions.ts"
+      ],
+      "tests": "tests/unit/leader-*.test.ts",
+      "scannedFiles": 6,
+      "coverage": "FULL"
+    },
+    {
+      "name": "Member Pages",
+      "path": "src/app/(member)",
+      "claudeMd": "src/app/(member)/CLAUDE.md",
+      "language": "TypeScript/TSX",
+      "entry": "src/app/(member)/entry/page.tsx",
+      "interfaces": [
+        "src/app/(member)/entry/actions.ts"
+      ],
+      "tests": "tests/unit/sales-entry-*.test.ts",
+      "scannedFiles": 5,
+      "coverage": "FULL"
+    },
+    {
+      "name": "Shared Leaderboard Pages",
+      "path": "src/app/(shared)/leaderboard",
+      "claudeMd": "src/app/(shared)/leaderboard/CLAUDE.md",
+      "language": "TypeScript/TSX",
+      "entry": "src/app/(shared)/leaderboard/daily/page.tsx",
+      "interfaces": [],
+      "tests": "tests/unit/leaderboard-*.test.ts",
+      "scannedFiles": 3,
+      "coverage": "FULL"
+    },
+    {
+      "name": "Auth Pages",
+      "path": "src/app/(auth)/login",
+      "claudeMd": "src/app/(auth)/login/CLAUDE.md",
+      "language": "TypeScript/TSX",
+      "entry": "src/app/(auth)/login/page.tsx",
+      "interfaces": [
+        "src/app/(auth)/login/actions.ts"
+      ],
+      "tests": "tests/unit/login-*.test.ts",
+      "scannedFiles": 3,
+      "coverage": "FULL"
+    },
+    {
+      "name": "API Routes",
+      "path": "src/app/api",
+      "claudeMd": "src/app/api/CLAUDE.md",
+      "language": "TypeScript",
+      "entry": "src/app/api/auth/[...nextauth]/route.ts",
+      "interfaces": [
+        "src/app/api/export/daily/route.ts",
+        "src/app/api/export/range/route.ts",
+        "src/app/api/export/settlement/route.ts"
+      ],
+      "tests": "tests/unit/export-service.test.ts",
+      "scannedFiles": 4,
+      "coverage": "FULL"
+    },
+    {
+      "name": "Service Layer",
+      "path": "src/server/services",
+      "claudeMd": "src/server/services/CLAUDE.md",
+      "language": "TypeScript",
+      "entry": null,
+      "interfaces": [],
+      "tests": "tests/unit/*.test.ts",
+      "scannedFiles": 24,
+      "coverage": "FULL"
+    },
+    {
+      "name": "Core Library",
+      "path": "src/lib",
+      "claudeMd": "src/lib/CLAUDE.md",
+      "language": "TypeScript",
+      "entry": null,
+      "interfaces": [],
+      "tests": "tests/unit/auth.test.ts",
+      "scannedFiles": 21,
+      "coverage": "FULL"
+    },
+    {
+      "name": "UI Components",
+      "path": "src/components",
+      "claudeMd": "src/components/CLAUDE.md",
+      "language": "TypeScript/TSX",
+      "entry": null,
+      "interfaces": [],
+      "tests": "tests/unit/*.test.tsx",
+      "scannedFiles": 58,
+      "coverage": "FULL"
+    },
+    {
+      "name": "Database Layer",
+      "path": "prisma",
+      "claudeMd": "prisma/CLAUDE.md",
+      "language": "Prisma/TypeScript",
+      "entry": "prisma/schema.prisma",
+      "interfaces": [],
+      "tests": "tests/unit/prisma-schema-contract.test.ts",
+      "scannedFiles": 9,
+      "coverage": "FULL"
+    }
+  ],
+  "fileStatistics": {
+    "estimatedTotalFiles": 161,
+    "scannedFiles": 161,
+    "coveragePercent": 100,
+    "breakdown": {
+      "sourceTs": 70,
+      "sourceTsx": 80,
+      "unitTests": 71,
+      "e2eTests": 9,
+      "prismaFiles": 9,
+      "configFiles": 8
+    }
+  },
+  "ignoreRules": {
+    "source": ".gitignore",
+    "ignoredPatterns": [
+      "node_modules",
+      ".next",
+      "coverage",
+      "test-results",
+      "playwright-report",
+      "build",
+      ".vercel",
+      ".env*"
+    ],
+    "ignoredFileEstimate": "~85000 (node_modules)"
+  },
+  "gaps": [],
+  "truncated": false,
+  "nextSteps": []
+}

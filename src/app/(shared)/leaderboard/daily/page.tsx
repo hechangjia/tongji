@@ -45,7 +45,7 @@ export default async function DailyLeaderboardPage({
         </div>
       </PageHeader>
 
-      <form className="rounded-[26px] border border-white/70 bg-white/82 p-5 shadow-[0_18px_50px_rgba(8,47,73,0.08)]">
+      <form className="rounded-[24px] border border-white/70 bg-white/82 p-5 shadow-[0_18px_50px_rgba(8,47,73,0.08)]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="space-y-2">
             <label htmlFor="date" className="text-sm font-medium text-slate-700">

@@ -8,7 +8,7 @@ type EmptyStateProps = {
 
 export function EmptyState({ title, description, action }: EmptyStateProps) {
   return (
-    <div className="rounded-[28px] border border-dashed border-cyan-300/70 bg-white/72 px-6 py-8 text-center shadow-[0_16px_36px_rgba(8,47,73,0.08)]">
+    <div className="rounded-[24px] border border-dashed border-cyan-300/70 bg-white/72 px-6 py-8 text-center shadow-[0_16px_36px_rgba(8,47,73,0.08)]">
       <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-cyan-700">
         Empty State
       </p>

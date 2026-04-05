@@ -27,7 +27,7 @@ export function AdminReminderForm({
   });
 
   return (
-    <form action={sendMemberReminderAction} className="grid gap-3 rounded-[20px] border border-slate-200 bg-slate-50/80 p-4">
+    <form action={sendMemberReminderAction} className="grid gap-3 rounded-[18px] border border-slate-200 bg-slate-50/80 p-4">
       <input type="hidden" name="userId" value={userId} />
       <input type="hidden" name="returnTo" value={returnTo} />
       <label className="space-y-1 text-sm text-slate-600">

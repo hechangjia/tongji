@@ -39,7 +39,7 @@ export function LeaderboardTable({
             {podium.map((row, index) => (
               <article
                 key={`${row.userName}-${row.rank}`}
-                className={`rounded-[26px] border px-5 py-5 shadow-[0_18px_42px_rgba(8,47,73,0.08)] ${
+                className={`rounded-[24px] border px-5 py-5 shadow-[0_18px_42px_rgba(8,47,73,0.08)] ${
                   index === 0
                     ? "maika-podium-surface border-cyan-300/50 text-white"
                     : "border-white/70 bg-white/82 text-slate-950"
@@ -84,7 +84,7 @@ export function LeaderboardTable({
             ))}
           </div>
 
-          <div className="overflow-hidden rounded-[28px] border border-white/70 bg-white/82 shadow-[0_22px_60px_rgba(8,47,73,0.08)]">
+          <div className="overflow-hidden rounded-[24px] border border-white/70 bg-white/82 shadow-[0_22px_60px_rgba(8,47,73,0.08)]">
             <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200 text-sm">
               <thead className="bg-slate-50/90 text-left text-slate-600">

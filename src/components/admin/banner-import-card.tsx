@@ -21,7 +21,7 @@ export function BannerImportCard() {
   return (
     <form
       action={importHitokotoBannerAction}
-      className="space-y-4 rounded-[28px] border border-white/70 bg-white/84 p-6 shadow-[0_22px_60px_rgba(8,47,73,0.08)]"
+      className="space-y-4 rounded-[24px] border border-white/70 bg-white/84 p-6 shadow-[0_22px_60px_rgba(8,47,73,0.08)]"
     >
       <div className="space-y-2">
         <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-cyan-700">

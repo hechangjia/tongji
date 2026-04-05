@@ -33,7 +33,7 @@ export function AnnouncementTable({ rows }: { rows: AnnouncementRow[] }) {
       {rows.map((row) => (
         <article
           key={row.id}
-          className="rounded-[28px] border border-white/70 bg-white/84 p-5 shadow-[0_20px_52px_rgba(8,47,73,0.08)]"
+          className="rounded-[24px] border border-white/70 bg-white/84 p-5 shadow-[0_20px_52px_rgba(8,47,73,0.08)]"
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-2">

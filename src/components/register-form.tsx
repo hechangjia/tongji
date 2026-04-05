@@ -17,7 +17,7 @@ function SubmitButton() {
   return (
     <button
       type="submit"
-      className="inline-flex w-full items-center justify-center rounded-[20px] bg-cyan-700 px-4 py-3.5 text-sm font-semibold text-white shadow-[0_18px_36px_rgba(8,47,73,0.18)] transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+      className="inline-flex w-full items-center justify-center rounded-[18px] bg-cyan-700 px-4 py-3.5 text-sm font-semibold text-white shadow-[0_18px_36px_rgba(8,47,73,0.18)] transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-800 disabled:cursor-not-allowed disabled:bg-slate-400"
       disabled={pending}
     >
       {pending ? "注册中..." : "注册并进入"}
@@ -87,7 +87,7 @@ export function RegisterForm({ callbackUrl }: { callbackUrl?: string }) {
         </div>
       </div>
 
-      <div className="rounded-[20px] border border-cyan-100 bg-cyan-50/80 px-4 py-3">
+      <div className="rounded-[18px] border border-cyan-100 bg-cyan-50/80 px-4 py-3">
         <p className="text-sm leading-6 text-cyan-800/80">
           请输入邀请码完成注册，注册后将自动创建为激活成员账号。
         </p>

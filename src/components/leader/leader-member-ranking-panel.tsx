@@ -20,7 +20,7 @@ export function LeaderMemberRankingPanel({
   rows: LeaderWorkbenchMemberRow[];
 }) {
   return (
-    <section className="rounded-[28px] border border-white/70 bg-white/84 p-6 shadow-[0_16px_36px_rgba(8,47,73,0.08)]">
+    <section className="rounded-[24px] border border-white/70 bg-white/84 p-6 shadow-[0_16px_36px_rgba(8,47,73,0.08)]">
       <div className="space-y-2">
         <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-cyan-700">
           Member Ranking
@@ -36,7 +36,7 @@ export function LeaderMemberRankingPanel({
           {rows.map((row) => (
             <li
               key={row.userId}
-              className="rounded-[22px] border border-slate-200/80 bg-slate-50/80 p-4"
+              className="rounded-[18px] border border-slate-200/80 bg-slate-50/80 p-4"
             >
               <div className="flex items-center justify-between gap-4">
                 <div>

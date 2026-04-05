@@ -23,7 +23,7 @@ export function ThemePalette() {
     <div className="pointer-events-none fixed right-[calc(env(safe-area-inset-right)+1rem)] top-[calc(env(safe-area-inset-top)+1rem)] z-50 sm:right-[calc(env(safe-area-inset-right)+1.5rem)] sm:top-auto sm:bottom-[calc(env(safe-area-inset-bottom)+1.5rem)]">
       <div className="pointer-events-auto flex flex-col items-end gap-3">
         {isOpen ? (
-          <div className="w-[min(88vw,340px)] rounded-[26px] border border-white/65 bg-white/86 p-4 shadow-[0_24px_60px_rgba(8,47,73,0.18)] backdrop-blur-xl">
+          <div className="w-[min(88vw,340px)] rounded-[24px] border border-white/65 bg-white/86 p-4 shadow-[0_24px_60px_rgba(8,47,73,0.18)] backdrop-blur-xl">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-cyan-700">
@@ -40,7 +40,7 @@ export function ThemePalette() {
                 type="button"
                 aria-label="关闭主题调色板"
                 onClick={() => setIsOpen(false)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-cyan-300 hover:text-cyan-700"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-[18px] border border-slate-200 bg-white text-slate-700 transition hover:border-cyan-300 hover:text-cyan-700"
               >
                 ✕
               </button>
@@ -60,7 +60,7 @@ export function ThemePalette() {
                       setActiveTheme(nextTheme);
                       setIsOpen(false);
                     }}
-                    className={`rounded-[22px] border px-3 py-3 text-left transition ${
+                    className={`rounded-[18px] border px-3 py-3 text-left transition ${
                       active
                         ? "border-cyan-300 bg-cyan-50 shadow-[0_16px_40px_rgba(14,165,233,0.16)]"
                         : "border-slate-200 bg-white hover:border-cyan-300 hover:bg-cyan-50/60"

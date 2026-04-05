@@ -14,21 +14,21 @@ export function GroupLeaderboardTable({
   memberRowsByGroupId: Record<string, GroupMemberLeaderboardRow[]>;
 }) {
   return (
-    <section className="rounded-[28px] border border-white/70 bg-white/84 p-6 shadow-[0_16px_36px_rgba(8,47,73,0.08)]">
+    <section className="rounded-[24px] border border-white/70 bg-white/84 p-6 shadow-[0_16px_36px_rgba(8,47,73,0.08)]">
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-[20px] border border-slate-200/80 bg-slate-50/80 p-4">
+        <div className="rounded-[18px] border border-slate-200/80 bg-slate-50/80 p-4">
           <p className="text-xs text-slate-500">当前小组</p>
           <p className="mt-2 text-2xl font-semibold text-slate-950">
             {viewerGroupDelta?.groupId ?? "-"}
           </p>
         </div>
-        <div className="rounded-[20px] border border-slate-200/80 bg-slate-50/80 p-4">
+        <div className="rounded-[18px] border border-slate-200/80 bg-slate-50/80 p-4">
           <p className="text-xs text-slate-500">与上一组差距</p>
           <p className="mt-2 text-2xl font-semibold text-slate-950">
             {viewerGroupDelta?.gapToPrevious ?? "-"}
           </p>
         </div>
-        <div className="rounded-[20px] border border-slate-200/80 bg-slate-50/80 p-4">
+        <div className="rounded-[18px] border border-slate-200/80 bg-slate-50/80 p-4">
           <p className="text-xs text-slate-500">与下一组差距</p>
           <p className="mt-2 text-2xl font-semibold text-slate-950">
             {viewerGroupDelta?.gapToNext ?? "-"}
@@ -41,7 +41,7 @@ export function GroupLeaderboardTable({
           const memberRows = memberRowsByGroupId[row.groupId] ?? [];
 
           return (
-            <article key={row.groupId} className="rounded-[22px] border border-slate-200/80 bg-slate-50/80 p-4">
+            <article key={row.groupId} className="rounded-[18px] border border-slate-200/80 bg-slate-50/80 p-4">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold text-slate-950">

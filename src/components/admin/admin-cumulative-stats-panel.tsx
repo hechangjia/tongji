@@ -64,7 +64,7 @@ export function AdminCumulativeStatsPanel({
   series: TrendSeriesRow[];
 }) {
   return (
-    <section className="space-y-5 rounded-[28px] border border-white/70 bg-white/82 p-6 shadow-[0_22px_60px_rgba(8,47,73,0.08)]">
+    <section className="space-y-5 rounded-[24px] border border-white/70 bg-white/82 p-6 shadow-[0_22px_60px_rgba(8,47,73,0.08)]">
       <div className="space-y-2">
         <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-cyan-700">
           Admin Insight
@@ -107,7 +107,7 @@ export function AdminCumulativeStatsPanel({
       <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]">
         <CumulativeTrendChart title="成员累计卖卡趋势" series={series} />
 
-        <section className="rounded-[22px] border border-slate-200 bg-slate-50/80 p-4">
+        <section className="rounded-[18px] border border-slate-200 bg-slate-50/80 p-4">
           <h3 className="text-lg font-semibold text-slate-950">Top 成员</h3>
           <div className="mt-4 space-y-3">
             {series.length === 0 ? (
