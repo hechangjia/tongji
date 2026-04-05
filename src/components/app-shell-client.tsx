@@ -72,10 +72,10 @@ function NavItem({
       href={href}
       aria-current={active ? "page" : undefined}
       onClick={onNavigate}
-      className={`group flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition duration-200 ${
+      className={`group flex items-center justify-between rounded-[18px] border px-4 py-3 text-sm font-medium transition duration-200 ${
         active
-          ? "border-cyan-300/70 bg-cyan-300 text-slate-950 shadow-[0_16px_32px_rgba(6,182,212,0.22)]"
-          : "border-white/10 bg-white/6 text-slate-100 hover:border-cyan-300/35 hover:bg-white/12 hover:text-white"
+          ? "border-maika-accent-strong/40 bg-maika-accent-strong text-white shadow-[0_16px_32px_rgba(15,118,110,0.22)]"
+          : "border-white/10 bg-white/5 text-white/80 hover:border-maika-accent/30 hover:bg-white/10 hover:text-white"
       }`}
     >
       <span>{label}</span>
@@ -112,7 +112,7 @@ export function AppShellClient({
       <div className="maika-shell-backdrop pointer-events-none absolute inset-0" />
 
       <div className="relative mx-auto flex min-h-dvh w-full max-w-[1600px] gap-0 px-3 py-3 sm:px-4 lg:gap-6 lg:px-6 lg:py-6">
-        <aside className="maika-fade-up hidden w-[288px] shrink-0 lg:flex">
+        <aside className="maika-fade-up hidden w-[288px] shrink-0 lg:flex translate-z-0">
           <div className="maika-sidebar-surface flex min-h-full w-full flex-col rounded-[30px] border border-white/10 p-6 text-white shadow-[0_28px_80px_rgba(8,47,73,0.28)]">
             <div className="relative overflow-hidden rounded-[26px] border border-white/8 bg-white/6 p-5">
               <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-cyan-300/30 blur-2xl" />
