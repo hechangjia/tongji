@@ -1,4 +1,5 @@
 import { EmptyState } from "@/components/empty-state";
+import { BentoCard } from "@/components/ui/bento-card";
 import type { SettlementRow } from "@/server/services/settlement-service";
 
 function formatAmount(amount: number | null) {
@@ -20,10 +21,10 @@ export function SettlementTable({
   }
 
   return (
-    <div className="overflow-hidden rounded-[28px] border border-white/70 bg-white/82 shadow-[0_22px_60px_rgba(8,47,73,0.08)]">
+    <BentoCard radius="lg" className="overflow-hidden">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
-          <thead className="bg-slate-50/90 text-left text-slate-600">
+          <thead className="text-left border-b border-maika-muted/10 text-xs text-maika-muted uppercase tracking-[0.1em]">
             <tr>
               <th className="px-5 py-4 font-medium">成员</th>
               <th className="px-5 py-4 font-medium">40 套餐</th>
@@ -35,8 +36,8 @@ export function SettlementTable({
           </thead>
           <tbody className="divide-y divide-slate-100">
             {rows.map((row) => (
-              <tr key={row.userId} className="text-slate-700 transition hover:bg-cyan-50/50">
-                <td className="px-5 py-4 font-medium text-slate-900">{row.userName}</td>
+              <tr key={row.userId} className="align-middle text-maika-foreground transition hover:bg-maika-foreground/5">
+                <td className="px-5 py-4 font-semibold text-maika-ink mono-accent">{row.userName}</td>
                 <td className="px-5 py-4">{row.count40}</td>
                 <td className="px-5 py-4">{row.count60}</td>
                 <td className="px-5 py-4">
@@ -63,6 +64,6 @@ export function SettlementTable({
           </tbody>
         </table>
       </div>
-    </div>
+      </BentoCard>
   );
 }

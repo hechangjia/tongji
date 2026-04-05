@@ -1,4 +1,5 @@
 import { EmptyState } from "@/components/empty-state";
+import { BentoCard } from "@/components/ui/bento-card";
 import type { AdminCodeInventoryRow } from "@/server/services/admin-code-service";
 
 function statusLabel(status: AdminCodeInventoryRow["status"]) {
@@ -15,14 +16,14 @@ function statusLabel(status: AdminCodeInventoryRow["status"]) {
 
 function statusClassName(status: AdminCodeInventoryRow["status"]) {
   if (status === "ASSIGNED") {
-    return "bg-amber-100 text-amber-700";
+    return "bg-amber-500/10 text-amber-600";
   }
 
   if (status === "SOLD") {
-    return "bg-emerald-100 text-emerald-700";
+    return "bg-green-500/10 text-green-700";
   }
 
-  return "bg-slate-200 text-slate-700";
+  return "bg-maika-muted/10 text-maika-muted";
 }
 
 export function CodeInventoryTable({ rows }: { rows: AdminCodeInventoryRow[] }) {
@@ -36,10 +37,10 @@ export function CodeInventoryTable({ rows }: { rows: AdminCodeInventoryRow[] }) 
   }
 
   return (
-    <div className="overflow-hidden rounded-[28px] border border-white/70 bg-white/82 shadow-[0_22px_60px_rgba(8,47,73,0.08)]">
+    <BentoCard radius="lg" className="overflow-hidden">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
-          <thead className="bg-slate-50/90 text-left text-slate-600">
+          <thead className="text-left border-b border-maika-muted/10 text-xs text-maika-muted uppercase tracking-[0.1em]">
             <tr>
               <th className="px-5 py-4 font-medium">识别码</th>
               <th className="px-5 py-4 font-medium">状态</th>
@@ -51,7 +52,7 @@ export function CodeInventoryTable({ rows }: { rows: AdminCodeInventoryRow[] }) 
           <tbody className="divide-y divide-slate-100">
             {rows.map((row) => (
               <tr key={row.id} className="align-top text-slate-700 transition hover:bg-cyan-50/50">
-                <td className="px-5 py-4 font-medium text-slate-900">{row.code}</td>
+                <td className="px-5 py-4 font-medium text-maika-ink mono-accent tracking-wider">{row.code}</td>
                 <td className="px-5 py-4">
                   <span className={`rounded-full px-3 py-1 text-xs font-medium ${statusClassName(row.status)}`}>
                     {statusLabel(row.status)}
@@ -72,6 +73,6 @@ export function CodeInventoryTable({ rows }: { rows: AdminCodeInventoryRow[] }) 
           </tbody>
         </table>
       </div>
-    </div>
+      </BentoCard>
   );
 }
