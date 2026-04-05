@@ -7,198 +7,42 @@
 - **Project type:** Web app (Next.js App Router, deployed on Vercel)
 
 ## Aesthetic Direction
-- **Direction:** Industrial/Utilitarian with glassmorphic accents
-- **Decoration level:** Intentional — subtle gradients, backdrop blur, background grid texture. Not minimal, not expressive.
-- **Mood:** A focused operations dashboard that still feels alive. The gradient backgrounds and glass surfaces add visual depth without getting in the way of data-heavy screens. Think "polished control room" not "consumer SaaS."
-- **Key surfaces:** Glassmorphic cards (rgba white + backdrop-blur-xl), dark sidebar with gradient, theme-tinted body gradient
+- **Direction:** Refined Utility (Glassmorphic Industrial) — 高效冷静的数据展现与空间层级的现代质感相结合。
+- **Decoration level:** Intentional — 极简的信息流基础，利用毛玻璃 (backdrop-blur-xl) 和主题色环境光渐变 (Ambient Glows) 构建空间深度。
+- **Mood:** A focused operations dashboard that feels alive. Polished control room.
 
 ## Typography
-
-### Font Stack
-- **Body (sans):** `"DM Sans", "Noto Sans SC", "Avenir Next", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", sans-serif`
-  - DM Sans: primary web font, optical size 9-40, weight 300-700. Clean geometric sans with excellent tabular-nums support.
-  - Noto Sans SC: Chinese fallback, weight-matched to DM Sans for visual consistency across mixed CJK/Latin text.
-  - Remaining: system fallbacks for offline/slow network.
-- **Display (serif):** `"Iowan Old Style", "Noto Serif SC", "Songti SC", "STSong", serif`
-  - System-only serif stack. Used exclusively for page hero titles and section headings (`.font-display` class).
-  - No web serif loaded — avoids the visual weight mismatch between English serif and Chinese system fonts (prior learning).
-- **Data:** Same as body, with `font-variant-numeric: tabular-nums` enabled. Required for leaderboard rankings, sales tables, and metric cards.
-- **Code:** `"Geist Mono", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace`
-
-### Font Loading
-```html
-<!-- Google Fonts (add to layout.tsx or use next/font) -->
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Noto+Sans+SC:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
-```
-Total additional payload: ~50KB (DM Sans Latin subset + Noto Sans SC common subset + Geist Mono).
-
-### Type Scale
-| Token | Size | Usage |
-|-------|------|-------|
-| `4xl` | 2.25rem (36px) | Hero display headings |
-| `3xl` | 1.875rem (30px) | Page titles (mobile) |
-| `2xl` | 1.5rem (24px) | Section headings, metric values |
-| `xl` | 1.25rem (20px) | Sub-headings |
-| `lg` | 1.125rem (18px) | Emphasized body |
-| `base` | 1rem (16px) | Body text |
-| `sm` | 0.875rem (14px) | Secondary text, table cells, descriptions |
-| `xs` | 0.75rem (12px) | Hints, timestamps, badge text |
-| `label` | 0.72rem + 600 + uppercase + 0.22em tracking | Section labels, metric labels, eyebrows |
-
-### Label Pattern
-The recurring "label" pattern is a first-class typographic element:
-```css
-font-size: 0.72rem;
-font-weight: 600;
-text-transform: uppercase;
-letter-spacing: 0.22em;
-color: var(--maika-muted);
-```
-Used for: metric card labels, section eyebrows, sidebar section titles, table headers, nav section titles. Letter-spacing variants: 0.18em (compact), 0.22em (standard), 0.24em (prominent).
+- **Display/Hero:** `"Iowan Old Style", "Noto Serif SC", "Songti SC", "STSong", serif` — 仅用于偶然的大标题（Hero）。注意：不可混用英文字体库与中文默认体以避免字重断层。
+- **Body:** `"DM Sans", "Noto Sans SC", sans-serif` — 主干字体。DM Sans 提供极佳的几何结构与数字支持；Noto Sans SC 作为字重匹配的中文后备。
+- **System Identifiers/Money:** `"Geist Mono", monospace` — **破局风险点**：用于手机号、验证码、金额、订单号。强烈的等宽工业感可立刻抓取视觉焦点。
+- **Data/Tables:** DM Sans with `font-variant-numeric: tabular-nums` — 强制要求。
 
 ## Color
-
-### Approach
-Balanced — 6 interchangeable theme palettes, each with a coherent gradient system. Color serves both function (semantic) and personality (theme identity).
-
-### Theme System
-6 themes stored in localStorage, applied via `data-maika-theme` attribute on `<html>`. SSR-safe via inline bootstrap script in `<head>`.
-
-| Theme | ID | Label | Mood |
-|-------|----|-------|------|
-| Lagoon (default) | `lagoon` | 海雾青 | Cool teal-cyan, calm and focused |
-| Sunset | `sunset` | 落日绯 | Warm orange-rose, energetic |
-| Aurora | `aurora` | 极光绿 | Deep green, nature calm |
-| Violet | `violet` | 夜幕紫 | Indigo-purple, deep focus |
-| Ember | `ember` | 余烬铜 | Amber-brown, warm retro |
-| Graphite | `graphite` | 石墨灰 | Neutral slate, low-stimulation |
-
-### CSS Variable Architecture
-Each theme defines these variables in `:root` / `:root[data-maika-theme="..."]`:
-
-| Variable | Purpose | Lagoon value |
-|----------|---------|-------------|
-| `--background` | Page background base | `#effcff` |
-| `--foreground` | Primary text | `#082032` |
-| `--maika-ink` | Headings, buttons, strong text | `#082f49` |
-| `--maika-surface` | Glass card background | `rgba(255, 255, 255, 0.82)` |
-| `--maika-accent` | Highlights, active states, badges | `#67e8f9` |
-| `--maika-accent-strong` | Links, eyebrows, focus rings | `#0f766e` |
-| `--maika-ring` | Focus ring color | `#bae6fd` |
-| `--maika-muted` | Secondary text, labels | `#5a6f7f` |
-| `--maika-selection` | Text selection highlight | `rgba(34, 211, 238, 0.35)` |
-| `--maika-grid-line` | Background grid texture | `rgba(8, 47, 73, 0.04)` |
-
-### Gradient Variables
-| Variable | Purpose |
-|----------|---------|
-| `--maika-body-gradient` | Full-page background (radial accents + linear base) |
-| `--maika-shell-gradient` | App shell backdrop |
-| `--maika-login-gradient` | Login page dark gradient |
-| `--maika-sidebar-gradient` | Desktop sidebar (dark, near-opaque) |
-| `--maika-banner-gradient` | Banner quote strip |
-| `--maika-header-gradient` | Page header surface |
-| `--maika-podium-gradient` | Leaderboard podium |
-
-### Semantic Colors (theme-independent)
-| Purpose | Color | Usage |
-|---------|-------|-------|
-| Success | `#15803d` (green-700) | Approved status, positive change |
-| Warning | `#b45309` (amber-700) | Pending status, attention needed |
-| Error | `#be123c` (rose-700) | Rejected status, validation errors |
-| Info | `#0369a1` (sky-700) | Informational callouts |
-
-Semantic badge pattern: `background: rgba(color, 0.15); color: full-color; border-radius: 18px; font-size: 0.72rem; font-weight: 600;`
+- **Approach:** Balanced Semantic
+- **Themes:** 6 套基于 CSS 变量的主题 (Lagoon, Sunset, Aurora, Violet, Ember, Graphite)。
+- **Core Strategy:** 极低亮度暗色或净冷白作为大背景；高对比度颜色仅限于状态标签（Status Tags）。
+- **Semantic:**
+  - Success: `bg-green-500/15 text-green-700`
+  - Warning: `bg-amber-500/15 text-amber-700`
+  - Error: `bg-rose-500/15 text-rose-700`
 
 ## Spacing
 - **Base unit:** 4px
-- **Density:** Comfortable
-- **Scale:**
-
-| Token | Value | Common Tailwind | Usage |
-|-------|-------|----------------|-------|
-| `2xs` | 2px | `gap-0.5` | Micro gaps, divider margins |
-| `xs` | 4px | `gap-1`, `p-1` | Tight inline spacing |
-| `sm` | 8px | `gap-2`, `p-2` | Between related elements |
-| `md` | 16px | `gap-4`, `p-4`, `px-4` | Standard card padding, form gaps |
-| `lg` | 24px | `gap-6`, `p-6`, `px-6` | Section spacing, card groups |
-| `xl` | 32px | `gap-8`, `p-8` | Major section breaks |
-| `2xl` | 48px | `py-12` | Page-level vertical rhythm |
-| `3xl` | 64px | `py-16` | Section separators |
-
-### High-frequency combinations (from codebase analysis)
-- **Compact content:** `px-4 py-3` or `px-3 py-2` — table cells, badges, compact cards
-- **Standard card:** `px-5 py-4` — metric cards, nav items, form groups
-- **Spacious container:** `p-6` or `px-6 py-6` — sidebar panels, page sections
-- **Content stacking:** `space-y-2` (tight), `space-y-3` (standard), `space-y-4`/`space-y-5` (sections)
-- **Inline gaps:** `gap-3` (default), `gap-4` (with more elements)
+- **Density:** Comfortable (数据表格紧凑 `px-4 py-3`，外部模块开阔 `p-6`)
 
 ## Layout
-- **Approach:** Grid-disciplined
-- **Structure:** Fixed sidebar (288px, desktop only) + fluid main content area
-- **Max content width:** 1600px (`max-w-[1600px]`)
-- **Responsive breakpoints:** Mobile-first. Sidebar appears at `lg:` (1024px). Header collapses to mobile hamburger below `lg:`.
-- **Card-based content:** All content blocks are rounded glass cards within the main area
-- **Grid columns:** Auto-responsive via `grid-template-columns: repeat(auto-fill, minmax(...))` for metric/stat grids
-
-### Border Radius Scale
-| Token | Value | Usage |
-|-------|-------|-------|
-| `sm` | 18px | Buttons, badges, nav items, form inputs, small cards |
-| `md` | 24px | Metric cards, identity panels, content blocks |
-| `lg` | 30px | Main content area, sidebar, page header, app shell |
-| `full` | 9999px | Pills, circular badges, role indicators |
-
-**Note:** Current codebase uses 7 radius values (18/20/22/24/26/28/30px). New code should use only sm/md/lg/full. Existing intermediate values (20/22/26/28) should be migrated to the nearest tier during refactoring.
+- **Approach:** Bento Box & Slide-over
+- **Grid:** 摒弃传统无边距大表，采用圆角网格卡片（Bento Box）将独立指标与内联趋势图（Sparklines）打包。
+- **Drill-down:** 详情页查看采用右侧滑出抽屉 (Slide-over/Drawer)，保持列表上下文不断裂。
+- **Border radius:** 3-tier scale (sm: 18px, md: 24px, lg: 30px)
 
 ## Motion
-- **Approach:** Minimal-functional
-- **Philosophy:** Motion serves comprehension, not decoration. Internal tool users interact repeatedly — animations must never slow them down.
-
-### Duration Scale
-| Token | Value | Easing | Usage |
-|-------|-------|--------|-------|
-| `micro` | 200ms | `ease-out` | Hover/focus transitions, color changes, border shifts |
-| `short` | 300ms | `ease-out` | Menu open/close, drawer slide |
-| `entrance` | 420ms | `ease-out` | Page content fade-up on load |
-
-### Easing
-- **Enter (appear):** `ease-out` — fast start, gentle settle
-- **Exit (disappear):** `ease-in` — gentle start, fast exit
-- **Move (reposition):** `ease-in-out` — smooth both ends
-
-### Animation: fade-up
-```css
-@keyframes maika-fade-up {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.maika-fade-up { animation: maika-fade-up 0.42s ease-out both; }
-```
-Applied to: sidebar, mobile header, main content area on page load.
-
-## Glass Surface System
-The signature visual element. Glass surfaces create depth hierarchy without heavy borders or shadows.
-
-| Surface | Background | Blur | Border | Shadow |
-|---------|-----------|------|--------|--------|
-| Main content | `var(--maika-surface)` | `blur(18px)` / `backdrop-blur-xl` | `border-white/60` | `0 28px 80px rgba(8,47,73,0.12)` |
-| Sidebar | `var(--maika-sidebar-gradient)` | none (opaque) | `border-white/10` | `0 28px 80px rgba(8,47,73,0.28)` |
-| Metric card (light) | `rgba(255,255,255,0.82)` | none | `border-white/70` | `0 16px 36px rgba(8,47,73,0.08)` |
-| Page header | `var(--maika-header-gradient)` | `blur(18px)` | `border-white/60` | `0 22px 60px rgba(8,47,73,0.08)` |
-| Mobile header | `rgba(255,255,255,0.7)` | `blur(18px)` | `border-white/60` | `0 20px 60px rgba(8,47,73,0.12)` |
-| Menu overlay | `bg-slate-950/45` | `blur-sm` | none | none |
-
-## Background Textures
-- **Grid:** 22px grid, `var(--maika-grid-line)` color (very subtle). Class: `.maika-grid`
-- **Body gradient:** 3-stop radial/linear gradient per theme. Applied to `body` via `--maika-body-gradient`
+- **Approach:** Minimal-Functional
+- **Rule:** 仅在帮助理解空间关系时出现（如 300ms ease-out 抽屉滑出），绝不允许阻塞“录单”核心工作流。
 
 ## Decisions Log
 | Date | Decision | Rationale |
 |------|----------|-----------|
-| 2026-04-05 | Initial design system created | Codified from existing 16.5K-line codebase via /design-consultation |
-| 2026-04-05 | DM Sans + Noto Sans SC as body web fonts | Cross-platform consistency. System-only stack (Avenir Next) varies wildly on Windows/Linux |
-| 2026-04-05 | Keep system serif for display, no web serif | Prior learning: English serif + Chinese system font = visual weight mismatch. Serif headings are infrequent enough that system fallback is acceptable |
-| 2026-04-05 | Border radius normalized to 3 tiers (18/24/30) | Codebase had 7 different values. Reducing to 3 improves consistency without visual change |
-| 2026-04-05 | Geist Mono for code | Consistent with Vercel deployment platform. Clean and compact |
-| 2026-04-05 | No dark mode (yet) | Internal summer tool. 6 theme options already cover user preference for visual variety. Full dark mode is a future consideration |
+| 2026-04-05 | 升级架构为 Bento Box 与 Slide-over 抽屉 | 提升重度数据操作连贯性，避免频繁的页面跳转导致上下文丢失 |
+| 2026-04-05 | 确立 Geist Mono 作为核心业务标识的主力字体 | 在单调的数据表中制造视觉焦点，提升内部系统的专业度与防伪感 |
+| 2026-04-05 | 固化 DM Sans + Noto Sans SC 字重匹配策略 | 解决历史遗留的中英文字符在不同 OS 下视觉粗细不一致的 Pitfall |

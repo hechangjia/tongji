@@ -2,7 +2,7 @@
 
 # Maika - Campus Phone Card Sales Tracking System
 
-> Last scanned: 2026-04-05T09:53:12 | 150 source files | ~16.5K lines
+> Last scanned: 2026-04-05T17:49:44 | 161 source files
 
 ## Project Vision
 
@@ -51,41 +51,50 @@ graph TB
 ```
 
 ## Module Structure
-
 ```mermaid
 graph TD
-    Root["Maika (root)"] --> SrcApp["src/app"]
-    Root --> SrcComp["src/components"]
-    Root --> SrcServer["src/server/services"]
-    Root --> SrcLib["src/lib"]
-    Root --> PrismaDir["prisma"]
-    Root --> Tests["tests"]
+    A["(根) Maika"] --> B["src/app"];
+    A --> C["src/components"];
+    A --> D["src/server/services"];
+    A --> E["src/lib"];
+    A --> F["prisma"];
 
-    SrcApp --> AdminPages["(admin)/admin"]
-    SrcApp --> LeaderPages["(leader)/leader"]
-    SrcApp --> MemberPages["(member)"]
-    SrcApp --> SharedPages["(shared)/leaderboard"]
-    SrcApp --> AuthPages["(auth)/login"]
-    SrcApp --> ApiRoutes["api"]
+    B --> B1["(admin)/admin"];
+    B --> B2["(leader)/leader"];
+    B --> B3["(member)"];
+    B --> B4["(shared)/leaderboard"];
+    B --> B5["(auth)/login"];
+    B --> B6["api"];
 
-    SrcComp --> AdminComp["admin (25)"]
-    SrcComp --> LeaderComp["leader (6)"]
-    SrcComp --> SharedComp["shared (27)"]
-
-    Tests --> UnitTests["unit (71)"]
-    Tests --> E2ETests["e2e (9)"]
-
-    click AdminPages "./src/app/(admin)/admin/CLAUDE.md" "Admin Pages"
-    click LeaderPages "./src/app/(leader)/leader/CLAUDE.md" "Leader Pages"
-    click MemberPages "./src/app/(member)/CLAUDE.md" "Member Pages"
-    click SharedPages "./src/app/(shared)/leaderboard/CLAUDE.md" "Shared Pages"
-    click AuthPages "./src/app/(auth)/login/CLAUDE.md" "Auth Pages"
-    click ApiRoutes "./src/app/api/CLAUDE.md" "API Routes"
-    click SrcServer "./src/server/services/CLAUDE.md" "Service Layer"
-    click SrcLib "./src/lib/CLAUDE.md" "Core Library"
-    click SrcComp "./src/components/CLAUDE.md" "UI Components"
-    click PrismaDir "./prisma/CLAUDE.md" "Database Layer"
+    click B1 "./src/app/(admin)/admin/CLAUDE.md" "查看 Admin 模块文档"
+    click B2 "./src/app/(leader)/leader/CLAUDE.md" "查看 Leader 模块文档"
+    click B3 "./src/app/(member)/CLAUDE.md" "查看 Member 模块文档"
+    click B4 "./src/app/(shared)/leaderboard/CLAUDE.md" "查看 Shared 模块文档"
+    click B5 "./src/app/(auth)/login/CLAUDE.md" "查看 Auth 模块文档"
+    click B6 "./src/app/api/CLAUDE.md" "查看 API 模块文档"
+    click C "./src/components/CLAUDE.md" "查看 Components 模块文档"
+    click D "./src/server/services/CLAUDE.md" "查看 Services 模块文档"
+    click E "./src/lib/CLAUDE.md" "查看 Core Lib 模块文档"
+    click F "./prisma/CLAUDE.md" "查看 Prisma 模块文档"
 ```
+
+## Module Index
+
+| Module | Path | Files | Description |
+|--------|------|-------|-------------|
+| Admin Pages | `src/app/(admin)/admin/` | 28 files | Member/code/sales/insights/settlement management |
+| Leader Pages | `src/app/(leader)/leader/` | 6 files | Group workbench, leader sales tracking |
+| Member Pages | `src/app/(member)/` | 5 files | Sales entry, personal records |
+| Shared Pages | `src/app/(shared)/leaderboard/` | 3 files | Daily/range/group leaderboards |
+| Auth Pages | `src/app/(auth)/login/` | 3 files | Login form + credential auth |
+| API Routes | `src/app/api/` | 4 files | Auth handler + Excel export endpoints |
+| Admin Components | `src/components/admin/` | 25 components | Admin-only tables, forms, panels |
+| Leader Components | `src/components/leader/` | 6 components | Workbench ranking, follow-up, audit |
+| Shared Components | `src/components/` | 27 components | Shell, charts, forms, entry UI |
+| Service Layer | `src/server/services/` | 24 modules | All business logic + caching |
+| Validators | `src/lib/validators/` | 13 schemas | Zod validation for all domains |
+| Core Lib | `src/lib/` | 8 modules | auth, db, env, permissions, password, theme, content-types |
+| Prisma Schema | `prisma/` | 9 files | Database schema + seed data |
 
 ## Tech Stack
 
@@ -117,26 +126,6 @@ RBAC enforced at two layers:
 2. **Permission helpers**: `src/lib/permissions.ts` provides `canAccessAdmin`, `canAccessLeader`, `canAccessMemberArea`
 
 Route groups `(admin)`, `(leader)`, `(member)` mirror role boundaries.
-
-## Module Index
-
-| Module | Path | Files | Description |
-|--------|------|-------|-------------|
-| Admin Pages | `src/app/(admin)/admin/` | 10 pages, 8 actions, 7 form-states | Member/code/sales/insights/settlement management |
-| Leader Pages | `src/app/(leader)/leader/` | 2 pages, 2 actions | Group workbench, leader sales tracking |
-| Member Pages | `src/app/(member)/` | 2 pages, 1 action, 1 form-state | Sales entry, personal records |
-| Shared Pages | `src/app/(shared)/leaderboard/` | 3 pages | Daily/range/group leaderboards |
-| Auth Pages | `src/app/(auth)/login/` | 1 page, 1 action, 1 form-state | Login form + credential auth |
-| API Routes | `src/app/api/` | 4 routes | Auth handler + 3 Excel export endpoints |
-| Admin Components | `src/components/admin/` | 25 components | Admin-only tables, forms, panels |
-| Leader Components | `src/components/leader/` | 6 components | Workbench ranking, follow-up, audit |
-| Shared Components | `src/components/` | 27 components | Shell, charts, forms, entry UI |
-| Service Layer | `src/server/services/` | 24 modules | All business logic + caching |
-| Validators | `src/lib/validators/` | 13 schemas | Zod validation for all domains |
-| Core Lib | `src/lib/` | 8 modules | auth, db, env, permissions, password, theme, content-types, auth-session-cookie |
-| Prisma Schema | `prisma/` | 15 models, 6 migrations, seed | Database schema + seed data |
-| Unit Tests | `tests/unit/` | 71 test files | Vitest (jsdom) |
-| E2E Tests | `tests/e2e/` | 9 test files | Playwright (Chromium) |
 
 ## Key Conventions
 
@@ -240,24 +229,15 @@ Always read `DESIGN.md` before making any visual or UI decisions. All font choic
 - Cache invalidation: call `refreshLeaderboardCaches()` / `refreshShellContent()` / etc. from actions after mutations
 - All audit-sensitive operations in leader workbench use `$transaction` with before/after snapshots
 
-## File Statistics
-
-- Source files: 150 (`.ts` + `.tsx`)
-- Components: 58 (25 admin + 6 leader + 27 shared)
-- Server services: 24
-- Validators: 13
-- Page/route files: 24 (20 pages + 4 routes)
-- Actions: 12
-- Form states: 9
-- Unit tests: 71
-- E2E tests: 9
-- Prisma models: 15
-- Migrations: 6
-- Total source lines: ~16,524
-
 ## Changelog
 
 | Date | Description |
 |------|-------------|
+| 2026-04-05T17:49:44 | Architecture scan, updated module counts (161 estimated total files), added mermaid module structure. |
 | 2026-04-05T09:53:12 | Full rescan: corrected counts (71 unit tests, 24 services, 13 validators, 58 components), added module structure graph, expanded caching/convention docs, added module-level CLAUDE.md files |
 | 2026-04-05 | Initial scan: 150 source files, 15 Prisma models, basic architecture docs |
+## Design System
+Always read DESIGN.md before making any visual or UI decisions.
+All font choices, colors, spacing, and aesthetic direction are defined there.
+Do not deviate without explicit user approval.
+In QA mode, flag any code that doesn't match DESIGN.md.
