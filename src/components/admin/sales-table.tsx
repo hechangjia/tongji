@@ -1,9 +1,7 @@
-"use client";
-
 import * as React from "react";
 import { EmptyState } from "@/components/empty-state";
-import { BentoCard } from "@/components/ui/bento-card";
 import { SlideOver } from "@/components/ui/slide-over";
+import { ResponsiveTable, type Column } from "@/components/ui/responsive-table";
 import {
   reviewSalesRecordAction,
   updateSalesRecordAction,
@@ -176,52 +174,64 @@ export function SalesTable({
     );
   }
 
+  const columns: Column<AdminTodaySalesRow>[] = [
+    {
+      key: "userName",
+      label: "人员与日期",
+      mobilePriority: true,
+      render: (row) => (
+        <div>
+          <div className="font-semibold text-maika-ink mono-accent">{row.userName}</div>
+          <div className="text-xs text-maika-muted mt-1 mono-accent">{row.saleDate}</div>
+        </div>
+      )
+    },
+    {
+      key: "stats",
+      label: "报单结构",
+      render: (row) => (
+        <div className="flex gap-4 mono-accent">
+          <span className="flex flex-col"><span className="text-[10px] text-maika-muted uppercase">Plan 40</span><span className="font-medium text-maika-ink">{row.count40}</span></span>
+          <span className="flex flex-col"><span className="text-[10px] text-maika-muted uppercase">Plan 60</span><span className="font-medium text-maika-ink">{row.count60}</span></span>
+        </div>
+      )
+    },
+    {
+      key: "status",
+      label: "记录状态",
+      mobilePriority: true,
+      render: (row) => (
+        <div className="flex flex-col items-start gap-1">
+          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${getReviewStatusTone(row.reviewStatus)}`}>
+            {getReviewStatusLabel(row.reviewStatus)}
+          </span>
+          <span className="text-[10px] text-maika-muted mt-1 whitespace-nowrap">提交于 <span className="mono-accent">{formatSubmittedAt(row.lastSubmittedAt)}</span></span>
+        </div>
+      )
+    },
+    {
+      key: "actions",
+      label: "管理",
+      render: (row) => (
+        <div className="text-right md:text-left">
+          <button 
+            onClick={() => setEditingRow(row)}
+            className="inline-flex items-center justify-center rounded-[14px] bg-maika-ink/5 hover:bg-maika-ink/10 px-4 py-2 text-xs font-semibold text-maika-ink transition"
+          >
+            审核详情
+          </button>
+        </div>
+      )
+    }
+  ];
+
   return (
     <>
-      <BentoCard radius="lg" className="overflow-x-auto">
-        <table className="w-full text-left text-sm border-collapse whitespace-nowrap">
-          <thead>
-            <tr className="border-b border-maika-muted/10 text-xs text-maika-muted uppercase tracking-[0.1em]">
-              <th className="px-6 py-4 font-semibold">人员与日期</th>
-              <th className="px-6 py-4 font-semibold">报单结构</th>
-              <th className="px-6 py-4 font-semibold">记录状态</th>
-              <th className="px-6 py-4 font-semibold text-right">管理</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-maika-muted/5">
-            {rows.map((row) => (
-              <tr key={row.id} className="align-middle text-maika-foreground transition hover:bg-maika-foreground/5">
-                <td className="px-6 py-4">
-                  <div className="font-semibold text-maika-ink mono-accent">{row.userName}</div>
-                  <div className="text-xs text-maika-muted mt-1 mono-accent">{row.saleDate}</div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex gap-4 mono-accent">
-                    <span className="flex flex-col"><span className="text-[10px] text-maika-muted uppercase">Plan 40</span><span className="font-medium text-maika-ink">{row.count40}</span></span>
-                    <span className="flex flex-col"><span className="text-[10px] text-maika-muted uppercase">Plan 60</span><span className="font-medium text-maika-ink">{row.count60}</span></span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex flex-col items-start gap-1">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${getReviewStatusTone(row.reviewStatus)}`}>
-                      {getReviewStatusLabel(row.reviewStatus)}
-                    </span>
-                    <span className="text-xs text-maika-muted mt-1">提交于 <span className="mono-accent">{formatSubmittedAt(row.lastSubmittedAt)}</span></span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <button 
-                    onClick={() => setEditingRow(row)}
-                    className="inline-flex items-center justify-center rounded-[14px] bg-maika-ink/5 hover:bg-maika-ink/10 px-4 py-2 text-xs font-semibold text-maika-ink transition"
-                  >
-                    审核详情
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </BentoCard>
+      <ResponsiveTable
+        data={rows}
+        columns={columns}
+        rowKey={(r) => r.id}
+      />
 
       <SlideOver
         open={editingRow !== null}

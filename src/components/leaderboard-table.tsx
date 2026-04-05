@@ -1,4 +1,6 @@
 import { EmptyState } from "@/components/empty-state";
+import { ResponsiveTable, type Column } from "@/components/ui/responsive-table";
+import { motion } from "framer-motion";
 
 export type LeaderboardRow = {
   rank: number;
@@ -18,12 +20,33 @@ export function LeaderboardTable({
   emptyText?: string;
 }) {
   const podium = rows.slice(0, 3);
+  
+  const columns: Column<LeaderboardRow>[] = [
+    { 
+      key: "rank", 
+      label: "排名", 
+      mobilePriority: true,
+      render: (row) => (
+        <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-950">
+          {row.rank}
+        </span>
+      )
+    },
+    { key: "userName", label: "成员", mobilePriority: true },
+    { key: "count40", label: "40 套餐" },
+    { key: "count60", label: "60 套餐" },
+    { 
+      key: "total", 
+      label: "总数", 
+      render: (row) => <span className="font-semibold text-slate-900">{row.total}</span>
+    },
+  ];
 
   return (
-    <section className="space-y-5">
+    <section className="space-y-6">
       <div className="space-y-2">
-        <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
-        <p className="text-sm text-slate-600">
+        <h2 className="text-2xl font-semibold tracking-tight text-slate-900">{title}</h2>
+        <p className="text-sm leading-relaxed text-slate-600 max-w-2xl">
           冠军、亚军和季军会优先高亮显示，帮助团队更快看出当天或当前区间的领先者。
         </p>
       </div>
@@ -34,17 +57,25 @@ export function LeaderboardTable({
           description={emptyText}
         />
       ) : (
-        <>
+        <div className="space-y-8">
           <div className="grid gap-4 md:grid-cols-3">
             {podium.map((row, index) => (
-              <article
+              <motion.article
                 key={`${row.userName}-${row.rank}`}
-                className={`rounded-[24px] border px-5 py-5 shadow-[0_18px_42px_rgba(8,47,73,0.08)] ${
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ y: -5, scale: 1.02 }}
+                className={`group relative overflow-hidden rounded-[24px] border px-6 py-6 shadow-[0_18px_42px_rgba(8,47,73,0.08)] transition-all ${
                   index === 0
                     ? "maika-podium-surface border-cyan-300/50 text-white"
                     : "border-white/70 bg-white/82 text-slate-950"
                 }`}
               >
+                {index === 0 && (
+                  <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/10 blur-2xl group-hover:bg-white/20 transition-all" />
+                )}
+                
                 <p
                   className={`text-[0.72rem] font-semibold uppercase tracking-[0.22em] ${
                     index === 0 ? "text-cyan-100/85" : "text-cyan-700"
@@ -66,7 +97,7 @@ export function LeaderboardTable({
                         index === 0 ? "text-cyan-50/80" : "text-slate-500"
                       }`}
                     >
-                      40 套餐 {row.count40} · 60 套餐 {row.count60}
+                      40套餐 {row.count40} · 60套餐 {row.count60}
                     </p>
                   </div>
                   <div className="text-right">
@@ -77,47 +108,20 @@ export function LeaderboardTable({
                     >
                       总数
                     </p>
-                    <p className="mt-2 text-3xl font-semibold">{row.total}</p>
+                    <p className="mt-2 text-4xl font-display font-semibold">{row.total}</p>
                   </div>
                 </div>
-              </article>
+              </motion.article>
             ))}
           </div>
 
-          <div className="overflow-hidden rounded-[24px] border border-white/70 bg-white/82 shadow-[0_22px_60px_rgba(8,47,73,0.08)]">
-            <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200 text-sm">
-              <thead className="bg-slate-50/90 text-left text-slate-600">
-                <tr>
-                  <th className="px-5 py-4 font-medium">排名</th>
-                  <th className="px-5 py-4 font-medium">成员</th>
-                  <th className="px-5 py-4 font-medium">40 套餐</th>
-                  <th className="px-5 py-4 font-medium">60 套餐</th>
-                  <th className="px-5 py-4 font-medium">总数</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {rows.map((row) => (
-                  <tr
-                    key={`${row.userName}-${row.rank}`}
-                    className="text-slate-700 transition hover:bg-cyan-50/55"
-                  >
-                    <td className="px-5 py-4 font-semibold text-slate-900">
-                      <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-950">
-                        {row.rank}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 font-medium text-slate-900">{row.userName}</td>
-                    <td className="px-5 py-4">{row.count40}</td>
-                    <td className="px-5 py-4">{row.count60}</td>
-                    <td className="px-5 py-4 font-semibold text-slate-900">{row.total}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          </div>
-        </>
+          <ResponsiveTable
+            data={rows}
+            columns={columns}
+            rowKey={(r) => `${r.userName}-${r.rank}`}
+            title="完整排行明细"
+          />
+        </div>
       )}
     </section>
   );
