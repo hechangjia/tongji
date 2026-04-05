@@ -29,7 +29,7 @@ export function LeaderboardTable({
       label: "排名", 
       mobilePriority: true,
       render: (row) => (
-        <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-950">
+        <span aria-hidden="true" className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-950">
           {row.rank}
         </span>
       )
@@ -45,7 +45,7 @@ export function LeaderboardTable({
   ];
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-6" aria-label={title}>
       <div className="space-y-2">
         <h2 className="text-2xl font-semibold tracking-tight text-slate-900">{title}</h2>
         <p className="text-sm leading-relaxed text-slate-600 max-w-2xl">
@@ -60,18 +60,20 @@ export function LeaderboardTable({
         />
       ) : (
         <div className="space-y-8">
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-3" role="list" aria-label="前三名荣誉榜">
             {podium.map((row, index) => (
               <motion.article
                 key={`${row.userName}-${row.rank}`}
+                role="listitem"
+                aria-label={`排名第 ${row.rank}：${row.userName}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ y: -5, scale: 1.02 }}
                 className={`group relative overflow-hidden rounded-[24px] border px-6 py-6 shadow-[0_18px_42px_rgba(8,47,73,0.08)] transition-all ${
                   index === 0
-                    ? "maika-podium-surface border-cyan-300/50 text-white"
-                    : "border-white/70 bg-white/82 text-slate-950"
+                    ? "maika-podium-surface border-[var(--maika-accent)]/50 text-white"
+                    : "maika-glass bg-[var(--maika-surface)] border-white/40 text-slate-950"
                 }`}
               >
                 {index === 0 && (
@@ -80,7 +82,7 @@ export function LeaderboardTable({
                 
                 <p
                   className={`text-[0.72rem] font-semibold uppercase tracking-[0.22em] ${
-                    index === 0 ? "text-cyan-100/85" : "text-cyan-700"
+                    index === 0 ? "text-[var(--maika-accent)] opacity-90" : "text-[var(--maika-accent-strong)]"
                   }`}
                 >
                   TOP {row.rank}
@@ -96,7 +98,7 @@ export function LeaderboardTable({
                     </h3>
                     <p
                       className={`mt-2 text-sm ${
-                        index === 0 ? "text-cyan-50/80" : "text-slate-500"
+                        index === 0 ? "text-[var(--maika-accent)]/80" : "text-slate-500"
                       }`}
                     >
                       40套餐 {row.count40} · 60套餐 {row.count60}
@@ -105,7 +107,7 @@ export function LeaderboardTable({
                   <div className="text-right">
                     <p
                       className={`text-[0.72rem] font-semibold uppercase tracking-[0.18em] ${
-                        index === 0 ? "text-cyan-100/80" : "text-slate-500"
+                        index === 0 ? "text-[var(--maika-accent)]/80" : "text-slate-500"
                       }`}
                     >
                       总数
