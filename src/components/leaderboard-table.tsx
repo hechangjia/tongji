@@ -1,3 +1,5 @@
+"use client";
+
 import { EmptyState } from "@/components/empty-state";
 import { ResponsiveTable, type Column } from "@/components/ui/responsive-table";
 import { motion } from "framer-motion";
