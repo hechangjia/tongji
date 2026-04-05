@@ -1,69 +1,75 @@
-import { EmptyState } from "@/components/empty-state";
-import { BentoCard } from "@/components/ui/bento-card";
-import type { SettlementRow } from "@/server/services/settlement-service";
+"use client";
 
-function formatAmount(amount: number | null) {
-  return amount === null ? "规则缺失" : amount.toFixed(2);
+import { ResponsiveTable, type Column } from "@/components/ui/responsive-table";
+
+export interface SettlementRowData {
+  userId: string;
+  userName: string;
+  groupName: string;
+  count40: number;
+  count60: number;
+  amount: number | null;
+  status: "OK" | "MISSING_RULE";
+  isSettled: boolean;
 }
 
-export function SettlementTable({
-  rows,
-}: {
-  rows: SettlementRow[];
-}) {
-  if (rows.length === 0) {
-    return (
-      <EmptyState
-        title="暂无结算结果"
-        description="当前时间范围内暂无销售记录，建议调整日期范围后重新生成结算。"
-      />
-    );
-  }
+interface SettlementTableProps {
+  data: SettlementRowData[];
+}
+
+export function SettlementTable({ data }: SettlementTableProps) {
+  const columns: Column<SettlementRowData>[] = [
+    {
+      key: "userName",
+      label: "成员信息",
+      mobilePriority: true,
+      render: (row) => (
+        <div>
+          <div className="font-semibold">{row.userName}</div>
+          <div className="text-xs text-slate-500">{row.groupName || "未分配"}</div>
+        </div>
+      ),
+    },
+    {
+      key: "sales",
+      label: "销售明细",
+      render: (row) => (
+        <div className="text-sm">
+          <span className="text-cyan-600 font-medium">{row.count40}</span> (40G) / <span className="text-indigo-600 font-medium">{row.count60}</span> (60G)
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      label: "结算状态",
+      render: (row) => {
+        if (row.status === "MISSING_RULE") {
+          return <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">规则缺失</span>;
+        }
+        if (row.isSettled) {
+          return <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">已结算</span>;
+        }
+        return <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">待结算</span>;
+      },
+    },
+    {
+      key: "amount",
+      label: "佣金金额",
+      mobilePriority: true,
+      render: (row) => (
+        <div className="font-mono text-base font-semibold">
+          {row.amount !== null ? `¥${row.amount.toFixed(2)}` : "-"}
+        </div>
+      ),
+    },
+  ];
 
   return (
-    <BentoCard radius="lg" className="overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-200 text-sm">
-          <thead className="text-left border-b border-maika-muted/10 text-xs text-maika-muted uppercase tracking-[0.1em]">
-            <tr>
-              <th className="px-5 py-4 font-medium">成员</th>
-              <th className="px-5 py-4 font-medium">40 套餐</th>
-              <th className="px-5 py-4 font-medium">60 套餐</th>
-              <th className="px-5 py-4 font-medium">状态</th>
-              <th className="px-5 py-4 font-medium">应结金额</th>
-              <th className="px-5 py-4 font-medium">说明</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {rows.map((row) => (
-              <tr key={row.userId} className="align-middle text-maika-foreground transition hover:bg-maika-foreground/5">
-                <td className="px-5 py-4 font-semibold text-maika-ink mono-accent">{row.userName}</td>
-                <td className="px-5 py-4">{row.count40}</td>
-                <td className="px-5 py-4">{row.count60}</td>
-                <td className="px-5 py-4">
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-medium ${
-                      row.status === "OK"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-amber-100 text-amber-700"
-                    }`}
-                  >
-                    {row.status === "OK" ? "规则完整" : "规则缺失"}
-                  </span>
-                </td>
-                <td className="px-5 py-4 font-semibold text-slate-900">
-                  {formatAmount(row.amount)}
-                </td>
-                <td className="px-5 py-4 text-slate-500">
-                  {row.missingDates.length > 0
-                    ? `缺失日期：${row.missingDates.join("、")}`
-                    : "-"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      </BentoCard>
+    <ResponsiveTable
+      data={data}
+      columns={columns}
+      rowKey={(row) => row.userId}
+      emptyText="当前周期暂无结算数据"
+    />
   );
 }
