@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { UserStatus } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
+import { hashPassword } from "@/lib/password";
 import { refreshLeaderboardCaches } from "@/server/services/leaderboard-cache";
 import {
   checkUsernameAvailable,

@@ -105,6 +105,7 @@ describe("createCommissionRule", () => {
       price40: 10,
       price60: 15,
       effectiveStart: "2026-07-01",
+      effectiveEnd: "",
     });
 
     expect(commissionRuleCreateMock).toHaveBeenCalledWith({
