@@ -98,14 +98,14 @@ export function SalesEntryForm({
           id="count40"
           name="count40"
           label="40 套餐数量"
-          defaultValue={values.count40}
+          defaultValue={Number(values.count40) || 0}
         />
 
         <Stepper
           id="count60"
           name="count60"
           label="60 套餐数量"
-          defaultValue={values.count60}
+          defaultValue={Number(values.count60) || 0}
         />
 
         <motion.div layout className="space-y-2 md:col-span-2">
