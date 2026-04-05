@@ -70,20 +70,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.role = user.role;
         token.status = user.status;
         token.username = user.username;
+        token.lastCheckedAt = Date.now();
       } else if (token.id) {
-        // On subsequent requests, re-check user status from DB
-        const dbUser = await db.user.findUnique({
-          where: { id: token.id as string },
-          select: { role: true, status: true },
-        });
+        // Re-check user status from DB at most every 5 minutes
+        const fiveMinutes = 5 * 60 * 1000;
+        const lastChecked = (token.lastCheckedAt as number) ?? 0;
 
-        if (!dbUser || dbUser.status !== UserStatus.ACTIVE) {
-          // Return empty token to force sign-out
-          return { ...token, status: "INACTIVE" as const };
+        if (Date.now() - lastChecked > fiveMinutes) {
+          const dbUser = await db.user.findUnique({
+            where: { id: token.id as string },
+            select: { role: true, status: true },
+          });
+
+          if (!dbUser || dbUser.status !== UserStatus.ACTIVE) {
+            return { ...token, status: "INACTIVE" as const };
+          }
+
+          token.role = dbUser.role;
+          token.status = dbUser.status;
+          token.lastCheckedAt = Date.now();
         }
-
-        token.role = dbUser.role;
-        token.status = dbUser.status;
       }
 
       return token;

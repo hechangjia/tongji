@@ -4,9 +4,9 @@ import { canAccessMemberArea } from "@/lib/permissions";
 import type { IdentifierSaleFormValues } from "@/app/(member)/entry/form-state";
 import { AppShell } from "@/components/app-shell";
 import { SalesEntryPageClient } from "@/components/sales-entry-page-client";
-import { getMemberIdentifierWorkspace } from "@/server/services/member-identifier-sale-service";
 import { getCachedMemberEntryInsights } from "@/server/services/entry-insights-cache";
 import { getCachedMemberDailyRhythmSummary } from "@/server/services/leaderboard-cache";
+import { getCachedMemberIdentifierWorkspace } from "@/server/services/member-records-cache";
 import {
   buildSalesEntryDefaults,
   getSalesRecordForUserOnDate,
@@ -62,10 +62,10 @@ export default async function EntryPage({ searchParams }: EntryPageProps = {}) {
       userId: session.user.id,
       todaySaleDate: saleDate,
     }),
-    getMemberIdentifierWorkspace({
-      userId: session.user.id,
-      todaySaleDate: saleDate,
-    }),
+    getCachedMemberIdentifierWorkspace(
+      session.user.id,
+      saleDate,
+    ),
   ]);
   const initialValues = buildSalesEntryDefaults(
     currentRecord

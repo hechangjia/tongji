@@ -5,6 +5,7 @@ const unstableCacheMock = vi.hoisted(() =>
 );
 const updateTagMock = vi.hoisted(() => vi.fn());
 const getSalesRecordsForUserMock = vi.hoisted(() => vi.fn());
+const getMemberIdentifierWorkspaceMock = vi.hoisted(() => vi.fn());
 
 vi.mock("next/cache", () => ({
   unstable_cache: unstableCacheMock,
@@ -13,6 +14,10 @@ vi.mock("next/cache", () => ({
 
 vi.mock("@/server/services/sales-service", () => ({
   getSalesRecordsForUser: getSalesRecordsForUserMock,
+}));
+
+vi.mock("@/server/services/member-identifier-sale-service", () => ({
+  getMemberIdentifierWorkspace: getMemberIdentifierWorkspaceMock,
 }));
 
 import {
@@ -29,10 +34,18 @@ describe("member records cache", () => {
   });
 
   test("wraps member records reads in Next cache with a shared tag", () => {
-    expect(unstableCacheMock).toHaveBeenCalledTimes(1);
+    expect(unstableCacheMock).toHaveBeenCalledTimes(2);
     expect(unstableCacheMock).toHaveBeenCalledWith(
       expect.any(Function),
       ["member-records"],
+      {
+        tags: [MEMBER_RECORDS_CACHE_TAG],
+        revalidate: MEMBER_RECORDS_CACHE_REVALIDATE_SECONDS,
+      },
+    );
+    expect(unstableCacheMock).toHaveBeenCalledWith(
+      expect.any(Function),
+      ["member-identifier-workspace"],
       {
         tags: [MEMBER_RECORDS_CACHE_TAG],
         revalidate: MEMBER_RECORDS_CACHE_REVALIDATE_SECONDS,

@@ -10,7 +10,7 @@ const redirectMock = vi.hoisted(() =>
 const getSalesRecordForUserOnDateMock = vi.hoisted(() => vi.fn());
 const getCachedMemberDailyRhythmSummaryMock = vi.hoisted(() => vi.fn());
 const getCachedMemberEntryInsightsMock = vi.hoisted(() => vi.fn());
-const getMemberIdentifierWorkspaceMock = vi.hoisted(() => vi.fn());
+const getCachedMemberIdentifierWorkspaceMock = vi.hoisted(() => vi.fn());
 const salesEntryPageClientMock = vi.hoisted(() => vi.fn());
 const buildSalesEntryDefaultsMock = vi.hoisted(() => vi.fn());
 const getTodaySaleDateValueMock = vi.hoisted(() => vi.fn(() => "2026-03-28"));
@@ -47,8 +47,8 @@ vi.mock("@/server/services/entry-insights-cache", () => ({
   getCachedMemberEntryInsights: getCachedMemberEntryInsightsMock,
 }));
 
-vi.mock("@/server/services/member-identifier-sale-service", () => ({
-  getMemberIdentifierWorkspace: getMemberIdentifierWorkspaceMock,
+vi.mock("@/server/services/member-records-cache", () => ({
+  getCachedMemberIdentifierWorkspace: getCachedMemberIdentifierWorkspaceMock,
 }));
 
 vi.mock("@/server/services/sales-service", () => ({
@@ -110,7 +110,7 @@ describe("entry page", () => {
       },
       recentReminders: [],
     });
-    getMemberIdentifierWorkspaceMock.mockResolvedValue({
+    getCachedMemberIdentifierWorkspaceMock.mockResolvedValue({
       overview: {
         availableCodeCount: 2,
         assignedLeadCount: 1,
@@ -133,10 +133,10 @@ describe("entry page", () => {
       userId: "member-1",
       todaySaleDate,
     });
-    expect(getMemberIdentifierWorkspaceMock).toHaveBeenCalledWith({
-      userId: "member-1",
+    expect(getCachedMemberIdentifierWorkspaceMock).toHaveBeenCalledWith(
+      "member-1",
       todaySaleDate,
-    });
+    );
     expect(screen.getByTestId("app-shell")).toBeInTheDocument();
     expect(screen.getByText("sales-entry-page-client")).toBeInTheDocument();
     expect(salesEntryPageClientMock).toHaveBeenCalledWith(
