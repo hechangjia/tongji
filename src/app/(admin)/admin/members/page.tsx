@@ -1,8 +1,5 @@
-import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
-import { AppShell } from "@/components/app-shell";
 import { MemberForm } from "@/components/admin/member-form";
 import { MemberTable } from "@/components/admin/member-table";
 import { MetricCard } from "@/components/metric-card";
@@ -20,15 +17,7 @@ export default async function AdminMembersPage({
   searchParams,
 }: MembersPageProps) {
   const session = await auth();
-
-  if (!session?.user) {
-    redirect("/login?callbackUrl=%2Fadmin%2Fmembers");
-  }
-
-  if (!canAccessAdmin(session.user)) {
-    redirect(getDefaultRedirectPath(session.user.role));
-  }
-
+  const currentAdminId = session!.user.id;
   const params = searchParams ? await searchParams : undefined;
   const notice = typeof params?.notice === "string" ? params.notice : null;
   const noticeTone = params?.noticeTone === "error" ? "error" : "success";
@@ -63,11 +52,6 @@ export default async function AdminMembersPage({
   const adminMembers = members.filter((member) => member.role === "ADMIN").length;
 
   return (
-    <AppShell
-      role={session.user.role}
-      userName={session.user.name ?? session.user.username}
-      currentPath="/admin/members"
-    >
       <section className="space-y-6">
         <PageHeader
           eyebrow="管理员功能"
@@ -92,9 +76,8 @@ export default async function AdminMembersPage({
 
         <div className="grid gap-6 xl:grid-cols-[minmax(320px,360px)_minmax(0,1fr)]">
           <MemberForm submitLabel="新增成员" groups={groups} />
-          <MemberTable rows={members} groups={groups} currentAdminId={session.user.id} />
+          <MemberTable rows={members} groups={groups} currentAdminId={currentAdminId} />
         </div>
       </section>
-    </AppShell>
   );
 }

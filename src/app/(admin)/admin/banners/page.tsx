@@ -1,7 +1,3 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
-import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
-import { AppShell } from "@/components/app-shell";
 import { BannerForm } from "@/components/admin/banner-form";
 import { BannerImportCard } from "@/components/admin/banner-import-card";
 import { BannerSettingsForm } from "@/components/admin/banner-settings-form";
@@ -23,27 +19,12 @@ type BannersPageProps = {
 export default async function AdminBannersPage({
   searchParams,
 }: BannersPageProps) {
-  const session = await auth();
-
-  if (!session?.user) {
-    redirect("/login?callbackUrl=%2Fadmin%2Fbanners");
-  }
-
-  if (!canAccessAdmin(session.user)) {
-    redirect(getDefaultRedirectPath(session.user.role));
-  }
-
   const params = searchParams ? await searchParams : undefined;
   const notice = typeof params?.notice === "string" ? params.notice : null;
   const [settings, rows] = await Promise.all([getBannerSettings(), listBannerQuotes()]);
   const activeCount = rows.filter((row) => row.status === "ACTIVE").length;
 
   return (
-    <AppShell
-      role={session.user.role}
-      userName={session.user.name ?? session.user.username}
-      currentPath="/admin/banners"
-    >
       <section className="space-y-6">
         <PageHeader
           eyebrow="内容系统"
@@ -91,6 +72,5 @@ export default async function AdminBannersPage({
           />
         </div>
       </section>
-    </AppShell>
   );
 }

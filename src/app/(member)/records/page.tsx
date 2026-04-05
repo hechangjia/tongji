@@ -1,7 +1,4 @@
-import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { canAccessMemberArea } from "@/lib/permissions";
-import { AppShell } from "@/components/app-shell";
 import { MetricCard } from "@/components/metric-card";
 import { MyRecordsTable } from "@/components/my-records-table";
 import { PageHeader } from "@/components/page-header";
@@ -9,15 +6,7 @@ import { getIdentifierSalesForUser } from "@/server/services/member-identifier-s
 import { getCachedMemberRecords } from "@/server/services/member-records-cache";
 
 export default async function RecordsPage() {
-  const session = await auth();
-
-  if (!session?.user) {
-    redirect("/login?callbackUrl=%2Frecords");
-  }
-
-  if (!canAccessMemberArea(session.user)) {
-    redirect("/login?callbackUrl=%2Frecords");
-  }
+  const session = (await auth())!;
 
   const [records, identifierSales] = await Promise.all([
     getCachedMemberRecords(session.user.id),
@@ -29,12 +18,7 @@ export default async function RecordsPage() {
   );
 
   return (
-    <AppShell
-      role={session.user.role}
-      userName={session.user.name ?? session.user.username}
-      currentPath="/records"
-    >
-      <section className="space-y-6">
+    <section className="space-y-6">
         <PageHeader
           eyebrow="成员记录"
           title="我的记录"
@@ -66,6 +50,5 @@ export default async function RecordsPage() {
           emptyText="暂无历史记录，保存今日录入后会在这里看到完整回顾。"
         />
       </section>
-    </AppShell>
   );
 }

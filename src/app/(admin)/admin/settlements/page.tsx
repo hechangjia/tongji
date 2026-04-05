@@ -1,8 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
-import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
-import { AppShell } from "@/components/app-shell";
 import { MetricCard } from "@/components/metric-card";
 import { PageHeader } from "@/components/page-header";
 import { SettlementTable } from "@/components/admin/settlement-table";
@@ -24,16 +20,6 @@ function pickQueryValue(value?: string | string[]) {
 export default async function SettlementsPage({
   searchParams,
 }: SettlementsPageProps) {
-  const session = await auth();
-
-  if (!session?.user) {
-    redirect("/login?callbackUrl=%2Fadmin%2Fsettlements");
-  }
-
-  if (!canAccessAdmin(session.user)) {
-    redirect(getDefaultRedirectPath(session.user.role));
-  }
-
   const params = searchParams ? await searchParams : undefined;
   const today = getTodaySaleDateValue();
   const startDate = pickQueryValue(params?.startDate) ?? today;
@@ -44,11 +30,6 @@ export default async function SettlementsPage({
   const exportHref = `/api/export/settlement?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
 
   return (
-    <AppShell
-      role={session.user.role}
-      userName={session.user.name ?? session.user.username}
-      currentPath="/admin/settlements"
-    >
       <section className="space-y-6">
         <PageHeader
           eyebrow="管理员功能"
@@ -123,6 +104,5 @@ export default async function SettlementsPage({
 
         <SettlementTable rows={rows} />
       </section>
-    </AppShell>
   );
 }

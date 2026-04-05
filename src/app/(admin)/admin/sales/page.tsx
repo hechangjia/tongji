@@ -1,9 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
-import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
 import { AdminDailyReviewSummary } from "@/components/admin/admin-daily-review-summary";
-import { AppShell } from "@/components/app-shell";
 import { MetricCard } from "@/components/metric-card";
 import { PageHeader } from "@/components/page-header";
 import { SalesTable } from "@/components/admin/sales-table";
@@ -35,16 +32,6 @@ function isDateValue(value?: string): value is DateValue {
 export default async function AdminSalesPage({
   searchParams,
 }: AdminSalesPageProps) {
-  const session = await auth();
-
-  if (!session?.user) {
-    redirect("/login?callbackUrl=%2Fadmin%2Fsales%3Fscope%3Dtoday");
-  }
-
-  if (!canAccessAdmin(session.user)) {
-    redirect(getDefaultRedirectPath(session.user.role));
-  }
-
   const params = searchParams ? await searchParams : undefined;
   const scope = pickQueryValue(params?.scope)?.trim() ?? "";
 
@@ -73,11 +60,6 @@ export default async function AdminSalesPage({
     : `当前查看 ${selectedDate} 的销售记录。这里也支持继续审核历史补录，避免跨天后记录长期停留在待审核状态。`;
 
   return (
-    <AppShell
-      role={session.user.role}
-      userName={session.user.name ?? session.user.username}
-      currentPath="/admin/sales"
-    >
       <section className="space-y-6">
         <PageHeader
           eyebrow="管理员功能"
@@ -167,6 +149,5 @@ export default async function AdminSalesPage({
 
         <SalesTable rows={rows} returnTo={returnTo} />
       </section>
-    </AppShell>
   );
 }

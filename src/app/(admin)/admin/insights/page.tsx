@@ -1,10 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
-import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
 import { AdminInsightMemberCard } from "@/components/admin/admin-insight-member-card";
 import { AdminInsightsOverview } from "@/components/admin/admin-insights-overview";
-import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { StatusCallout } from "@/components/status-callout";
 import { getAdminInsightsData } from "@/server/services/admin-insights-service";
@@ -22,26 +18,11 @@ function pickQueryValue(value?: string | string[]) {
 export default async function AdminInsightsPage({
   searchParams,
 }: AdminInsightsPageProps = {}) {
-  const session = await auth();
-
-  if (!session?.user) {
-    redirect("/login?callbackUrl=%2Fadmin%2Finsights");
-  }
-
-  if (!canAccessAdmin(session.user)) {
-    redirect(getDefaultRedirectPath(session.user.role));
-  }
-
   const params = searchParams ? await searchParams : undefined;
   const notice = pickQueryValue(params?.notice) ?? null;
   const insights = await getAdminInsightsData({});
 
   return (
-    <AppShell
-      role={session.user.role}
-      userName={session.user.name ?? session.user.username}
-      currentPath="/admin"
-    >
       <section className="space-y-6">
         <PageHeader
           eyebrow="管理员功能"
@@ -86,6 +67,5 @@ export default async function AdminInsightsPage({
           )}
         </section>
       </section>
-    </AppShell>
   );
 }

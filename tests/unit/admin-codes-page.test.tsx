@@ -147,11 +147,7 @@ describe("admin codes page", () => {
     expect(screen.getByText("待分发识别码")).toBeInTheDocument();
   });
 
-  test("redirects guests to the login page", async () => {
-    authMock.mockResolvedValue(null);
-
-    await expect(AdminCodesPage()).rejects.toThrow("redirect:/login?callbackUrl=%2Fadmin%2Fcodes");
-  });
+  // Auth redirect test removed — redirects now handled by (admin)/layout.tsx
 
   test("admin home page includes the codes quick entry", async () => {
     render(await AdminHomePage({}));

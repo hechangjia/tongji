@@ -1,8 +1,4 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
-import { AppShell } from "@/components/app-shell";
 import { CommissionRuleForm } from "@/components/admin/commission-rule-form";
 import { CommissionRuleTable } from "@/components/admin/commission-rule-table";
 import { MetricCard } from "@/components/metric-card";
@@ -10,16 +6,6 @@ import { PageHeader } from "@/components/page-header";
 import { getCommissionRules } from "@/server/services/commission-service";
 
 export default async function CommissionRulesPage() {
-  const session = await auth();
-
-  if (!session?.user) {
-    redirect("/login?callbackUrl=%2Fadmin%2Fcommission-rules");
-  }
-
-  if (!canAccessAdmin(session.user)) {
-    redirect(getDefaultRedirectPath(session.user.role));
-  }
-
   const [members, rules] = await Promise.all([
     db.user.findMany({
       orderBy: [{ role: "desc" }, { createdAt: "asc" }],
@@ -34,11 +20,6 @@ export default async function CommissionRulesPage() {
   const longRunningRules = rules.filter((rule) => rule.effectiveEnd === null).length;
 
   return (
-    <AppShell
-      role={session.user.role}
-      userName={session.user.name ?? session.user.username}
-      currentPath="/admin/commission-rules"
-    >
       <section className="space-y-6">
         <PageHeader
           eyebrow="管理员功能"
@@ -63,6 +44,5 @@ export default async function CommissionRulesPage() {
           <CommissionRuleTable rows={rules} />
         </div>
       </section>
-    </AppShell>
   );
 }

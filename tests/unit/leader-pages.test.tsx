@@ -354,32 +354,7 @@ describe("leader task pages", () => {
     expect(screen.getByRole("button", { name: "保存本组信息" })).toBeInTheDocument();
   });
 
-  test("leader group page redirects guests to login", async () => {
-    authMock.mockResolvedValue(null);
-    const { default: LeaderGroupPage } = await importPageFromWorkspace(
-      "src/app/(leader)/leader/group/page.tsx",
-    );
-
-    await expect(LeaderGroupPage()).rejects.toThrow(
-      "redirect:/login?callbackUrl=%2Fleader%2Fgroup",
-    );
-  });
-
-  test("leader group page redirects members back to their default home", async () => {
-    authMock.mockResolvedValue({
-      user: {
-        id: "member-1",
-        role: "MEMBER",
-        username: "member01",
-        name: "成员一号",
-      },
-    });
-    const { default: LeaderGroupPage } = await importPageFromWorkspace(
-      "src/app/(leader)/leader/group/page.tsx",
-    );
-
-    await expect(LeaderGroupPage()).rejects.toThrow("redirect:/entry");
-  });
+  // Auth redirect tests removed — redirects now handled by (leader)/layout.tsx
 
   test("leader sales page renders the workbench summary strip and major panels", async () => {
     const { default: LeaderSalesPage } = await importPageFromWorkspace(
@@ -419,32 +394,7 @@ describe("leader task pages", () => {
     expect(screen.queryByText("小组销售能力将在后续阶段补齐")).not.toBeInTheDocument();
   });
 
-  test("leader sales page redirects guests to login", async () => {
-    authMock.mockResolvedValue(null);
-    const { default: LeaderSalesPage } = await importPageFromWorkspace(
-      "src/app/(leader)/leader/sales/page.tsx",
-    );
-
-    await expect(LeaderSalesPage()).rejects.toThrow(
-      "redirect:/login?callbackUrl=%2Fleader%2Fsales",
-    );
-  });
-
-  test("leader sales page redirects members back to their default home", async () => {
-    authMock.mockResolvedValue({
-      user: {
-        id: "member-1",
-        role: "MEMBER",
-        username: "member01",
-        name: "成员一号",
-      },
-    });
-    const { default: LeaderSalesPage } = await importPageFromWorkspace(
-      "src/app/(leader)/leader/sales/page.tsx",
-    );
-
-    await expect(LeaderSalesPage()).rejects.toThrow("redirect:/entry");
-  });
+  // Auth redirect tests removed — redirects now handled by (leader)/layout.tsx
 
   test("shared group leaderboard shows group totals and current date for members", async () => {
     authMock.mockResolvedValue({

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState, type PropsWithChildren, type ReactNode } from "react";
 import type { SessionRole } from "@/lib/permissions";
 import type {
@@ -93,13 +94,15 @@ function NavItem({
 export function AppShellClient({
   role,
   userName,
-  currentPath,
+  currentPath: currentPathProp,
   navSections,
   banner,
   announcements,
   topSlot,
   children,
 }: AppShellClientProps) {
+  const pathname = usePathname();
+  const currentPath = currentPathProp ?? pathname;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const rolePresentation = getRolePresentation(role);
   const displayName = userName ?? rolePresentation.fallbackName;

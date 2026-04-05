@@ -137,7 +137,6 @@ describe("entry page", () => {
       "member-1",
       todaySaleDate,
     );
-    expect(screen.getByTestId("app-shell")).toBeInTheDocument();
     expect(screen.getByText("sales-entry-page-client")).toBeInTheDocument();
     expect(salesEntryPageClientMock).toHaveBeenCalledWith(
       expect.objectContaining({

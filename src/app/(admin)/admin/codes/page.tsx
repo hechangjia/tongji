@@ -1,7 +1,3 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
-import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
-import { AppShell } from "@/components/app-shell";
 import { CodeAssignmentPanel } from "@/components/admin/code-assignment-panel";
 import { CodeImportCard } from "@/components/admin/code-import-card";
 import { CodeInventoryTable } from "@/components/admin/code-inventory-table";
@@ -20,27 +16,12 @@ type AdminCodesPageProps = {
 };
 
 export default async function AdminCodesPage({ searchParams }: AdminCodesPageProps = {}) {
-  const session = await auth();
-
-  if (!session?.user) {
-    redirect("/login?callbackUrl=%2Fadmin%2Fcodes");
-  }
-
-  if (!canAccessAdmin(session.user)) {
-    redirect(getDefaultRedirectPath(session.user.role));
-  }
-
   const params = searchParams ? await searchParams : undefined;
   const notice = typeof params?.notice === "string" ? params.notice : null;
   const noticeTone = params?.noticeTone === "error" ? "error" : "success";
   const { overview, assigneeOptions, codeRows, prospectRows } = await getAdminCodesDashboardData();
 
   return (
-    <AppShell
-      role={session.user.role}
-      userName={session.user.name ?? session.user.username}
-      currentPath="/admin/codes"
-    >
       <section className="space-y-6">
         <PageHeader
           eyebrow="管理员功能"
@@ -95,6 +76,5 @@ export default async function AdminCodesPage({ searchParams }: AdminCodesPagePro
           <ProspectLeadTable rows={prospectRows} />
         </div>
       </section>
-    </AppShell>
   );
 }

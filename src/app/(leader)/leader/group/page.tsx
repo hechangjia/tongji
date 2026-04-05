@@ -1,10 +1,7 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { canAccessLeader, getDefaultRedirectPath } from "@/lib/permissions";
 import { updateLeaderGroupProfileAction } from "@/app/(leader)/leader/group/actions";
-import { AppShell } from "@/components/app-shell";
 import { EmptyState } from "@/components/empty-state";
 import { MetricCard } from "@/components/metric-card";
 import { PageHeader } from "@/components/page-header";
@@ -18,15 +15,7 @@ type LeaderGroupPageProps = {
 };
 
 export default async function LeaderGroupPage({ searchParams }: LeaderGroupPageProps = {}) {
-  const session = await auth();
-
-  if (!session?.user) {
-    redirect("/login?callbackUrl=%2Fleader%2Fgroup");
-  }
-
-  if (!canAccessLeader(session.user)) {
-    redirect(getDefaultRedirectPath(session.user.role));
-  }
+  const session = (await auth())!;
 
   const params = searchParams ? await searchParams : undefined;
   const notice = typeof params?.notice === "string" ? params.notice : null;
@@ -57,12 +46,7 @@ export default async function LeaderGroupPage({ searchParams }: LeaderGroupPageP
   const leaderName = currentLeader?.name ?? currentLeader?.username ?? session.user.username;
 
   return (
-    <AppShell
-      role={session.user.role}
-      userName={session.user.name ?? session.user.username}
-      currentPath="/leader/group"
-    >
-      <section className="space-y-6">
+    <section className="space-y-6">
         <PageHeader
           eyebrow="组长工作台"
           title="本组看板"
@@ -173,6 +157,5 @@ export default async function LeaderGroupPage({ searchParams }: LeaderGroupPageP
           />
         )}
       </section>
-    </AppShell>
   );
 }

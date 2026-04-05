@@ -1,10 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
-import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
 import { AdminCumulativeStatsPanel } from "@/components/admin/admin-cumulative-stats-panel";
 import { AdminDailyReviewSummary } from "@/components/admin/admin-daily-review-summary";
-import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import {
   type CumulativeMetric,
@@ -40,16 +36,6 @@ function parseMetric(value?: string): CumulativeMetric {
 
 export default async function AdminHomePage({ searchParams }: AdminHomePageProps) {
   const paramsPromise = searchParams ?? Promise.resolve(undefined);
-  const session = await auth();
-
-  if (!session?.user) {
-    redirect("/login?callbackUrl=%2Fadmin");
-  }
-
-  if (!canAccessAdmin(session.user)) {
-    redirect(getDefaultRedirectPath(session.user.role));
-  }
-
   const params = await paramsPromise;
   const presetParam = Array.isArray(params?.preset) ? params?.preset[0] : params?.preset;
   const metricParam = Array.isArray(params?.metric) ? params?.metric[0] : params?.metric;
@@ -112,11 +98,6 @@ export default async function AdminHomePage({ searchParams }: AdminHomePageProps
   ];
 
   return (
-    <AppShell
-      role={session.user.role}
-      userName={session.user.name ?? session.user.username}
-      currentPath="/admin"
-    >
       <section className="space-y-6">
         <PageHeader
           eyebrow="管理后台"
@@ -156,6 +137,5 @@ export default async function AdminHomePage({ searchParams }: AdminHomePageProps
           ))}
         </div>
       </section>
-    </AppShell>
   );
 }

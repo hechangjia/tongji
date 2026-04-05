@@ -1,7 +1,3 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
-import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
-import { AppShell } from "@/components/app-shell";
 import { GroupForm } from "@/components/admin/group-form";
 import { GroupTable } from "@/components/admin/group-table";
 import { MetricCard } from "@/components/metric-card";
@@ -20,16 +16,6 @@ type AdminGroupsPageProps = {
 };
 
 export default async function AdminGroupsPage({ searchParams }: AdminGroupsPageProps = {}) {
-  const session = await auth();
-
-  if (!session?.user) {
-    redirect("/login?callbackUrl=%2Fadmin%2Fgroups");
-  }
-
-  if (!canAccessAdmin(session.user)) {
-    redirect(getDefaultRedirectPath(session.user.role));
-  }
-
   const params = searchParams ? await searchParams : undefined;
   const notice = typeof params?.notice === "string" ? params.notice : null;
   const noticeTone = params?.noticeTone === "error" ? "error" : "success";
@@ -40,11 +26,6 @@ export default async function AdminGroupsPage({ searchParams }: AdminGroupsPageP
   const assignedLeaderCount = rows.filter((row) => row.leaderUserId).length;
 
   return (
-    <AppShell
-      role={session.user.role}
-      userName={session.user.name ?? session.user.username}
-      currentPath="/admin/groups"
-    >
       <section className="space-y-6">
         <PageHeader
           eyebrow="管理员功能"
@@ -69,6 +50,5 @@ export default async function AdminGroupsPage({ searchParams }: AdminGroupsPageP
           <GroupTable rows={rows} leaderOptions={leaderOptions} />
         </div>
       </section>
-    </AppShell>
   );
 }

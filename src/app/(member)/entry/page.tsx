@@ -1,8 +1,5 @@
-import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { canAccessMemberArea } from "@/lib/permissions";
 import type { IdentifierSaleFormValues } from "@/app/(member)/entry/form-state";
-import { AppShell } from "@/components/app-shell";
 import { SalesEntryPageClient } from "@/components/sales-entry-page-client";
 import { getCachedMemberEntryInsights } from "@/server/services/entry-insights-cache";
 import { getCachedMemberDailyRhythmSummary } from "@/server/services/leaderboard-cache";
@@ -29,15 +26,7 @@ function normalizeSingleSearchParam(value: string | string[] | undefined) {
 }
 
 export default async function EntryPage({ searchParams }: EntryPageProps = {}) {
-  const session = await auth();
-
-  if (!session?.user) {
-    redirect("/login?callbackUrl=%2Fentry");
-  }
-
-  if (!canAccessMemberArea(session.user)) {
-    redirect("/login?callbackUrl=%2Fentry");
-  }
+  const session = (await auth())!;
 
   const saleDate = getTodaySaleDateValue();
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
@@ -83,12 +72,7 @@ export default async function EntryPage({ searchParams }: EntryPageProps = {}) {
     Number(initialValues.count40 || "0") + Number(initialValues.count60 || "0");
 
   return (
-    <AppShell
-      role={session.user.role}
-      userName={session.user.name ?? session.user.username}
-      currentPath="/entry"
-    >
-      <SalesEntryPageClient
+    <SalesEntryPageClient
         initialValues={initialValues}
         hasExistingRecord={Boolean(currentRecord)}
         todayTotal={todayTotal}
@@ -103,6 +87,5 @@ export default async function EntryPage({ searchParams }: EntryPageProps = {}) {
           ...dailyRhythmSummary,
         }}
       />
-    </AppShell>
   );
 }

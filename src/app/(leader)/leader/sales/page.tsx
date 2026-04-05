@@ -1,8 +1,5 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { canAccessLeader, getDefaultRedirectPath } from "@/lib/permissions";
-import { AppShell } from "@/components/app-shell";
 import { EmptyState } from "@/components/empty-state";
 import { LeaderAuditTimeline } from "@/components/leader/leader-audit-timeline";
 import { LeaderCodeAssignmentSection } from "@/components/leader/leader-code-assignment-section";
@@ -57,15 +54,7 @@ async function loadLeaderWorkbenchPageState(leaderUserId: string) {
 }
 
 export default async function LeaderSalesPage({ searchParams }: LeaderSalesPageProps = {}) {
-  const session = await auth();
-
-  if (!session?.user) {
-    redirect("/login?callbackUrl=%2Fleader%2Fsales");
-  }
-
-  if (!canAccessLeader(session.user)) {
-    redirect(getDefaultRedirectPath(session.user.role));
-  }
+  const session = (await auth())!;
 
   const params = searchParams ? await searchParams : undefined;
   const notice = normalizeSingleSearchParam(params?.notice);
@@ -77,12 +66,7 @@ export default async function LeaderSalesPage({ searchParams }: LeaderSalesPageP
     const currentGroupRank = groupLeaderboard.rows.find((row) => row.groupId === snapshot.group.id);
 
     return (
-      <AppShell
-        role={session.user.role}
-        userName={session.user.name ?? session.user.username}
-        currentPath="/leader/sales"
-      >
-        <section className="space-y-6">
+      <section className="space-y-6">
           <PageHeader
             eyebrow="组长工作台"
             title="小组销售"
@@ -134,17 +118,11 @@ export default async function LeaderSalesPage({ searchParams }: LeaderSalesPageP
           />
           <LeaderAuditTimeline items={snapshot.auditRows} />
         </section>
-      </AppShell>
     );
   }
 
   return (
-    <AppShell
-      role={session.user.role}
-      userName={session.user.name ?? session.user.username}
-      currentPath="/leader/sales"
-    >
-      <section className="space-y-6">
+    <section className="space-y-6">
         <PageHeader
           eyebrow="组长工作台"
           title="小组销售"
@@ -170,6 +148,5 @@ export default async function LeaderSalesPage({ searchParams }: LeaderSalesPageP
           }
         />
       </section>
-    </AppShell>
   );
 }

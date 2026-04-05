@@ -1,7 +1,3 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
-import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
-import { AppShell } from "@/components/app-shell";
 import { AnnouncementForm } from "@/components/admin/announcement-form";
 import { AnnouncementTable } from "@/components/admin/announcement-table";
 import { MetricCard } from "@/components/metric-card";
@@ -27,16 +23,6 @@ function toDateTimeLocalString(value: Date) {
 export default async function AdminAnnouncementsPage({
   searchParams,
 }: AnnouncementsPageProps) {
-  const session = await auth();
-
-  if (!session?.user) {
-    redirect("/login?callbackUrl=%2Fadmin%2Fannouncements");
-  }
-
-  if (!canAccessAdmin(session.user)) {
-    redirect(getDefaultRedirectPath(session.user.role));
-  }
-
   const params = searchParams ? await searchParams : undefined;
   const notice = typeof params?.notice === "string" ? params.notice : null;
   const rows = await listAnnouncementsForAdmin();
@@ -54,11 +40,6 @@ export default async function AdminAnnouncementsPage({
   const pinnedCount = rows.filter((row) => row.isPinned).length;
 
   return (
-    <AppShell
-      role={session.user.role}
-      userName={session.user.name ?? session.user.username}
-      currentPath="/admin/announcements"
-    >
       <section className="space-y-6">
         <PageHeader
           eyebrow="内容系统"
@@ -103,6 +84,5 @@ export default async function AdminAnnouncementsPage({
           />
         </div>
       </section>
-    </AppShell>
   );
 }
