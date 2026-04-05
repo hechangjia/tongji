@@ -29,10 +29,6 @@
   --maika-podium-gradient: linear-gradient(135deg, #082f49 0%, #0f766e 100%);
   --maika-selection: rgba(34, 211, 238, 0.35);
   --maika-grid-line: rgba(8, 47, 73, 0.04);
-  --font-maika-sans: "Avenir Next", "PingFang SC", "Hiragino Sans GB",
-    "Microsoft YaHei UI", sans-serif;
-  --font-maika-display: "Iowan Old Style", "Noto Serif SC", "Songti SC",
-    serif;
 }
 
 :root[data-maika-theme="sunset"] {
@@ -195,9 +191,11 @@
   --color-foreground: var(--foreground);
   --color-maika-ink: var(--maika-ink);
   --color-maika-accent: var(--maika-accent);
-  --font-sans: var(--font-maika-sans);
-  --font-display: var(--font-maika-display);
-  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  --font-sans: var(--font-dm-sans), var(--font-noto-sans-sc), sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+  --radius-sm: 18px;
+  --radius-md: 24px;
+  --radius-lg: 30px;
 }
 
 @keyframes maika-fade-up {
@@ -221,8 +219,6 @@ body {
   background: var(--background);
   color: var(--foreground);
   background-image: var(--maika-body-gradient);
-  font-family: var(--font-maika-sans), "PingFang SC", "Hiragino Sans GB",
-    "Microsoft YaHei UI", sans-serif;
   min-height: 100%;
 }
 
@@ -236,7 +232,14 @@ body {
 }
 
 .font-display {
-  font-family: var(--font-maika-display), "STSong", "Songti SC", serif;
+  font-family: "Iowan Old Style", "Noto Serif SC", "Songti SC", "STSong", serif;
+}
+
+/* 核心标识符与金额高亮 - 风险突破点 */
+.mono-accent {
+  font-family: var(--font-geist-mono), monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 
 .maika-fade-up {
@@ -246,6 +249,8 @@ body {
 .maika-glass {
   background: var(--maika-surface);
   backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  transform: translateZ(0); /* 开启硬件加速，防止滚动掉帧 */
 }
 
 .maika-grid {
