@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Sans, Noto_Sans_SC, Geist_Mono } from "next/font/google";
+import { DM_Sans, Geist_Mono } from "next/font/google";
 import { AppMonitoring } from "@/components/app-monitoring";
 import { ThemePalette } from "@/components/theme-palette";
 import { ThemeScript } from "@/components/theme-script";
@@ -13,13 +13,7 @@ const dmSans = DM_Sans({
   display: "swap",
 });
 
-// 配置中文字体后备
-const notoSansSC = Noto_Sans_SC({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  variable: "--font-noto-sans-sc",
-  display: "swap",
-});
+
 
 // 配置系统标识符破局字体
 const geistMono = Geist_Mono({
@@ -42,7 +36,7 @@ export default function RootLayout({
   return (
     <html
       lang="zh-CN"
-      className={`h-full antialiased ${dmSans.variable} ${notoSansSC.variable} ${geistMono.variable}`}
+      className={`h-full antialiased ${dmSans.variable}  ${geistMono.variable}`}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >

@@ -206,7 +206,7 @@ export function SalesTable({
                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${getReviewStatusTone(row.reviewStatus)}`}>
                       {getReviewStatusLabel(row.reviewStatus)}
                     </span>
-                    <span className="text-xs text-maika-muted mt-1">提交于 <span className="mono-accent">{formatSubmittedAt(row.submittedAt)}</span></span>
+                    <span className="text-xs text-maika-muted mt-1">提交于 <span className="mono-accent">{formatSubmittedAt(row.lastSubmittedAt)}</span></span>
                   </div>
                 </td>
                 <td className="px-6 py-4 text-right">
@@ -227,7 +227,7 @@ export function SalesTable({
         open={editingRow !== null}
         onOpenChange={(open) => !open && setEditingRow(null)}
         title={editingRow ? `审核单据: ${editingRow.userName}` : ""}
-        description={editingRow ? `提交时间: ${formatSubmittedAt(editingRow.submittedAt)}` : ""}
+        description={editingRow ? `提交时间: ${formatSubmittedAt(editingRow.lastSubmittedAt)}` : ""}
       >
         {editingRow && (
           <SalesEditDrawer 

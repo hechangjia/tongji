@@ -1,6 +1,12 @@
 import { describe, expect, test, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 
+vi.mock("next/font/google", () => ({
+  DM_Sans: () => ({ variable: "--font-dm-sans" }),
+  Geist_Mono: () => ({ variable: "--font-geist-mono" }),
+  Noto_Sans_SC: () => ({ variable: "--font-noto-sans-sc" })
+}));
+
 vi.mock("@/components/app-monitoring", () => ({
   AppMonitoring: () => <div data-testid="app-monitoring" />,
 }));
