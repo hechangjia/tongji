@@ -1,3 +1,4 @@
+"use client";
 import * as React from "react";
 import { EmptyState } from "@/components/empty-state";
 import { SlideOver } from "@/components/ui/slide-over";
