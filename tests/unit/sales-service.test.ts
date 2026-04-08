@@ -50,6 +50,11 @@ describe("date conversion utilities", () => {
     expect(value).toBe("2026-03-28");
   });
 
+  test("saleDateToValue accepts a serialized date string from the RSC payload", () => {
+    const value = saleDateToValue("2026-03-28T00:00:00.000Z");
+    expect(value).toBe("2026-03-28");
+  });
+
   test("getTodaySaleDateValue returns today in YYYY-MM-DD format", () => {
     const result = getTodaySaleDateValue(new Date("2026-03-28T16:00:00.000Z"), "UTC");
     expect(result).toBe("2026-03-28");

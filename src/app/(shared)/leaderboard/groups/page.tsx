@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { getCachedSessionIfCookiePresent } from "@/lib/auth-request-cache";
 import { AppShell } from "@/components/app-shell";
 import { GroupLeaderboardTable } from "@/components/leader/group-leaderboard-table";
 import { MetricCard } from "@/components/metric-card";
@@ -8,19 +8,25 @@ import { getCachedGroupLeaderboard } from "@/server/services/leaderboard-cache";
 import { getTodaySaleDateValue } from "@/server/services/sales-service";
 
 export default async function GroupLeaderboardPage() {
-  const session = await auth();
+  const session = await getCachedSessionIfCookiePresent();
   const todaySaleDate = getTodaySaleDateValue();
   const leaderboard = await getCachedGroupLeaderboard({
     currentUserId: session?.user?.id,
     todaySaleDate,
   });
+  const visibleGroupIds =
+    session?.user?.role === "ADMIN"
+      ? leaderboard.rows.map((row) => row.groupId)
+      : session?.user?.role === "LEADER" && leaderboard.viewerGroupDelta?.groupId
+        ? [leaderboard.viewerGroupDelta.groupId]
+        : [];
   const memberRowsByGroupId = Object.fromEntries(
     await Promise.all(
-      leaderboard.rows.map(async (row) => [
-        row.groupId,
+      visibleGroupIds.map(async (groupId) => [
+        groupId,
         await getVisibleGroupMemberRows({
           currentUserId: session?.user?.id,
-          groupId: row.groupId,
+          groupId,
           todaySaleDate,
         }),
       ]),

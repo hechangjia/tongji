@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 const userFindManyMock = vi.hoisted(() => vi.fn());
 const memberReminderCountMock = vi.hoisted(() => vi.fn());
-const dailyTargetUpsertMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/db", () => ({
   db: {
@@ -11,9 +10,6 @@ vi.mock("@/lib/db", () => ({
     },
     memberReminder: {
       count: memberReminderCountMock,
-    },
-    dailyTarget: {
-      upsert: dailyTargetUpsertMock,
     },
   },
 }));
@@ -47,7 +43,7 @@ describe("admin insights service", () => {
     });
   });
 
-  test("getAdminInsightsData auto-creates today's target for members without one", async () => {
+  test("getAdminInsightsData computes a fallback target without writing when today is missing", async () => {
     userFindManyMock.mockResolvedValue([
       {
         id: "member-1",
@@ -77,12 +73,6 @@ describe("admin insights service", () => {
       },
     ]);
     memberReminderCountMock.mockResolvedValue(0);
-    dailyTargetUpsertMock.mockResolvedValue({
-      id: "target-1",
-      finalTotal: 4,
-      suggestedTotal: 4,
-      suggestionReason: "近 7 天平均约 5 单，最近状态存在波动，建议目标适度保守",
-    });
 
     await expect(
       getAdminInsightsData({
@@ -92,30 +82,11 @@ describe("admin insights service", () => {
       memberCards: [
         expect.objectContaining({
           userId: "member-1",
-          targetId: "target-1",
+          targetId: null,
+          targetDate: "2026-03-27",
           targetTotal: 4,
         }),
       ],
-    });
-
-    expect(dailyTargetUpsertMock).toHaveBeenCalledWith({
-      where: {
-        userId_targetDate: {
-          userId: "member-1",
-          targetDate: new Date("2026-03-27T00:00:00.000Z"),
-        },
-      },
-      update: {
-        suggestedTotal: 4,
-        suggestionReason: expect.stringContaining("近 7 天平均约 5 单"),
-      },
-      create: {
-        userId: "member-1",
-        targetDate: new Date("2026-03-27T00:00:00.000Z"),
-        suggestedTotal: 4,
-        finalTotal: 4,
-        suggestionReason: expect.stringContaining("近 7 天平均约 5 单"),
-      },
     });
   });
 });

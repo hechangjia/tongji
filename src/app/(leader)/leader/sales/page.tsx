@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { auth } from "@/lib/auth";
+import { getCachedSession } from "@/lib/auth-request-cache";
 import { EmptyState } from "@/components/empty-state";
 import { LeaderAuditTimeline } from "@/components/leader/leader-audit-timeline";
 import { LeaderCodeAssignmentSection } from "@/components/leader/leader-code-assignment-section";
@@ -54,7 +54,7 @@ async function loadLeaderWorkbenchPageState(leaderUserId: string) {
 }
 
 export default async function LeaderSalesPage({ searchParams }: LeaderSalesPageProps = {}) {
-  const session = (await auth())!;
+  const session = (await getCachedSession())!;
 
   const params = searchParams ? await searchParams : undefined;
   const notice = normalizeSingleSearchParam(params?.notice);

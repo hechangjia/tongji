@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { auth } from "@/lib/auth";
+import { getCachedSession } from "@/lib/auth-request-cache";
 import { db } from "@/lib/db";
 import { updateLeaderGroupProfileAction } from "@/app/(leader)/leader/group/actions";
 import { EmptyState } from "@/components/empty-state";
@@ -15,7 +15,7 @@ type LeaderGroupPageProps = {
 };
 
 export default async function LeaderGroupPage({ searchParams }: LeaderGroupPageProps = {}) {
-  const session = (await auth())!;
+  const session = (await getCachedSession())!;
 
   const params = searchParams ? await searchParams : undefined;
   const notice = typeof params?.notice === "string" ? params.notice : null;

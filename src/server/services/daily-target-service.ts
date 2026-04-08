@@ -95,6 +95,38 @@ export async function updateFinalDailyTarget(input: {
   });
 }
 
+export async function upsertFinalDailyTargetForUser(input: {
+  userId: string;
+  targetDate: DateValue;
+  finalTotal: number;
+  adjustedById: string;
+}) {
+  const targetDate = saleDateValueToDate(input.targetDate);
+
+  return db.dailyTarget.upsert({
+    where: {
+      userId_targetDate: {
+        userId: input.userId,
+        targetDate,
+      },
+    },
+    update: {
+      finalTotal: input.finalTotal,
+      adjustedById: input.adjustedById,
+      adjustedAt: new Date(),
+    },
+    create: {
+      userId: input.userId,
+      targetDate,
+      suggestedTotal: input.finalTotal,
+      finalTotal: input.finalTotal,
+      suggestionReason: "管理员从经营诊断页手动设置",
+      adjustedById: input.adjustedById,
+      adjustedAt: new Date(),
+    },
+  });
+}
+
 export async function listDailyTargetsForDate(targetDate: DateValue) {
   return db.dailyTarget.findMany({
     where: {
@@ -201,23 +233,41 @@ export async function getMemberDailyTargetFeedback(input: {
 }): Promise<MemberDailyTargetFeedback> {
   const todaySaleDate = input.todaySaleDate ?? getTodaySaleValue();
   const targetDate = saleDateValueToDate(todaySaleDate);
-  const [target, record] = await Promise.all([
-    ensureDailyTargetForUser({
-      userId: input.userId,
-      todaySaleDate,
-    }),
-    db.salesRecord.findUnique({
+  const [target, records] = await Promise.all([
+    db.dailyTarget.findUnique({
       where: {
-        userId_saleDate: {
+        userId_targetDate: {
           userId: input.userId,
-          saleDate: targetDate,
+          targetDate,
         },
       },
     }),
+    db.salesRecord.findMany({
+      where: {
+        userId: input.userId,
+        saleDate: {
+          lte: targetDate,
+        },
+      },
+      select: {
+        saleDate: true,
+        count40: true,
+        count60: true,
+        reviewStatus: true,
+      },
+      orderBy: [{ saleDate: "desc" }],
+      take: 7,
+    }),
   ]);
+  const todayRecord = records.find((record) => saleDateToValue(record.saleDate) === todaySaleDate);
+  const resolvedTarget =
+    target ?? {
+      id: null,
+      finalTotal: buildTargetSuggestionFromRecentRecords(records, todaySaleDate).suggestedTotal,
+    };
 
-  const targetTotal = target?.finalTotal ?? 0;
-  const currentTotal = record ? getRecordTotal(record) : 0;
+  const targetTotal = resolvedTarget.finalTotal ?? 0;
+  const currentTotal = todayRecord ? getRecordTotal(todayRecord) : 0;
   const gap = Math.max(0, targetTotal - currentTotal);
   const completionRate = targetTotal === 0 ? 0 : Math.round((currentTotal / targetTotal) * 100);
 

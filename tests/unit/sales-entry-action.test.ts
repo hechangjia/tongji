@@ -8,6 +8,7 @@ const redirectMock = vi.hoisted(() =>
   }),
 );
 const saveSalesRecordForUserMock = vi.hoisted(() => vi.fn());
+const refreshAdminInsightsCacheMock = vi.hoisted(() => vi.fn());
 const refreshLeaderboardCachesMock = vi.hoisted(() => vi.fn());
 const refreshEntryInsightsCacheMock = vi.hoisted(() => vi.fn());
 const refreshMemberRecordsCacheMock = vi.hoisted(() => vi.fn());
@@ -26,6 +27,10 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/server/services/leaderboard-cache", () => ({
   refreshLeaderboardCaches: refreshLeaderboardCachesMock,
+}));
+
+vi.mock("@/server/services/admin-insights-cache", () => ({
+  refreshAdminInsightsCache: refreshAdminInsightsCacheMock,
 }));
 
 vi.mock("@/server/services/entry-insights-cache", () => ({

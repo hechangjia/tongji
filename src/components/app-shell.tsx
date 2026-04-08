@@ -1,13 +1,13 @@
-import type { PropsWithChildren } from "react";
+import { Suspense, type PropsWithChildren } from "react";
 import type { SessionRole } from "@/lib/permissions";
 import type {
   ShellAnnouncement,
   ShellBannerData,
 } from "@/lib/content-types";
-import {
-  AppShellClient,
-  type ShellNavSection,
-} from "@/components/app-shell-client";
+import { AnnouncementList } from "@/components/announcement-list";
+import { AppShellClient, type ShellNavSection } from "@/components/app-shell-client";
+import { BannerRotator } from "@/components/banner-rotator";
+import { ThemePalette } from "@/components/theme-palette";
 import {
   getCachedBannerShellData,
   getCachedVisibleAnnouncements,
@@ -77,14 +77,10 @@ export function buildNavSections(role: SessionRole): ShellNavSection[] {
   ];
 }
 
-export async function AppShell({
-  role,
-  userName,
-  currentPath,
+async function AppShellTopSlot({
   banner,
   announcements,
-  children,
-}: AppShellProps) {
+}: Pick<AppShellProps, "banner" | "announcements">) {
   const bannerPromise =
     banner === undefined ? getCachedBannerShellData() : Promise.resolve(banner);
   const announcementsPromise =
@@ -97,14 +93,35 @@ export async function AppShell({
   ]);
 
   return (
+    <>
+      <BannerRotator banner={resolvedBanner} />
+      <AnnouncementList announcements={resolvedAnnouncements} />
+    </>
+  );
+}
+
+export function AppShell({
+  role,
+  userName,
+  currentPath,
+  banner,
+  announcements,
+  children,
+}: AppShellProps) {
+  return (
     <AppShellClient
       role={role}
       userName={userName}
       currentPath={currentPath}
       navSections={buildNavSections(role)}
-      banner={resolvedBanner}
-      announcements={resolvedAnnouncements}
+      topSlot={
+        <Suspense fallback={null}>
+          <AppShellTopSlot banner={banner} announcements={announcements} />
+        </Suspense>
+      }
     >
+      <ThemePalette />
+
       {children}
     </AppShellClient>
   );

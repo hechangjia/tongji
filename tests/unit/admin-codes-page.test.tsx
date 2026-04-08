@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 const authMock = vi.hoisted(() => vi.fn());
@@ -10,6 +10,7 @@ const redirectMock = vi.hoisted(() =>
 const getAdminCodesDashboardDataMock = vi.hoisted(() => vi.fn());
 const getCachedAdminCumulativeTrendMock = vi.hoisted(() => vi.fn());
 const getCachedAdminDailyRhythmSummaryMock = vi.hoisted(() => vi.fn());
+const prefetchMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/auth", () => ({
   auth: authMock,
@@ -17,6 +18,9 @@ vi.mock("@/lib/auth", () => ({
 
 vi.mock("next/navigation", () => ({
   redirect: redirectMock,
+  useRouter: () => ({
+    prefetch: prefetchMock,
+  }),
 }));
 
 vi.mock("@/server/services/admin-code-service", () => ({
@@ -102,6 +106,10 @@ vi.mock("@/components/admin/admin-daily-review-summary", () => ({
   AdminDailyReviewSummary: () => <div>admin-daily-review-summary</div>,
 }));
 
+vi.mock("@/components/admin/admin-home-route-prefetch", () => ({
+  AdminHomeRoutePrefetch: () => null,
+}));
+
 import AdminHomePage from "@/app/(admin)/admin/page";
 import AdminCodesPage from "@/app/(admin)/admin/codes/page";
 
@@ -156,5 +164,13 @@ describe("admin codes page", () => {
       "href",
       "/admin/codes",
     );
+  });
+
+  test("admin home page prefetches the insights route on card hover intent", async () => {
+    render(await AdminHomePage({}));
+
+    fireEvent.mouseEnter(screen.getByRole("link", { name: /经营诊断/ }));
+
+    expect(prefetchMock).toHaveBeenCalledWith("/admin/insights");
   });
 });

@@ -1,7 +1,4 @@
-"use client";
-
 import type { ReactNode } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 
 export interface Column<T> {
   key: keyof T | string;
@@ -36,8 +33,7 @@ export function ResponsiveTable<T>({
   return (
     <div className="space-y-4">
       {title && <h3 className="text-lg font-semibold text-slate-950 px-1">{title}</h3>}
-      
-      {/* Desktop View */}
+
       <div className="hidden md:block overflow-hidden rounded-[24px] border border-white/70 bg-white/82 shadow-[0_22px_60px_rgba(8,47,73,0.08)] backdrop-blur-xl">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200 text-sm">
@@ -51,70 +47,59 @@ export function ResponsiveTable<T>({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              <AnimatePresence initial={false}>
-                {data.map((row, idx) => (
-                  <motion.tr
-                    key={rowKey(row)}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: Math.min(idx * 0.03, 0.5) }}
-                    className="text-slate-700 transition hover:bg-cyan-50/55"
-                  >
-                    {columns.map((col) => (
-                      <td key={String(col.key)} className="px-5 py-4">
-                        {col.render ? col.render(row) : (row[col.key as keyof T] as ReactNode)}
-                      </td>
-                    ))}
-                  </motion.tr>
-                ))}
-              </AnimatePresence>
+              {data.map((row) => (
+                <tr
+                  key={rowKey(row)}
+                  className="text-slate-700 transition hover:bg-cyan-50/55"
+                >
+                  {columns.map((col) => (
+                    <td key={String(col.key)} className="px-5 py-4">
+                      {col.render ? col.render(row) : (row[col.key as keyof T] as ReactNode)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Mobile View - Cards */}
       <div className="grid gap-4 md:hidden">
-        <AnimatePresence initial={false}>
-          {data.map((row, idx) => (
-            <motion.article
-              key={rowKey(row)}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: Math.min(idx * 0.05, 0.5) }}
-              className="rounded-[24px] border border-white/70 bg-white/84 p-5 shadow-[0_12px_32px_rgba(8,47,73,0.06)] backdrop-blur-xl"
-            >
-              <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
-                {columns
-                  .filter((c) => c.mobilePriority)
-                  .map((col) => (
-                    <div key={String(col.key)}>
-                      <p className="text-[0.6rem] font-semibold uppercase tracking-wider text-slate-400">
-                        {col.label}
-                      </p>
-                      <div className="mt-1 text-sm font-semibold text-slate-950">
-                        {col.render ? col.render(row) : (row[col.key as keyof T] as ReactNode)}
-                      </div>
+        {data.map((row) => (
+          <article
+            key={rowKey(row)}
+            className="rounded-[24px] border border-white/70 bg-white/84 p-5 shadow-[0_12px_32px_rgba(8,47,73,0.06)] backdrop-blur-xl"
+          >
+            <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
+              {columns
+                .filter((c) => c.mobilePriority)
+                .map((col) => (
+                  <div key={String(col.key)}>
+                    <p className="text-[0.6rem] font-semibold uppercase tracking-wider text-slate-400">
+                      {col.label}
+                    </p>
+                    <div className="mt-1 text-sm font-semibold text-slate-950">
+                      {col.render ? col.render(row) : (row[col.key as keyof T] as ReactNode)}
                     </div>
-                  ))}
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                {columns
-                  .filter((c) => !c.mobilePriority)
-                  .map((col) => (
-                    <div key={String(col.key)}>
-                      <p className="text-[0.6rem] font-semibold uppercase tracking-wider text-slate-400">
-                        {col.label}
-                      </p>
-                      <div className="mt-1 text-sm text-slate-700">
-                        {col.render ? col.render(row) : (row[col.key as keyof T] as ReactNode)}
-                      </div>
+                  </div>
+                ))}
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {columns
+                .filter((c) => !c.mobilePriority)
+                .map((col) => (
+                  <div key={String(col.key)}>
+                    <p className="text-[0.6rem] font-semibold uppercase tracking-wider text-slate-400">
+                      {col.label}
+                    </p>
+                    <div className="mt-1 text-sm text-slate-700">
+                      {col.render ? col.render(row) : (row[col.key as keyof T] as ReactNode)}
                     </div>
-                  ))}
-              </div>
-            </motion.article>
-          ))}
-        </AnimatePresence>
+                  </div>
+                ))}
+            </div>
+          </article>
+        ))}
       </div>
     </div>
   );

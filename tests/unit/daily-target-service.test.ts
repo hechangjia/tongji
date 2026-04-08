@@ -21,6 +21,7 @@ vi.mock("@/lib/db", () => ({
 import {
   buildSuggestedDailyTarget,
   getMemberDailyTargetFeedback,
+  upsertFinalDailyTargetForUser,
 } from "@/server/services/daily-target-service";
 
 describe("daily target service", () => {
@@ -41,20 +42,8 @@ describe("daily target service", () => {
     });
   });
 
-  test("getMemberDailyTargetFeedback auto-creates today's target when it is missing", async () => {
+  test("getMemberDailyTargetFeedback derives a fallback target without writing when it is missing", async () => {
     dailyTargetFindUniqueMock.mockResolvedValue(null);
-    dailyTargetUpsertMock.mockResolvedValue({
-      id: "target-1",
-      userId: "member-1",
-      targetDate: new Date("2026-03-27T00:00:00.000Z"),
-      suggestedTotal: 4,
-      finalTotal: 4,
-      suggestionReason: "近 7 天平均约 5 单，最近状态存在波动，建议目标适度保守",
-    });
-    salesRecordFindUniqueMock.mockResolvedValue({
-      count40: 2,
-      count60: 1,
-    });
     salesRecordFindManyMock.mockResolvedValue([
       {
         saleDate: new Date("2026-03-27T00:00:00.000Z"),
@@ -88,6 +77,21 @@ describe("daily target service", () => {
       status: "BEHIND",
     });
 
+    expect(dailyTargetUpsertMock).not.toHaveBeenCalled();
+  });
+
+  test("upsertFinalDailyTargetForUser creates or updates today's target for admin adjustments", async () => {
+    dailyTargetUpsertMock.mockResolvedValue({
+      id: "target-1",
+    });
+
+    await upsertFinalDailyTargetForUser({
+      userId: "member-1",
+      targetDate: "2026-03-27",
+      finalTotal: 8,
+      adjustedById: "admin-1",
+    });
+
     expect(dailyTargetUpsertMock).toHaveBeenCalledWith({
       where: {
         userId_targetDate: {
@@ -96,15 +100,18 @@ describe("daily target service", () => {
         },
       },
       update: {
-        suggestedTotal: 4,
-        suggestionReason: expect.stringContaining("近 7 天平均约 5 单"),
+        finalTotal: 8,
+        adjustedById: "admin-1",
+        adjustedAt: expect.any(Date),
       },
       create: {
         userId: "member-1",
         targetDate: new Date("2026-03-27T00:00:00.000Z"),
-        suggestedTotal: 4,
-        finalTotal: 4,
-        suggestionReason: expect.stringContaining("近 7 天平均约 5 单"),
+        suggestedTotal: 8,
+        finalTotal: 8,
+        suggestionReason: "管理员从经营诊断页手动设置",
+        adjustedById: "admin-1",
+        adjustedAt: expect.any(Date),
       },
     });
   });

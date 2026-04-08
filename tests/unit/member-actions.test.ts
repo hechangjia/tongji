@@ -16,6 +16,7 @@ const groupUpdateMock = vi.hoisted(() => vi.fn());
 const dbTransactionMock = vi.hoisted(() => vi.fn());
 const hashPasswordMock = vi.hoisted(() => vi.fn());
 const revalidatePathMock = vi.hoisted(() => vi.fn());
+const refreshAdminInsightsCacheMock = vi.hoisted(() => vi.fn());
 const refreshLeaderboardCachesMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/auth", () => ({
@@ -53,6 +54,10 @@ vi.mock("@/lib/password", () => ({
 
 vi.mock("@/server/services/leaderboard-cache", () => ({
   refreshLeaderboardCaches: refreshLeaderboardCachesMock,
+}));
+
+vi.mock("@/server/services/admin-insights-cache", () => ({
+  refreshAdminInsightsCache: refreshAdminInsightsCacheMock,
 }));
 
 import {

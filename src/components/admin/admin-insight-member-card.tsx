@@ -40,6 +40,8 @@ export function AdminInsightMemberCard({ card }: { card: AdminInsightMemberCardD
       <div className="grid gap-4 lg:grid-cols-2">
         <AdminTargetAdjustForm
           targetId={card.targetId}
+          userId={card.userId}
+          targetDate={card.targetDate}
           finalTotal={card.targetTotal}
           returnTo="/admin/insights"
         />

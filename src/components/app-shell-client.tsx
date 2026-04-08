@@ -1,15 +1,7 @@
-"use client";
-
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState, type PropsWithChildren, type ReactNode } from "react";
+import type { PropsWithChildren, ReactNode } from "react";
 import type { SessionRole } from "@/lib/permissions";
-import type {
-  ShellAnnouncement,
-  ShellBannerData,
-} from "@/lib/content-types";
-import { AnnouncementList } from "@/components/announcement-list";
-import { BannerRotator } from "@/components/banner-rotator";
+import { IntentPrefetchLink } from "@/components/intent-prefetch-link";
+import { AppShellMobileMenu } from "@/components/app-shell-mobile-menu";
 
 export type ShellNavItem = {
   label: string;
@@ -26,8 +18,6 @@ type AppShellClientProps = PropsWithChildren<{
   userName?: string | null;
   currentPath?: string;
   navSections: ShellNavSection[];
-  banner: ShellBannerData;
-  announcements: ShellAnnouncement[];
   topSlot?: ReactNode;
 }>;
 
@@ -68,8 +58,9 @@ function NavItem({
   const active = isActivePath(currentPath, href);
 
   return (
-    <Link
+    <IntentPrefetchLink
       href={href}
+      enableIntentPrefetch={href.startsWith("/admin")}
       aria-current={active ? "page" : undefined}
       onClick={onNavigate}
       className={`group flex items-center justify-between rounded-[18px] border px-4 py-3 text-sm font-medium transition duration-200 ${
@@ -87,23 +78,18 @@ function NavItem({
       >
         →
       </span>
-    </Link>
+    </IntentPrefetchLink>
   );
 }
 
 export function AppShellClient({
   role,
   userName,
-  currentPath: currentPathProp,
+  currentPath,
   navSections,
-  banner,
-  announcements,
   topSlot,
   children,
 }: AppShellClientProps) {
-  const pathname = usePathname();
-  const currentPath = currentPathProp ?? pathname;
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const rolePresentation = getRolePresentation(role);
   const displayName = userName ?? rolePresentation.fallbackName;
 
@@ -113,7 +99,7 @@ export function AppShellClient({
 
       <div className="relative mx-auto flex min-h-dvh w-full max-w-[1600px] gap-0 px-3 py-3 sm:px-4 lg:gap-6 lg:px-6 lg:py-6">
         <aside className="maika-fade-up hidden w-[288px] shrink-0 lg:flex translate-z-0">
-          <div className="maika-sidebar-surface flex min-h-full w-full flex-col rounded-[30px] border border-white/10 p-6 text-white shadow-[0_28px_80px_rgba(8,47,73,0.28)]">
+          <div className="maika-sidebar-surface flex min-h-full w-full flex-col rounded-[30px] border border-white/10 p-6 text-white shadow-[0_18px_48px_rgba(8,47,73,0.20)]">
             <div className="relative overflow-hidden rounded-[24px] border border-white/8 bg-white/6 p-5">
               <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-cyan-300/30 blur-2xl" />
               <p className="relative text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-cyan-200/90">
@@ -166,100 +152,18 @@ export function AppShellClient({
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="maika-fade-up lg:hidden">
-            <div className="rounded-[24px] border border-white/60 bg-white/70 px-4 py-4 shadow-[0_20px_60px_rgba(8,47,73,0.12)] backdrop-blur-xl">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-cyan-700">
-                    Maika
-                  </p>
-                  <h1 className="mt-1 font-display text-xl text-slate-950">
-                    {navSections.find((section) =>
-                      section.items.some((item) => isActivePath(currentPath, item.href)),
-                    )?.items.find((item) => isActivePath(currentPath, item.href))?.label ??
-                      "销售作战台"}
-                  </h1>
-                </div>
-                <button
-                  type="button"
-                  aria-label="打开导航菜单"
-                  onClick={() => setIsMenuOpen(true)}
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-[18px] border border-slate-200 bg-white/90 text-slate-900 shadow-sm transition hover:border-cyan-300 hover:text-cyan-700"
-                >
-                  <span aria-hidden="true" className="text-xl leading-none">
-                    ≡
-                  </span>
-                </button>
-              </div>
-              <div className="mt-4 flex items-center justify-between gap-3 rounded-[18px] bg-slate-950 px-4 py-3 text-white">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-cyan-200/85">身份</p>
-                  <p className="mt-1 text-sm font-semibold">{displayName}</p>
-                </div>
-                <span className="rounded-full bg-cyan-300 px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-950">
-                  {role}
-                </span>
-              </div>
-            </div>
-          </header>
-
-          {isMenuOpen ? (
-            <div className="fixed inset-0 z-40 lg:hidden">
-              <button
-                type="button"
-                aria-label="关闭导航菜单遮罩"
-                className="absolute inset-0 bg-slate-950/45 backdrop-blur-sm"
-                onClick={() => setIsMenuOpen(false)}
-              />
-              <div className="absolute inset-y-0 left-0 w-[84%] max-w-[320px] overflow-y-auto border-r border-white/10 bg-slate-950 px-5 py-5 text-white shadow-[0_30px_90px_rgba(8,47,73,0.35)] transition-transform duration-300">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-cyan-200/90">
-                      Maika Ops
-                    </p>
-                    <p className="mt-2 font-display text-lg text-white">{displayName}</p>
-                  </div>
-                  <button
-                    type="button"
-                    aria-label="关闭导航菜单"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-[18px] border border-white/12 bg-white/8 text-white transition hover:border-cyan-300/40 hover:text-cyan-200"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                <div className="mt-6 space-y-5">
-                  {navSections.map((section) => (
-                    <div key={section.title} className="space-y-3">
-                      <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-slate-400">
-                        {section.title}
-                      </p>
-                      <div className="space-y-2">
-                        {section.items.map((item) => (
-                          <NavItem
-                            key={item.href}
-                            {...item}
-                            currentPath={currentPath}
-                            onNavigate={() => setIsMenuOpen(false)}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : null}
+          <AppShellMobileMenu
+            role={role}
+            userName={userName}
+            currentPath={currentPath}
+            navSections={navSections}
+          />
 
           <main
             id="main-content"
             className="maika-fade-up relative mt-3 flex-1 lg:mt-0"
           >
-            <div className="space-y-4 rounded-[30px] border border-white/60 bg-white/58 px-4 py-4 shadow-[0_28px_80px_rgba(8,47,73,0.12)] backdrop-blur-xl sm:px-6 sm:py-6 lg:min-h-[calc(100dvh-3rem)] lg:px-8 lg:py-8">
-              <BannerRotator banner={banner} />
-              <AnnouncementList announcements={announcements} />
-
+            <div className="space-y-4 rounded-[30px] border border-white/60 bg-white/58 px-4 py-4 shadow-[0_16px_40px_rgba(8,47,73,0.10)] backdrop-blur-md sm:px-6 sm:py-6 lg:min-h-[calc(100dvh-3rem)] lg:px-8 lg:py-8">
               {topSlot}
               {children}
             </div>

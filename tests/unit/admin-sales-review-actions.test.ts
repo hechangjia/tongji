@@ -10,6 +10,7 @@ const revalidatePathMock = vi.hoisted(() => vi.fn());
 const unstableCacheMock = vi.hoisted(() =>
   vi.fn((callback: (...args: unknown[]) => unknown) => callback),
 );
+const refreshAdminInsightsCacheMock = vi.hoisted(() => vi.fn());
 const refreshLeaderboardCachesMock = vi.hoisted(() => vi.fn());
 const refreshLeaderWorkbenchCachesMock = vi.hoisted(() => vi.fn());
 const salesRecordUpdateMock = vi.hoisted(() => vi.fn());
@@ -30,6 +31,10 @@ vi.mock("next/cache", () => ({
 vi.mock("@/server/services/leaderboard-cache", () => ({
   refreshLeaderboardCaches: refreshLeaderboardCachesMock,
   refreshLeaderWorkbenchCaches: refreshLeaderWorkbenchCachesMock,
+}));
+
+vi.mock("@/server/services/admin-insights-cache", () => ({
+  refreshAdminInsightsCache: refreshAdminInsightsCacheMock,
 }));
 
 vi.mock("@/lib/db", () => ({

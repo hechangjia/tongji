@@ -8,6 +8,7 @@ const redirectMock = vi.hoisted(() =>
 );
 const saveIdentifierSaleForUserMock = vi.hoisted(() => vi.fn());
 const getMemberIdentifierWorkspaceMock = vi.hoisted(() => vi.fn());
+const refreshAdminInsightsCacheMock = vi.hoisted(() => vi.fn());
 const refreshLeaderboardCachesMock = vi.hoisted(() => vi.fn());
 const refreshLeaderWorkbenchCachesMock = vi.hoisted(() => vi.fn());
 const refreshEntryInsightsCacheMock = vi.hoisted(() => vi.fn());
@@ -36,6 +37,10 @@ vi.mock("@/server/services/member-identifier-sale-service", () => ({
 vi.mock("@/server/services/leaderboard-cache", () => ({
   refreshLeaderboardCaches: refreshLeaderboardCachesMock,
   refreshLeaderWorkbenchCaches: refreshLeaderWorkbenchCachesMock,
+}));
+
+vi.mock("@/server/services/admin-insights-cache", () => ({
+  refreshAdminInsightsCache: refreshAdminInsightsCacheMock,
 }));
 
 vi.mock("@/server/services/entry-insights-cache", () => ({

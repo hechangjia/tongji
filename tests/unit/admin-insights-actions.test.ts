@@ -11,8 +11,10 @@ const unstableCacheMock = vi.hoisted(() =>
   vi.fn((callback: (...args: unknown[]) => unknown) => callback),
 );
 const updateTagMock = vi.hoisted(() => vi.fn());
+const refreshAdminInsightsCacheMock = vi.hoisted(() => vi.fn());
 const refreshLeaderboardCachesMock = vi.hoisted(() => vi.fn());
 const dailyTargetUpdateMock = vi.hoisted(() => vi.fn());
+const dailyTargetUpsertForUserMock = vi.hoisted(() => vi.fn());
 const memberReminderCreateMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/auth", () => ({
@@ -33,8 +35,13 @@ vi.mock("@/server/services/leaderboard-cache", () => ({
   refreshLeaderboardCaches: refreshLeaderboardCachesMock,
 }));
 
+vi.mock("@/server/services/admin-insights-cache", () => ({
+  refreshAdminInsightsCache: refreshAdminInsightsCacheMock,
+}));
+
 vi.mock("@/server/services/daily-target-service", () => ({
   updateFinalDailyTarget: dailyTargetUpdateMock,
+  upsertFinalDailyTargetForUser: dailyTargetUpsertForUserMock,
 }));
 
 vi.mock("@/server/services/member-reminder-service", async () => {
@@ -79,6 +86,28 @@ describe("admin insights actions", () => {
 
     expect(dailyTargetUpdateMock).toHaveBeenCalledWith({
       targetId: "target-1",
+      finalTotal: 8,
+      adjustedById: "admin-1",
+    });
+    expect(dailyTargetUpsertForUserMock).not.toHaveBeenCalled();
+  });
+
+  test("admin can create today's target from the insights page when it does not exist yet", async () => {
+    dailyTargetUpsertForUserMock.mockResolvedValue({});
+
+    const formData = new FormData();
+    formData.set("userId", "member-1");
+    formData.set("targetDate", "2026-03-27");
+    formData.set("finalTotal", "8");
+    formData.set("returnTo", "/admin/insights");
+
+    await expect(adjustDailyTargetAction(formData)).rejects.toThrow(
+      "redirect:/admin/insights?notice=",
+    );
+
+    expect(dailyTargetUpsertForUserMock).toHaveBeenCalledWith({
+      userId: "member-1",
+      targetDate: "2026-03-27",
       finalTotal: 8,
       adjustedById: "admin-1",
     });

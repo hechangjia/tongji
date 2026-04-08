@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-const authMock = vi.hoisted(() => vi.fn());
+const getCachedSessionMock = vi.hoisted(() => vi.fn());
 const redirectMock = vi.hoisted(() =>
   vi.fn((target: string) => {
     throw new Error(`redirect:${target}`);
@@ -10,6 +10,7 @@ const redirectMock = vi.hoisted(() =>
 const getSalesRecordForUserOnDateMock = vi.hoisted(() => vi.fn());
 const getCachedMemberDailyRhythmSummaryMock = vi.hoisted(() => vi.fn());
 const getCachedMemberEntryInsightsMock = vi.hoisted(() => vi.fn());
+const getCachedMemberCurrentRecordMock = vi.hoisted(() => vi.fn());
 const getCachedMemberIdentifierWorkspaceMock = vi.hoisted(() => vi.fn());
 const salesEntryPageClientMock = vi.hoisted(() => vi.fn());
 const buildSalesEntryDefaultsMock = vi.hoisted(() => vi.fn());
@@ -18,8 +19,8 @@ const saleDateToValueMock = vi.hoisted(
   () => vi.fn((value: string | Date) => (typeof value === "string" ? value : value.toISOString().slice(0, 10))),
 );
 
-vi.mock("@/lib/auth", () => ({
-  auth: authMock,
+vi.mock("@/lib/auth-request-cache", () => ({
+  getCachedSession: getCachedSessionMock,
 }));
 
 vi.mock("next/navigation", () => ({
@@ -48,12 +49,12 @@ vi.mock("@/server/services/entry-insights-cache", () => ({
 }));
 
 vi.mock("@/server/services/member-records-cache", () => ({
+  getCachedMemberCurrentRecord: getCachedMemberCurrentRecordMock,
   getCachedMemberIdentifierWorkspace: getCachedMemberIdentifierWorkspaceMock,
 }));
 
 vi.mock("@/server/services/sales-service", () => ({
   buildSalesEntryDefaults: buildSalesEntryDefaultsMock,
-  getSalesRecordForUserOnDate: getSalesRecordForUserOnDateMock,
   getTodaySaleDateValue: getTodaySaleDateValueMock,
   saleDateToValue: saleDateToValueMock,
 }));
@@ -63,7 +64,7 @@ import EntryPage from "@/app/(member)/entry/page";
 describe("entry page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    authMock.mockResolvedValue({
+    getCachedSessionMock.mockResolvedValue({
       user: {
         id: "member-1",
         role: "MEMBER",
@@ -72,7 +73,7 @@ describe("entry page", () => {
         status: "ACTIVE",
       },
     });
-    getSalesRecordForUserOnDateMock.mockResolvedValue(null);
+    getCachedMemberCurrentRecordMock.mockResolvedValue(null);
     buildSalesEntryDefaultsMock.mockReturnValue({
       saleDate: "2026-03-28",
       count40: "0",
@@ -124,11 +125,22 @@ describe("entry page", () => {
     });
   });
 
+  test("exports a deferred insights section so the page shell can render before slower insights resolve", async () => {
+    const module = await import("@/app/(member)/entry/page");
+
+    expect(module).toHaveProperty("EntryInsightsSection");
+  });
+
   test("uses cached member entry insights and identifier workspace for the initial page payload", async () => {
     const todaySaleDate = getTodaySaleDateValueMock();
 
     render(await EntryPage());
 
+    expect(getCachedSessionMock).toHaveBeenCalledTimes(1);
+    expect(getCachedMemberCurrentRecordMock).toHaveBeenCalledWith(
+      "member-1",
+      todaySaleDate,
+    );
     expect(getCachedMemberEntryInsightsMock).toHaveBeenCalledWith({
       userId: "member-1",
       todaySaleDate,
@@ -162,13 +174,19 @@ describe("entry page", () => {
           followUpItemId: "",
         },
         initialTargetFeedback: {
-          targetTotal: 8,
+          targetTotal: 0,
           currentTotal: 0,
-          gap: 8,
+          gap: 0,
           completionRate: 0,
-          status: "BEHIND",
+          status: "NO_TARGET",
+        },
+        initialSelfTrend: {
+          direction: "FLAT",
+          label: "正在加载趋势",
+          message: "正在准备你的近 7 天趋势。",
         },
         initialRecentReminders: [],
+        insightsSlot: expect.anything(),
       }),
     );
   });

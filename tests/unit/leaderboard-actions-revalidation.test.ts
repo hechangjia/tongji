@@ -7,6 +7,7 @@ const redirectMock = vi.hoisted(() =>
   }),
 );
 const saveSalesRecordForUserMock = vi.hoisted(() => vi.fn());
+const refreshAdminInsightsCacheMock = vi.hoisted(() => vi.fn());
 const refreshLeaderboardCachesMock = vi.hoisted(() => vi.fn());
 const refreshLeaderWorkbenchCachesMock = vi.hoisted(() => vi.fn());
 const refreshEntryInsightsCacheMock = vi.hoisted(() => vi.fn());
@@ -49,6 +50,10 @@ vi.mock("@/server/services/sales-service", async () => {
 vi.mock("@/server/services/leaderboard-cache", () => ({
   refreshLeaderboardCaches: refreshLeaderboardCachesMock,
   refreshLeaderWorkbenchCaches: refreshLeaderWorkbenchCachesMock,
+}));
+
+vi.mock("@/server/services/admin-insights-cache", () => ({
+  refreshAdminInsightsCache: refreshAdminInsightsCacheMock,
 }));
 
 vi.mock("@/server/services/entry-insights-cache", () => ({
@@ -176,6 +181,7 @@ describe("leaderboard cache revalidation on writes", () => {
     await saveSalesEntryAction(undefined, formData);
 
     expect(refreshLeaderboardCachesMock).toHaveBeenCalledTimes(1);
+    expect(refreshAdminInsightsCacheMock).toHaveBeenCalledTimes(1);
     expect(refreshEntryInsightsCacheMock).toHaveBeenCalledTimes(1);
     expect(refreshMemberRecordsCacheMock).toHaveBeenCalledTimes(1);
   });
@@ -201,6 +207,7 @@ describe("leaderboard cache revalidation on writes", () => {
     );
 
     expect(refreshLeaderboardCachesMock).toHaveBeenCalledTimes(1);
+    expect(refreshAdminInsightsCacheMock).toHaveBeenCalledTimes(1);
     expect(refreshEntryInsightsCacheMock).toHaveBeenCalledTimes(1);
     expect(refreshMemberRecordsCacheMock).toHaveBeenCalledTimes(1);
   });
@@ -225,6 +232,7 @@ describe("leaderboard cache revalidation on writes", () => {
     );
 
     expect(refreshLeaderboardCachesMock).toHaveBeenCalledTimes(1);
+    expect(refreshAdminInsightsCacheMock).toHaveBeenCalledTimes(1);
   });
 
   test("refreshes leaderboard caches after admin updates member profile data", async () => {
@@ -277,6 +285,7 @@ describe("leaderboard cache revalidation on writes", () => {
     );
 
     expect(refreshLeaderboardCachesMock).toHaveBeenCalledTimes(1);
+    expect(refreshAdminInsightsCacheMock).toHaveBeenCalledTimes(1);
     expect(refreshEntryInsightsCacheMock).toHaveBeenCalledTimes(1);
   });
 
@@ -301,6 +310,7 @@ describe("leaderboard cache revalidation on writes", () => {
     );
 
     expect(refreshLeaderboardCachesMock).toHaveBeenCalledTimes(1);
+    expect(refreshAdminInsightsCacheMock).toHaveBeenCalledTimes(1);
     expect(refreshEntryInsightsCacheMock).toHaveBeenCalledTimes(1);
   });
 });

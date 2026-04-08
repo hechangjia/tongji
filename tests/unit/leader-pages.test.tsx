@@ -2,7 +2,9 @@ import { render, screen } from "@testing-library/react";
 import { pathToFileURL } from "node:url";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-const authMock = vi.hoisted(() => vi.fn());
+const getCachedSessionMock = vi.hoisted(() => vi.fn());
+const getCachedSessionIfCookiePresentMock = vi.hoisted(() => vi.fn());
+const prefetchMock = vi.hoisted(() => vi.fn());
 const redirectMock = vi.hoisted(() =>
   vi.fn((target: string) => {
     throw new Error(`redirect:${target}`);
@@ -20,13 +22,18 @@ const createManualFollowUpActionMock = vi.hoisted(() => vi.fn());
 const reassignFollowUpActionMock = vi.hoisted(() => vi.fn());
 const updateFollowUpStatusActionMock = vi.hoisted(() => vi.fn());
 const reassignIdentifierCodeActionMock = vi.hoisted(() => vi.fn());
+const updateLeaderGroupProfileActionMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@/lib/auth", () => ({
-  auth: authMock,
+vi.mock("@/lib/auth-request-cache", () => ({
+  getCachedSession: getCachedSessionMock,
+  getCachedSessionIfCookiePresent: getCachedSessionIfCookiePresentMock,
 }));
 
 vi.mock("next/navigation", () => ({
   redirect: redirectMock,
+  useRouter: () => ({
+    prefetch: prefetchMock,
+  }),
 }));
 
 vi.mock("next/cache", () => ({
@@ -53,6 +60,10 @@ vi.mock("@/app/(leader)/leader/sales/actions", () => ({
   reassignFollowUpAction: reassignFollowUpActionMock,
   updateFollowUpStatusAction: updateFollowUpStatusActionMock,
   reassignIdentifierCodeAction: reassignIdentifierCodeActionMock,
+}));
+
+vi.mock("@/app/(leader)/leader/group/actions", () => ({
+  updateLeaderGroupProfileAction: updateLeaderGroupProfileActionMock,
 }));
 
 vi.mock("@/server/services/group-leaderboard-service", () => ({
@@ -125,6 +136,10 @@ vi.mock("@/components/admin/admin-daily-review-summary", () => ({
   AdminDailyReviewSummary: () => <div>admin-daily-review-summary</div>,
 }));
 
+vi.mock("@/components/admin/admin-home-route-prefetch", () => ({
+  AdminHomeRoutePrefetch: () => null,
+}));
+
 async function importPageFromWorkspace(relativePath: string) {
   const moduleUrl = pathToFileURL(
     `${process.cwd()}/${relativePath}`,
@@ -146,7 +161,15 @@ describe("leader task pages", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
-    authMock.mockResolvedValue({
+    getCachedSessionMock.mockResolvedValue({
+      user: {
+        id: "leader-1",
+        role: "LEADER",
+        username: "leader01",
+        name: "组长一号",
+      },
+    });
+    getCachedSessionIfCookiePresentMock.mockResolvedValue({
       user: {
         id: "leader-1",
         role: "LEADER",
@@ -276,15 +299,6 @@ describe("leader task pages", () => {
   });
 
   test("admin home page includes the groups quick entry", async () => {
-    authMock.mockResolvedValue({
-      user: {
-        id: "admin-1",
-        role: "ADMIN",
-        username: "admin",
-        name: "管理员",
-      },
-    });
-
     const { default: AdminHomePage } = await import("@/app/(admin)/admin/page");
 
     render(await AdminHomePage({}));
@@ -295,15 +309,23 @@ describe("leader task pages", () => {
     );
   });
 
+  test("admin home page keeps the quick-entry shell visible while search params are unresolved", async () => {
+    const { default: AdminHomePage } = await import("@/app/(admin)/admin/page");
+
+    render(
+      AdminHomePage({
+        searchParams: new Promise(() => {}),
+      }) as unknown as React.ReactElement,
+    );
+
+    expect(screen.getByText("管理员功能")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /小组管理/ })).toHaveAttribute(
+      "href",
+      "/admin/groups",
+    );
+  });
+
   test("admin home page starts both dashboard reads before waiting on the trend response", async () => {
-    authMock.mockResolvedValue({
-      user: {
-        id: "admin-1",
-        role: "ADMIN",
-        username: "admin",
-        name: "管理员",
-      },
-    });
     const cumulativeDeferred = createDeferred<{
       granularity: "day";
       series: [];
@@ -318,8 +340,8 @@ describe("leader task pages", () => {
       return {};
     });
 
-    const { default: AdminHomePage } = await import("@/app/(admin)/admin/page");
-    const pagePromise = AdminHomePage({
+    const module = await import("@/app/(admin)/admin/page");
+    const pageResult = module.default({
       searchParams: Promise.resolve({}),
     });
 
@@ -333,10 +355,23 @@ describe("leader task pages", () => {
       series: [],
     });
 
-    render(await pagePromise);
+    render(
+      await module.AdminHomeDashboard({
+        dashboardPromise: Promise.resolve({
+          preset: "MONTH",
+          metric: "TOTAL",
+          cumulativeStats: {
+            granularity: "day",
+            series: [],
+          },
+          dailyReviewSummary: {},
+        }),
+      }),
+    );
 
     expect(screen.getByText("admin-daily-review-summary")).toBeInTheDocument();
     expect(screen.getByText("admin-cumulative-stats-panel")).toBeInTheDocument();
+    expect(pageResult).toBeTruthy();
   });
 
   test("leader group page shows the current group overview", async () => {
@@ -397,7 +432,7 @@ describe("leader task pages", () => {
   // Auth redirect tests removed — redirects now handled by (leader)/layout.tsx
 
   test("shared group leaderboard shows group totals and current date for members", async () => {
-    authMock.mockResolvedValue({
+    getCachedSessionIfCookiePresentMock.mockResolvedValue({
       user: {
         id: "member-1",
         role: "MEMBER",
@@ -417,10 +452,11 @@ describe("leader task pages", () => {
     expect(screen.getAllByText(/北极星组/).length).toBeGreaterThan(0);
     expect(screen.queryByText("成员甲")).not.toBeInTheDocument();
     expect(screen.getByTestId("app-shell")).toBeInTheDocument();
+    expect(getVisibleGroupMemberRowsMock).not.toHaveBeenCalled();
   });
 
   test("shared group leaderboard renders without shell for anonymous visitors", async () => {
-    authMock.mockResolvedValue(null);
+    getCachedSessionIfCookiePresentMock.mockResolvedValue(null);
     const { default: GroupLeaderboardPage } = await importPageFromWorkspace(
       "src/app/(shared)/leaderboard/groups/page.tsx",
     );
@@ -431,10 +467,11 @@ describe("leader task pages", () => {
     expect(screen.getAllByText(/开拓者组/).length).toBeGreaterThan(0);
     expect(screen.queryByTestId("app-shell")).not.toBeInTheDocument();
     expect(redirectMock).not.toHaveBeenCalled();
+    expect(getVisibleGroupMemberRowsMock).not.toHaveBeenCalled();
   });
 
   test("shared group leaderboard lets leaders see expandable detail only for their own group", async () => {
-    authMock.mockResolvedValue({
+    getCachedSessionIfCookiePresentMock.mockResolvedValue({
       user: {
         id: "leader-1",
         role: "LEADER",
@@ -468,10 +505,16 @@ describe("leader task pages", () => {
     expect(screen.getByText(/成员甲/)).toBeInTheDocument();
     expect(screen.getAllByText("与上一组差距").length).toBeGreaterThan(0);
     expect(screen.queryByText("外组成员")).not.toBeInTheDocument();
+    expect(getVisibleGroupMemberRowsMock).toHaveBeenCalledTimes(1);
+    expect(getVisibleGroupMemberRowsMock).toHaveBeenCalledWith({
+      currentUserId: "leader-1",
+      groupId: "group-1",
+      todaySaleDate: "2026-03-29",
+    });
   });
 
   test("shared group leaderboard lets admins expand every group", async () => {
-    authMock.mockResolvedValue({
+    getCachedSessionIfCookiePresentMock.mockResolvedValue({
       user: {
         id: "admin-1",
         role: "ADMIN",

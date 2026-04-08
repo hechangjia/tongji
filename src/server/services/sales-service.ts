@@ -44,8 +44,10 @@ export function saleDateValueToDate(saleDate: string) {
   return new Date(`${saleDate}T00:00:00.000Z`);
 }
 
-export function saleDateToValue(saleDate: Date) {
-  return saleDate.toISOString().slice(0, 10) as DateValue;
+export function saleDateToValue(saleDate: Date | string) {
+  const normalizedDate = saleDate instanceof Date ? saleDate : new Date(saleDate);
+
+  return normalizedDate.toISOString().slice(0, 10) as DateValue;
 }
 
 export function normalizeSalePayload(input: SalesInput): SalesValues {

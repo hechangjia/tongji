@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
+import { refreshAdminInsightsCache } from "@/server/services/admin-insights-cache";
 import { refreshEntryInsightsCache } from "@/server/services/entry-insights-cache";
 import { refreshLeaderboardCaches, refreshLeaderWorkbenchCaches } from "@/server/services/leaderboard-cache";
 import { refreshMemberRecordsCache } from "@/server/services/member-records-cache";
@@ -48,6 +49,7 @@ export async function updateSalesRecordAction(formData: FormData) {
   });
 
   revalidatePath("/admin/sales");
+  refreshAdminInsightsCache();
   refreshLeaderboardCaches();
   refreshLeaderWorkbenchCaches();
   refreshEntryInsightsCache();
@@ -75,6 +77,7 @@ export async function reviewSalesRecordAction(
   });
 
   revalidatePath("/admin/sales");
+  refreshAdminInsightsCache();
   refreshLeaderboardCaches();
   refreshLeaderWorkbenchCaches();
   redirect(

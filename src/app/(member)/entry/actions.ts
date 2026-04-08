@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { canAccessMemberArea } from "@/lib/permissions";
+import { refreshAdminInsightsCache } from "@/server/services/admin-insights-cache";
 import { refreshEntryInsightsCache } from "@/server/services/entry-insights-cache";
 import { refreshMemberRecordsCache } from "@/server/services/member-records-cache";
 import {
@@ -65,6 +66,7 @@ export async function saveSalesEntryAction(
       getMemberRecentReminders(session.user.id),
     ]);
     refreshLeaderboardCaches();
+    refreshAdminInsightsCache();
     refreshEntryInsightsCache();
     refreshMemberRecordsCache();
 
@@ -174,6 +176,7 @@ export async function saveIdentifierSaleAction(
 
     refreshLeaderboardCaches();
     refreshLeaderWorkbenchCaches();
+    refreshAdminInsightsCache();
     refreshEntryInsightsCache();
     refreshMemberRecordsCache();
 

@@ -6,6 +6,7 @@ import { UserStatus } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { canAccessAdmin, getDefaultRedirectPath } from "@/lib/permissions";
 import { hashPassword } from "@/lib/password";
+import { refreshAdminInsightsCache } from "@/server/services/admin-insights-cache";
 import { refreshLeaderboardCaches } from "@/server/services/leaderboard-cache";
 import {
   checkUsernameAvailable,
@@ -177,6 +178,7 @@ export async function createMemberAction(
   }
 
   revalidatePath("/admin/members");
+  refreshAdminInsightsCache();
 
   return {
     status: "success",
@@ -351,6 +353,7 @@ export async function updateMemberAction(formData: FormData) {
   }
 
   revalidatePath("/admin/members");
+  refreshAdminInsightsCache();
   refreshLeaderboardCaches();
   redirectToMemberNotice("成员信息已更新", "success");
 }
@@ -393,6 +396,7 @@ export async function deleteMemberAction(formData: FormData) {
   await deleteMember(parsedInput.id);
 
   revalidatePath("/admin/members");
+  refreshAdminInsightsCache();
   refreshLeaderboardCaches();
   redirectToMemberNotice("成员已删除", "success");
 }

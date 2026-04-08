@@ -1,6 +1,8 @@
-import Link from "next/link";
+import { Suspense } from "react";
+import { AdminHomeRoutePrefetch } from "@/components/admin/admin-home-route-prefetch";
 import { AdminCumulativeStatsPanel } from "@/components/admin/admin-cumulative-stats-panel";
 import { AdminDailyReviewSummary } from "@/components/admin/admin-daily-review-summary";
+import { IntentPrefetchLink } from "@/components/intent-prefetch-link";
 import { PageHeader } from "@/components/page-header";
 import {
   type CumulativeMetric,
@@ -34,8 +36,10 @@ function parseMetric(value?: string): CumulativeMetric {
   return "TOTAL";
 }
 
-export default async function AdminHomePage({ searchParams }: AdminHomePageProps) {
-  const paramsPromise = searchParams ?? Promise.resolve(undefined);
+async function getAdminHomeDashboardData(
+  searchParamsPromise?: AdminHomePageProps["searchParams"],
+) {
+  const paramsPromise = searchParamsPromise ?? Promise.resolve(undefined);
   const params = await paramsPromise;
   const presetParam = Array.isArray(params?.preset) ? params?.preset[0] : params?.preset;
   const metricParam = Array.isArray(params?.metric) ? params?.metric[0] : params?.metric;
@@ -48,6 +52,47 @@ export default async function AdminHomePage({ searchParams }: AdminHomePageProps
     }),
     getCachedAdminDailyRhythmSummary({}),
   ]);
+
+  return {
+    preset,
+    metric,
+    cumulativeStats,
+    dailyReviewSummary,
+  };
+}
+
+function AdminHomeDashboardSkeleton() {
+  return (
+    <div className="space-y-6" aria-hidden="true">
+      <div className="h-32 animate-pulse rounded-[24px] border border-white/70 bg-slate-100/80" />
+      <div className="h-64 animate-pulse rounded-[24px] border border-white/70 bg-slate-100/80" />
+    </div>
+  );
+}
+
+export async function AdminHomeDashboard({
+  dashboardPromise,
+}: {
+  dashboardPromise: Promise<Awaited<ReturnType<typeof getAdminHomeDashboardData>>>;
+}) {
+  const { preset, metric, cumulativeStats, dailyReviewSummary } = await dashboardPromise;
+
+  return (
+    <>
+      <AdminDailyReviewSummary summary={dailyReviewSummary} />
+
+      <AdminCumulativeStatsPanel
+        preset={preset}
+        metric={metric}
+        granularity={cumulativeStats.granularity}
+        series={cumulativeStats.series}
+      />
+    </>
+  );
+}
+
+export default function AdminHomePage({ searchParams }: AdminHomePageProps = {}) {
+  const dashboardPromise = getAdminHomeDashboardData(searchParams);
 
   const cards = [
     {
@@ -99,24 +144,20 @@ export default async function AdminHomePage({ searchParams }: AdminHomePageProps
 
   return (
       <section className="space-y-6">
+        <AdminHomeRoutePrefetch />
         <PageHeader
           eyebrow="管理后台"
           title="管理员功能"
           description="这里是管理员的主控制台。优先从成员、销售、规则和结算四个入口进入，后续内容系统也会挂在这里。"
         />
 
-        <AdminDailyReviewSummary summary={dailyReviewSummary} />
-
-        <AdminCumulativeStatsPanel
-          preset={preset}
-          metric={metric}
-          granularity={cumulativeStats.granularity}
-          series={cumulativeStats.series}
-        />
+        <Suspense fallback={<AdminHomeDashboardSkeleton />}>
+          <AdminHomeDashboard dashboardPromise={dashboardPromise} />
+        </Suspense>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {cards.map((card) => (
-            <Link
+            <IntentPrefetchLink
               key={card.href}
               href={card.href}
               className="group rounded-[24px] border border-white/70 bg-white/82 p-6 shadow-[0_20px_50px_rgba(8,47,73,0.08)] transition duration-200 hover:-translate-y-1 hover:border-cyan-300 hover:bg-cyan-50/60"
@@ -133,7 +174,7 @@ export default async function AdminHomePage({ searchParams }: AdminHomePageProps
               <span className="mt-6 inline-flex items-center text-sm font-semibold text-cyan-800">
                 进入模块 →
               </span>
-            </Link>
+            </IntentPrefetchLink>
           ))}
         </div>
       </section>

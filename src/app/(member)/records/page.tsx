@@ -1,16 +1,18 @@
-import { auth } from "@/lib/auth";
+import { getCachedSession } from "@/lib/auth-request-cache";
 import { MetricCard } from "@/components/metric-card";
 import { MyRecordsTable } from "@/components/my-records-table";
 import { PageHeader } from "@/components/page-header";
-import { getIdentifierSalesForUser } from "@/server/services/member-identifier-sale-service";
-import { getCachedMemberRecords } from "@/server/services/member-records-cache";
+import {
+  getCachedMemberIdentifierSales,
+  getCachedMemberRecords,
+} from "@/server/services/member-records-cache";
 
 export default async function RecordsPage() {
-  const session = (await auth())!;
+  const session = (await getCachedSession())!;
 
   const [records, identifierSales] = await Promise.all([
     getCachedMemberRecords(session.user.id),
-    getIdentifierSalesForUser(session.user.id),
+    getCachedMemberIdentifierSales(session.user.id),
   ]);
   const totalSales = records.reduce(
     (sum, record) => sum + record.count40 + record.count60,

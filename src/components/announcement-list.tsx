@@ -1,5 +1,3 @@
-"use client";
-
 import type { ShellAnnouncement } from "@/lib/content-types";
 
 export function AnnouncementList({

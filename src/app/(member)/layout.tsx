@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { getCachedSession } from "@/lib/auth-request-cache";
 import { canAccessMemberArea } from "@/lib/permissions";
 import { AppShell } from "@/components/app-shell";
 
@@ -8,7 +8,7 @@ export default async function MemberLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
+  const session = await getCachedSession();
 
   if (!session?.user) {
     redirect("/login?callbackUrl=%2Fentry");
