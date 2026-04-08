@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useRef, useState } from "react";
-import type { RefObject } from "react";
+import type { ReactNode, RefObject } from "react";
 import {
   saveIdentifierSaleAction,
   saveSalesEntryAction,
@@ -59,6 +59,7 @@ export function SalesEntryPageClient({
   initialIdentifierWorkspace,
   initialIdentifierValues,
   initialDailyRhythmSummary,
+  insightsSlot,
 }: {
   initialValues: SalesEntryDefaults;
   hasExistingRecord: boolean;
@@ -69,6 +70,7 @@ export function SalesEntryPageClient({
   initialIdentifierWorkspace: MemberIdentifierWorkspace;
   initialIdentifierValues: IdentifierSaleFormValues;
   initialDailyRhythmSummary: EntryDailyRhythmSummaryData;
+  insightsSlot?: ReactNode;
 }) {
   const saleDateInputRef = useRef<HTMLInputElement>(null);
   const [dismissedSummaryKey, setDismissedSummaryKey] = useState<string | null>(null);
@@ -139,13 +141,17 @@ export function SalesEntryPageClient({
         </div>
       </PageHeader>
 
-      <EntryDailyRhythmSummary summary={dailyRhythmSummary} />
+      {insightsSlot ?? (
+        <>
+          <EntryDailyRhythmSummary summary={dailyRhythmSummary} />
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <EntryDailyTargetCard feedback={targetFeedback} />
-        <EntrySelfTrendSummary summary={selfTrend} />
-        <EntryReminderList reminders={recentReminders} />
-      </div>
+          <div className="grid gap-4 lg:grid-cols-3">
+            <EntryDailyTargetCard feedback={targetFeedback} />
+            <EntrySelfTrendSummary summary={selfTrend} />
+            <EntryReminderList reminders={recentReminders} />
+          </div>
+        </>
+      )}
 
       {showSummary && state.summary ? (
         <SalesEntrySuccessCard
