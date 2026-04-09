@@ -1,253 +1,141 @@
+# CLAUDE.md
+
+This file provides guidance to ClaudeCode (claude.ai/code) when workingwith code in this repository.
+
 @AGENTS.md
 
-# Maika - Campus Phone Card Sales Tracking System
+## Project Overview
 
-> Last scanned: 2026-04-05T17:49:44 | 161 source files
+Maika is a campus phone cardsales tracking and commission settlement system. Three roles: `ADMIN` (full management), `LEADER` (group oversight +workbench), `MEMBER` (daily sales entry + records). Deployed on Vercel + PostgreSQL.
 
-## Project Vision
-
-Maika is an internal campus phone card sales tracking and commission settlement system. It serves three user roles (Admin, Leader, Member) to manage daily sales entry, leaderboard rankings, commission settlement, identifier code distribution, prospect lead assignment, and group-level workbench operations. Deployed on Vercel with PostgreSQL.
-
-## Architecture Overview
-
-```mermaid
-graph TB
-  subgraph Client["Frontend (React 19 + Tailwind 4)"]
-    direction TB
-    Admin["Admin Dashboard<br/>(admin)"]
-    Leader["Leader Workbench<br/>(leader)"]
-    Member["Member Entry<br/>(entry + records)"]
-    Shared["Shared Pages<br/>(leaderboard)"]
-    Auth["Auth Pages<br/>(login)"]
-  end
-
-  subgraph Server["Server Layer"]
-    direction TB
-    Actions["Server Actions<br/>(per-page actions.ts)"]
-    Services["Service Layer<br/>(src/server/services/)"]
-    Validators["Zod Validators<br/>(src/lib/validators/)"]
-    LibCore["Core Lib<br/>(auth, db, env, permissions)"]
-  end
-
-  subgraph Data["Data Layer"]
-    direction TB
-    Prisma["Prisma Client<br/>(src/lib/db.ts)"]
-    PG["PostgreSQL"]
-    Migrations["6 Migrations"]
-  end
-
-  subgraph API["API Routes"]
-    ExportAPI["Export API<br/>(daily, range, settlement)"]
-    AuthAPI["Auth.js v5<br/>(JWT strategy)"]
-  end
-
-  Client --> Actions --> Services
-  Client --> API --> Services
-  Services --> Validators
-  Services --> LibCore
-  Services --> Prisma --> PG
-  Prisma --> Migrations
-  LibCore --> Prisma
-```
-
-## Module Structure
-```mermaid
-graph TD
-    A["(根) Maika"] --> B["src/app"];
-    A --> C["src/components"];
-    A --> D["src/server/services"];
-    A --> E["src/lib"];
-    A --> F["prisma"];
-
-    B --> B1["(admin)/admin"];
-    B --> B2["(leader)/leader"];
-    B --> B3["(member)"];
-    B --> B4["(shared)/leaderboard"];
-    B --> B5["(auth)/login"];
-    B --> B6["api"];
-
-    click B1 "./src/app/(admin)/admin/CLAUDE.md" "查看 Admin 模块文档"
-    click B2 "./src/app/(leader)/leader/CLAUDE.md" "查看 Leader 模块文档"
-    click B3 "./src/app/(member)/CLAUDE.md" "查看 Member 模块文档"
-    click B4 "./src/app/(shared)/leaderboard/CLAUDE.md" "查看 Shared 模块文档"
-    click B5 "./src/app/(auth)/login/CLAUDE.md" "查看 Auth 模块文档"
-    click B6 "./src/app/api/CLAUDE.md" "查看 API 模块文档"
-    click C "./src/components/CLAUDE.md" "查看 Components 模块文档"
-    click D "./src/server/services/CLAUDE.md" "查看 Services 模块文档"
-    click E "./src/lib/CLAUDE.md" "查看 Core Lib 模块文档"
-    click F "./prisma/CLAUDE.md" "查看 Prisma 模块文档"
-```
-
-## Module Index
-
-| Module | Path | Files | Description |
-|--------|------|-------|-------------|
-| Admin Pages | `src/app/(admin)/admin/` | 28 files | Member/code/sales/insights/settlement management |
-| Leader Pages | `src/app/(leader)/leader/` | 6 files | Group workbench, leader sales tracking |
-| Member Pages | `src/app/(member)/` | 5 files | Sales entry, personal records |
-| Shared Pages | `src/app/(shared)/leaderboard/` | 3 files | Daily/range/group leaderboards |
-| Auth Pages | `src/app/(auth)/login/` | 3 files | Login form + credential auth |
-| API Routes | `src/app/api/` | 4 files | Auth handler + Excel export endpoints |
-| Admin Components | `src/components/admin/` | 25 components | Admin-only tables, forms, panels |
-| Leader Components | `src/components/leader/` | 6 components | Workbench ranking, follow-up, audit |
-| Shared Components | `src/components/` | 27 components | Shell, charts, forms, entry UI |
-| Service Layer | `src/server/services/` | 24 modules | All business logic + caching |
-| Validators | `src/lib/validators/` | 13 schemas | Zod validation for all domains |
-| Core Lib | `src/lib/` | 8 modules | auth, db, env, permissions, password, theme, content-types |
-| Prisma Schema | `prisma/` | 9 files | Database schema + seed data |
-
-## Tech Stack
-
-| Layer | Technology | Version |
-|-------|-----------|---------|
-| Framework | Next.js (App Router) | 16.2.1 |
-| UI | React + Tailwind CSS | 19.2.4 / 4 |
-| Language | TypeScript (strict) | 5 |
-| ORM | Prisma | 6.19.2 |
-| Auth | Auth.js (next-auth v5) | beta.30 |
-| Validation | Zod | 4.3.6 |
-| DB | PostgreSQL | - |
-| Deployment | Vercel | - |
-| Monitoring | @vercel/analytics + @vercel/speed-insights | 2.0.1 / 2.0.0 |
-| Testing | Vitest (unit) + Playwright (e2e) | 4.1.1 / 1.58.2 |
-| Export | ExcelJS | 4.4.0 |
-| Password | bcryptjs | 3.0.3 |
-
-## Role-Based Access
-
-| Role | Default Route | Access Scope |
-|------|--------------|--------------|
-| ADMIN | `/admin` | Admin + Member + Shared pages |
-| LEADER | `/leader/group` | Leader + Shared pages |
-| MEMBER | `/entry` | Member + Shared pages |
-
-RBAC enforced at two layers:
-1. **Proxy (middleware)**: `src/proxy.ts` wraps `auth()` to redirect unauthenticated/unauthorized requests
-2. **Permission helpers**: `src/lib/permissions.ts` provides `canAccessAdmin`, `canAccessLeader`, `canAccessMemberArea`
-
-Route groups `(admin)`, `(leader)`, `(member)` mirror role boundaries.
-
-## Key Conventions
-
-- **Path alias**: `@/*` maps to `src/*`
-- **Middleware**: Next.js 16 uses `src/proxy.ts` (renamed from `middleware.ts`); wraps `auth()` for route protection
-- **Server Actions**: each page folder has `actions.ts` + optional `form-state.ts`; all mutations go through Server Actions, never API routes
-- **Service layer**: all business logic in `src/server/services/` -- no direct ORM calls in actions or components
-- **Validation**: Zod schemas in `src/lib/validators/`, used in both actions and services
-- **Auth**: JWT sessions via Auth.js v5, role stored in token, typed in `src/types/next-auth.d.ts`
-- **DB singleton**: `src/lib/db.ts` exports `db` (PrismaClient), dev hot-reload safe via globalThis
-- **Env validation**: `src/lib/env.ts` parses required env vars at startup with Zod
-- **Caching**: 4 service-layer caches using `unstable_cache` with tag-based invalidation:
-  - `leaderboard-cache` (30s TTL, tag: `leaderboard`)
-  - `entry-insights-cache` (30s TTL, tag: `entry-insights`)
-  - `shell-content-cache` (60s TTL, tag: `shell-content`)
-  - `member-records-cache` (30s TTL, tag: `member-records`)
-- **Cache invalidation**: uses `updateTag()` for tag-based revalidation + `revalidatePath()` for specific routes
-- **Sales data aggregation**: `sales-reporting-service.ts` merges two sources (IdentifierSale + legacy SalesRecord), IdentifierSale takes priority per user-day
-- **Theming**: 6 color themes stored in localStorage, SSR-safe via inline script in `<head>`
-- **No API routes for mutations**: API routes only serve Excel export downloads (daily/range/settlement)
-- **Time zone**: `Asia/Shanghai` is the default for date calculations
-
-## Database Models (15)
-
-```mermaid
-erDiagram
-  User ||--o{ SalesRecord : "submits"
-  User ||--o{ CommissionRule : "has"
-  User ||--o{ DailyTarget : "has"
-  User ||--o{ MemberReminder : "receives"
-  User }o--o| Group : "belongs to"
-  User ||--o| Group : "leads"
-
-  Group ||--o{ ProspectLead : "assigned"
-  Group ||--o{ IdentifierCode : "assigned"
-  Group ||--o{ GroupFollowUpItem : "tracks"
-  Group ||--o{ GroupResourceAuditLog : "audits"
-
-  IdentifierCode ||--o| IdentifierSale : "sold as"
-  ProspectLead ||--o| IdentifierSale : "linked to"
-  ProspectLead ||--o{ GroupFollowUpItem : "generates"
-
-  IdentifierImportBatch ||--o{ IdentifierCode : "imports"
-  ProspectImportBatch ||--o{ ProspectLead : "imports"
-  IdentifierCode ||--o{ CodeAssignment : "assigned via"
-```
-
-Key enums: `Role` (MEMBER/LEADER/ADMIN), `SalesReviewStatus` (PENDING/APPROVED/REJECTED), `IdentifierCodeStatus` (UNASSIGNED/ASSIGNED/SOLD), `ProspectLeadStatus` (UNASSIGNED/ASSIGNED/CONVERTED), `GroupFollowUpStatus` (UNTOUCHED/FOLLOWING_UP/APPOINTED/READY_TO_CONVERT/INVALID/CONVERTED), `PlanType` (PLAN_40/PLAN_60).
-
-## Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `AUTH_SECRET` | Yes | JWT signing secret (falls back to `NEXTAUTH_SECRET` or dev default) |
-| `AUTH_TRUST_HOST` | No | Trust host header (default: `true` in dev, `false` in prod) |
-
-## Run and Develop
+## Commands
 
 ```bash
-npm run dev           # Start dev server (Turbopack)
-npm run build         # prisma generate && next build
-npm run start         # Start production server
-npm run lint          # ESLint
+npm run dev# Start dev server (Turbopack)
+npm run build                             # prisma generate &&next build
+npm run lint                              # ESLint (flat config)
+npm test                                  #Vitest — all unittests
+npm run test:watch                        # Vitest in watch mode
+npm run test:e2e                          # Playwright (single worker, port 3100)
+npx vitest run tests/unit/foo.test.ts     # Single test file
+npx prisma validate                       # Validate schema
+npx prisma migrate dev                    # Run migrations
+npx tsx prisma/seed.ts# Seed database
 ```
 
-## Test Strategy
+## Architecture
 
-```bash
-npm test              # Vitest unit tests (71 files)
-npm run test:watch    # Vitest in watch mode
-npm run test:e2e      # Playwright E2E tests (9 files, Chromium, port 3100)
+```
+src/
+app/                         # Next.js 16 App Router
+    (admin)/admin/              # Admin pages (members, salesreview, settlement, content, codes,leads, insights)
+    (leader)/leader/            # Leader pages (group info + salesworkbench)
+    (member)/                   # Member pages (entry + records)
+    (shared)/leaderboard/       # Shared leaderboards (daily, range, groups)
+    (auth)/login/               # Login+ register + rate-limiting
+    api/                        # Auth.js handlers + Excel export
+  components/# UI components (admin/, leader/, shared, ui/)
+  server/services/              # ALL business logic lives here (26service files)
+  lib/                          # Core infra (auth, db, env, permissions, validators, rate-limit)
+prisma/                         # Schema (17 models), seed, 7 migrations
+tests/
+  unit/                         # ~72 test files (Vitest + jsdom)
+  e2e/# 9 Playwright scenarios
+  setup/vitest.setup.ts         # @testing-library/jest-dom/vitest
 ```
 
-- **Unit tests**: Vitest + jsdom, `tests/unit/`, path alias via `vitest.config.ts`
-- **E2E tests**: Playwright, `tests/e2e/`, single worker, auto-starts dev server on port 3100
-- **Test coverage areas**: services, validators, actions, components, cache layers, page rendering
-- **Mocking pattern**: service modules are mocked at import boundary in action/page tests
+### Request Flow
+
+1. `src/proxy.ts` (middleware) — route matching + auth + role-based access control
+2. RSC pages — concurrent data reads viacached service calls
+3. Server Actions (`actions.ts`files) — mutations, Zod validation, cache invalidation
+4. `src/server/services/` — business logic,Prisma queries, transactional guardrails
+5. `src/lib/validators/` — 13 Zod schemasfor input validation
+
+### Auth System
+
+- Auth.js v5(next-auth beta) with Credentials provider
+- JWT sessions,2-hour max age
+- User status re-checkedfrom DB every 5 minutes in JWT callback
+- Deactivated users get cookies cleared in middleware
+- Registrationrequires invite code (default: `maika2026`)
+- Login rate-limiting in `src/lib/rate-limit.ts`
+- Key files: `src/lib/auth.ts`, `src/lib/permissions.ts`, `src/proxy.ts`, `src/lib/env.ts`
+
+### Permission Model
+
+- `src/lib/permissions.ts` — pure role-checking functions (`canAccessAdmin`, `canAccessLeader`, `canAccessMemberArea`)
+- `src/proxy.ts` — middleware that enforces permissionsat route level
+- Layouts and Actions also call permissionfunctions directly
+
+### Caching Architecture
+
+Five dedicatedcache modules in `src/server/services/`:
+
+- `leaderboard-cache.ts` — leaderboard data + admin rhythm/trendstats (tag:`leaderboard`)
+- `entry-insights-cache.ts` — member entry page insights(tag: `entry-insights`)
+- `member-records-cache.ts` — member historyrecords (tag: `member-records`)
+- `shell-content-cache.ts` — banners + announcements (tag: `shell-content`)
+- `admin-insights-cache.ts`— admin dashboard insights (tag: `admin-insights`)
+
+Pattern: `unstable_cache` with`updateTag` for invalidation + `revalidatePath` for page-level refresh. Somecaches use lazy initialization (dynamicimport) to avoid circular dependencies.
+
+**After mutations**, actionsfan out cache refreshes. A member sales entrytouches: leaderboard, entry-insights, member-records, admin-insights. Identifier sales additionally touch leader-workbench caches.
 
 ## Coding Conventions
 
-- TypeScript strict mode, target ES2017
-- `satisfies` operator used extensively for type-safe return shapes
-- Service functions return typed DTOs, not raw Prisma objects
-- Chinese locale (`zh-CN`) used for sorting names (`localeCompare`)
-- Decimal fields use `Decimal(10,2)` in Prisma, converted via `.toString()` for serialization
-- Date values use `DateValue` branded type (`YYYY-MM-DD` string)
-- Export filenames follow `{type}-{date}.xlsx` pattern
-- Seed script creates default admin (`admin/admin123456`) and member (`member01/member123456`)
+- **Next.js 16 App Router** — default Server Components; only use `'use client'` for interactive components
+- **Mutations** go through Server Actions; Route Handlers are read-only
+- **Businesslogic** belongs in `src/server/services/` only — pages and actions never write Prisma queries directly
+- **Form inputs** are Zod-validated before reaching services; services return DTOs, not raw Prisma entities
+- **Newpages** follow pattern: `page.tsx` + `actions.ts` + optional `form-state.ts`
+- **New services** go in `src/server/services/`; new validators in `src/lib/validators/`
+- **Default timezone**: `Asia/Shanghai`
+- **UI design**: read `DESIGN.md` before making UI decisions — Glassmorphic Industrial aesthetic, Bento Box layout, specific typography stack
+- **Path alias**: `@/` maps to `src/`
 
-## Design System
-Always read `DESIGN.md` before making any visual or UI decisions. All font choices, colors, spacing, border-radius, and aesthetic direction are defined there. Do not deviate without explicit user approval. In QA mode, flag any code that doesn't match DESIGN.md.
+## Key Domain Rules
 
-## AI Usage Guidelines
+- A member cannot have both a traditional `SalesRecord` and an `IdentifierSale` on the same day
+- Identifier sales cascade: update prospect lead status, follow-up items, and group workbench data
+- Auditable operations (resource reassignment, status changes) must preserve before/after snapshots in `GroupResourceAuditLog`
+- Sales records have a review workflow: PENDING -> APPROVED/REJECTED
+- Commission rules have effective date ranges; settlement export uses `exceljs`
 
-- Always read `AGENTS.md` for Next.js 16 breaking changes before writing code
-- Service layer is the single source of truth for business logic -- never bypass it
-- When adding a new page: create `page.tsx` + `actions.ts` + optional `form-state.ts`
-- When adding a new service: place in `src/server/services/`, export typed DTOs
-- When adding a new validator: place in `src/lib/validators/`, use Zod
-- Cache invalidation: call `refreshLeaderboardCaches()` / `refreshShellContent()` / etc. from actions after mutations
-- All audit-sensitive operations in leader workbench use `$transaction` with before/after snapshots
+## Environment Variables
 
-## Changelog
+- `DATABASE_URL` — required
+- `AUTH_SECRET` — required (falls back to `NEXTAUTH_SECRET`; dev has default)
+- `AUTH_TRUST_HOST` — optional (dev: `true`, prod: `false`)
+- `INVITE_CODE` — registration invite code (default: `maika2026`)
 
-| Date | Description |
-|------|-------------|
-| 2026-04-05T17:49:44 | Architecture scan, updated module counts (161 estimated total files), added mermaid module structure. |
-| 2026-04-05T09:53:12 | Full rescan: corrected counts (71 unit tests, 24 services, 13 validators, 58 components), added module structure graph, expanded caching/convention docs, added module-level CLAUDE.md files |
-| 2026-04-05 | Initial scan: 150 source files, 15 Prisma models, basic architecture docs |
-## Design System
-Always read DESIGN.md before making any visual or UI decisions.
-All font choices, colors, spacing, and aesthetic direction are defined there.
-Do not deviate without explicit user approval.
-In QA mode, flag any code that doesn't match DESIGN.md.
+## Testing Conventions
 
-## .context 项目上下文
+- Unit tests: `tests/unit/` — Vitest with jsdom, `@testing-library/react`
+- E2E: `tests/e2e/` — Playwright, single chromium worker
+- Schema contract test: `tests/unit/prisma-schema-contract.test.ts` locks models/enums/migrations
+- Page tests verify: RSC concurrent reads, permission redirects, component rendering
+- Service tests verify: transactional correctness, cache invalidation, edge cases
 
-> 项目使用 `.context/` 管理开发决策上下文。
+##Module-Level Documentation
 
-- 编码规范：`.context/prefs/coding-style.md`
-- 工作流规则：`.context/prefs/workflow.md`
-- 决策历史：`.context/history/commits.md`
+Each major directory has its own `CLAUDE.md` with detailed context:
 
-**规则**：修改代码前必读 prefs/，做决策时按 workflow.md 规则记录日志。
+- `src/app/(admin)/admin/CLAUDE.md`
+- `src/app/(leader)/leader/CLAUDE.md`
+- `src/app/(member)/CLAUDE.md`
+- `src/app/(shared)/leaderboard/CLAUDE.md`
+- `src/app/(auth)/login/CLAUDE.md`
+- `src/app/api/CLAUDE.md`
+- `src/components/CLAUDE.md`
+- `src/server/services/CLAUDE.md`
+- `src/lib/CLAUDE.md`
+- `prisma/CLAUDE.md`
+
+## .context Project Context
+
+- Coding style: `.context/prefs/coding-style.md`
+- Workflow rules: `.context/prefs/workflow.md`
+- Decision history: `.context/history/commits.md`
+
+Rule: read `prefs/` before modifyingcode; log decisions per `workflow.md`.

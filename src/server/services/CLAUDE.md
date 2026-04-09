@@ -1,86 +1,114 @@
-[Root](../../CLAUDE.md) > [src](../) > [server](../) > **services**
+[根目录](../../../CLAUDE.md) > [src](../../) > [server](../) > **services**
 
 # Service Layer
 
-## Module Purpose
+## 模块职责
 
-All business logic resides here. No direct ORM calls should exist in Server Actions, components, or API routes -- they must call service functions instead.
+业务逻辑中心层。页面、Server Actions、Route Handlers 都应通过这里访问领域逻辑，而不是直接操作 Prisma。
 
-## Entry Points
+## 入口与启动
 
-Every service module exports named functions. There is no single entry file; services are imported individually by actions and API routes.
+无单一入口；按领域拆分模块。当前共 25 个服务文件。
 
-## Service Catalog (24 modules)
+主要领域：
+- 销售与结算
+- 榜单与统计
+- 组长工作台
+- 内容管理
+- 成员与小组管理
+- 缓存层
 
-### Sales Domain
-| Service | Description |
-|---------|-------------|
-| `sales-service.ts` | Sales record CRUD, date utilities, `DateValue` type, admin sales queries |
-| `sales-reporting-service.ts` | Aggregates IdentifierSale + legacy SalesRecord into unified `AggregatedSalesDayRow` |
-| `member-identifier-sale-service.ts` | Member identifier sale workspace, sale submission with prospect lead + follow-up closure |
-| `settlement-service.ts` | Commission settlement calculation across date ranges with rule matching |
-| `commission-service.ts` | Commission rule CRUD with overlap detection |
+## 对外接口
 
-### Leaderboard Domain
-| Service | Description |
-|---------|-------------|
-| `leaderboard-service.ts` | Daily/range leaderboard ranking from aggregated sales |
-| `group-leaderboard-service.ts` | Group-level leaderboard with viewer delta, member expansion for admin/leader |
-| `cumulative-sales-stats-service.ts` | Cumulative ranking, trend series with day/month granularity |
+代表性服务：
 
-### Admin Domain
-| Service | Description |
-|---------|-------------|
-| `admin-insights-service.ts` | Risk scoring, anomaly detection, daily target auto-generation |
-| `admin-code-service.ts` | Identifier code/prospect lead import (xlsx/csv), assignment to users |
-| `daily-rhythm-service.ts` | Daily top-3 tracking, review status workflow, admin/member summaries |
-| `daily-target-service.ts` | AI-suggested daily targets, member self-trend analysis |
-| `member-reminder-service.ts` | Template-based reminder creation and listing |
-| `default-user-seed.ts` | Idempotent seed for default admin + member users |
+### 销售与结算
+- `sales-service.ts`
+- `sales-reporting-service.ts`
+- `member-identifier-sale-service.ts`
+- `settlement-service.ts`
+- `commission-service.ts`
 
-### Leader Domain
-| Service | Description |
-|---------|-------------|
-| `leader-workbench-service.ts` | Full workbench snapshot (members, codes, follow-ups, audit) + mutations |
-| `group-service.ts` | Group listing, leader candidate queries |
+### 榜单与统计
+- `leaderboard-service.ts`
+- `group-leaderboard-service.ts`
+- `cumulative-sales-stats-service.ts`
+- `daily-rhythm-service.ts`
+- `daily-target-service.ts`
 
-### Content Domain
-| Service | Description |
-|---------|-------------|
-| `banner-service.ts` | Banner quote management, random/rotate display logic |
-| `announcement-service.ts` | Announcement CRUD, visibility filtering, pin management |
-| `hitokoto-service.ts` | External Hitokoto API integration for banner import |
-| `export-service.ts` | ExcelJS workbook buffer generation for Excel exports |
+### 组长工作台
+- `leader-workbench-service.ts`
+- `group-service.ts`
 
-### Cache Layer (4 modules)
-| Service | Description |
-|---------|-------------|
-| `leaderboard-cache.ts` | Caches leaderboard, rhythm, trend, group, workbench data (30s TTL) |
-| `shell-content-cache.ts` | Caches banner + announcement data (60s TTL) |
-| `entry-insights-cache.ts` | Caches member target feedback + trend + reminders (30s TTL) |
-| `member-records-cache.ts` | Caches member sales records (30s TTL) |
+### 内容与系统
+- `announcement-service.ts`
+- `banner-service.ts`
+- `hitokoto-service.ts`
+- `export-service.ts`
+- `default-user-seed.ts`
 
-## Key Patterns
+### 缓存
+- `leaderboard-cache.ts`
+- `entry-insights-cache.ts`
+- `member-records-cache.ts`
+- `shell-content-cache.ts`
 
-- **Aggregation priority**: `sales-reporting-service` merges IdentifierSale (priority) with legacy SalesRecord per user-day key
-- **Transactions**: All leader workbench mutations use `db.$transaction()` with audit before/after snapshots
-- **Cache invalidation**: Each cache module exports a `refresh*()` function that calls `updateTag()`
-- **DateValue brand**: `YYYY-MM-DD` string type used throughout; conversion via `saleDateValueToDate()` / `saleDateToValue()`
-- **Lazy cache init**: `getCachedGroupLeaderboard` and `getCachedLeaderWorkbenchSnapshot` use lazy `unstable_cache` initialization with dynamic import to avoid circular deps
+## 关键依赖与配置
 
-## Dependencies
+- 数据源：`@/lib/db`
+- 校验源：`@/lib/validators/*`
+- 缓存 API：`unstable_cache`、`updateTag`、`revalidatePath`
 
-- All services import `db` from `@/lib/db`
-- Validators from `@/lib/validators/*`
-- Cache modules import `unstable_cache`, `updateTag`, `revalidatePath` from `next/cache`
+本轮确认的高信号实现：
+- `leaderboard-cache.ts` 使用延迟初始化避免循环依赖
+- `sales-service.ts` 在事务内防止普通录单与识别码成交同日冲突
+- `leader-workbench-service.ts` 为组资源改派与状态变化记录审计快照
+- `admin-code-service.ts` 解析 `csv` / `xlsx`，并在事务内防止 TOCTOU 分配竞争
 
-## Tests
+## 数据模型
 
-71 unit test files in `tests/unit/` cover nearly all services. Service tests mock `db` at the Prisma client boundary.
+服务层几乎覆盖全部 Prisma 模型，重点模型：
+- `User`
+- `Group`
+- `SalesRecord`
+- `IdentifierCode`
+- `ProspectLead`
+- `IdentifierSale`
+- `GroupFollowUpItem`
+- `GroupResourceAuditLog`
+- `CommissionRule`
+- `DailyTarget`
+- `MemberReminder`
 
-## Related Files
+## 测试与质量
 
-- `src/lib/db.ts` -- PrismaClient singleton
-- `src/lib/validators/` -- all Zod schemas
-- `prisma/schema.prisma` -- data model definitions
-- `tests/unit/` -- corresponding test files
+覆盖信号：
+- 72 个左右 unit test 文件中，大部分直接或间接覆盖服务层
+- `prisma-schema-contract.test.ts` 约束模型与迁移合同
+- `leader-workbench.spec.ts` 串联验证服务层跨模块联动
+
+## 常见问题 (FAQ)
+
+### 为什么说 Service 层是单一事实来源？
+因为销售、榜单、线索、组长工作台都共享聚合与约束，散落到 Action 会导致重复与不一致。
+
+### 为什么缓存逻辑也放在服务层？
+本项目把缓存视为领域读取的一部分，而不是页面装饰层。
+
+### 哪些服务最值得下一轮深扫？
+`group-leaderboard-service.ts`、`member-identifier-sale-service.ts`、`daily-rhythm-service.ts`。
+
+## 相关文件清单
+
+- `src/server/services/leaderboard-cache.ts`
+- `src/server/services/leader-workbench-service.ts`
+- `src/server/services/admin-code-service.ts`
+- `src/server/services/sales-service.ts`
+- `src/server/services/sales-reporting-service.ts`
+- `src/server/services/group-leaderboard-service.ts`
+
+## 变更记录 (Changelog)
+
+| Date | Description |
+|------|-------------|
+| 2026-04-08T09:29:56.000Z | Updated service count to 25 and documented transactional guardrails, lazy cache initialization, and workbench audit snapshots. |

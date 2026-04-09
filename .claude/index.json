@@ -1,8 +1,97 @@
 {
-  "timestamp": "2026-04-05T09:49:44.000Z",
+  "timestamp": "2026-04-08T09:29:56.000Z",
   "projectName": "Maika",
   "description": "Campus Phone Card Sales Tracking System",
   "rootClaude": "CLAUDE.md",
+  "ignoreRules": {
+    "source": [
+      ".gitignore",
+      "default-merged"
+    ],
+    "patterns": [
+      "/node_modules",
+      "/.pnp",
+      ".pnp.*",
+      ".yarn/*",
+      "/coverage",
+      "/test-results",
+      "/playwright-report",
+      "/blob-report",
+      "/.next/",
+      "/out/",
+      "/build",
+      ".DS_Store",
+      "*.pem",
+      "npm-debug.log*",
+      "yarn-debug.log*",
+      "yarn-error.log*",
+      ".pnpm-debug.log*",
+      ".env*",
+      "!.env.example",
+      ".vercel",
+      ".superpowers/",
+      "/.worktrees/",
+      "*.tsbuildinfo",
+      "next-env.d.ts",
+      ".ace-tool/",
+      ".gstack/",
+      ".env*.local",
+      ".git/**",
+      ".github/**",
+      "dist/**",
+      "__pycache__/**",
+      "*.lock",
+      "*.log",
+      "*.bin",
+      "*.pdf",
+      "*.png",
+      "*.jpg",
+      "*.jpeg",
+      "*.gif",
+      "*.mp4",
+      "*.zip",
+      "*.tar",
+      "*.gz"
+    ],
+    "topSkipped": [
+      {
+        "path": "node_modules",
+        "reason": "ignored by .gitignore",
+        "estimate": "very large dependency tree"
+      },
+      {
+        "path": ".git",
+        "reason": "repository internals ignored"
+      },
+      {
+        "path": "public",
+        "reason": "static assets recorded by path only"
+      },
+      {
+        "path": "docs",
+        "reason": "not part of primary runtime module scan"
+      },
+      {
+        "path": "src/components/leaderboard-table.tsx.orig",
+        "reason": "temporary artifact skipped"
+      }
+    ]
+  },
+  "fileStatistics": {
+    "scope": "architecture-relevant source, tests, prisma, and config files",
+    "estimatedTotalFiles": 247,
+    "scannedFiles": 247,
+    "coveragePercent": 100,
+    "breakdown": {
+      "appFiles": 46,
+      "componentFiles": 58,
+      "serviceFiles": 25,
+      "libFiles": 21,
+      "prismaFiles": 9,
+      "testFiles": 81,
+      "rootConfigFiles": 7
+    }
+  },
   "modules": [
     {
       "name": "Admin Pages",
@@ -11,32 +100,61 @@
       "language": "TypeScript/TSX",
       "entry": "src/app/(admin)/admin/page.tsx",
       "interfaces": [
-        "src/app/(admin)/admin/announcements/actions.ts",
-        "src/app/(admin)/admin/banners/actions.ts",
+        "src/app/(admin)/admin/sales/actions.ts",
         "src/app/(admin)/admin/codes/actions.ts",
-        "src/app/(admin)/admin/commission-rules/actions.ts",
-        "src/app/(admin)/admin/groups/actions.ts",
         "src/app/(admin)/admin/insights/actions.ts",
         "src/app/(admin)/admin/members/actions.ts",
-        "src/app/(admin)/admin/sales/actions.ts"
+        "src/app/(admin)/admin/groups/actions.ts",
+        "src/app/(admin)/admin/announcements/actions.ts",
+        "src/app/(admin)/admin/banners/actions.ts",
+        "src/app/(admin)/admin/commission-rules/actions.ts"
       ],
-      "tests": "tests/unit/admin-*.test.ts",
-      "scannedFiles": 28,
-      "coverage": "FULL"
+      "tests": [
+        "tests/unit/admin-insights-actions.test.ts",
+        "tests/unit/admin-sales-review-actions.test.ts",
+        "tests/unit/admin-code-service.test.ts",
+        "tests/e2e/admin-insights.spec.ts"
+      ],
+      "importantPaths": [
+        "src/app/(admin)/admin/layout.tsx",
+        "src/server/services/admin-code-service.ts",
+        "src/server/services/admin-insights-service.ts",
+        "src/server/services/sales-service.ts"
+      ],
+      "coverage": {
+        "estimatedFiles": 27,
+        "scannedFiles": 27,
+        "percent": 100,
+        "gaps": []
+      }
     },
     {
       "name": "Leader Pages",
       "path": "src/app/(leader)/leader",
       "claudeMd": "src/app/(leader)/leader/CLAUDE.md",
       "language": "TypeScript/TSX",
-      "entry": "src/app/(leader)/leader/group/page.tsx",
+      "entry": "src/app/(leader)/leader/sales/page.tsx",
       "interfaces": [
         "src/app/(leader)/leader/group/actions.ts",
         "src/app/(leader)/leader/sales/actions.ts"
       ],
-      "tests": "tests/unit/leader-*.test.ts",
-      "scannedFiles": 6,
-      "coverage": "FULL"
+      "tests": [
+        "tests/unit/leader-pages.test.tsx",
+        "tests/unit/leader-sales-actions.test.ts",
+        "tests/e2e/leader-workbench.spec.ts"
+      ],
+      "importantPaths": [
+        "src/app/(leader)/layout.tsx",
+        "src/server/services/leader-workbench-service.ts",
+        "src/server/services/group-leaderboard-service.ts",
+        "src/server/services/leaderboard-cache.ts"
+      ],
+      "coverage": {
+        "estimatedFiles": 6,
+        "scannedFiles": 6,
+        "percent": 100,
+        "gaps": []
+      }
     },
     {
       "name": "Member Pages",
@@ -47,9 +165,23 @@
       "interfaces": [
         "src/app/(member)/entry/actions.ts"
       ],
-      "tests": "tests/unit/sales-entry-*.test.ts",
-      "scannedFiles": 5,
-      "coverage": "FULL"
+      "tests": [
+        "tests/unit/sales-entry-action.test.ts",
+        "tests/unit/member-identifier-entry-action.test.ts",
+        "tests/e2e/member-entry.spec.ts"
+      ],
+      "importantPaths": [
+        "src/app/(member)/layout.tsx",
+        "src/server/services/member-identifier-sale-service.ts",
+        "src/server/services/entry-insights-cache.ts",
+        "src/server/services/member-records-cache.ts"
+      ],
+      "coverage": {
+        "estimatedFiles": 6,
+        "scannedFiles": 6,
+        "percent": 100,
+        "gaps": []
+      }
     },
     {
       "name": "Shared Leaderboard Pages",
@@ -58,9 +190,23 @@
       "language": "TypeScript/TSX",
       "entry": "src/app/(shared)/leaderboard/daily/page.tsx",
       "interfaces": [],
-      "tests": "tests/unit/leaderboard-*.test.ts",
-      "scannedFiles": 3,
-      "coverage": "FULL"
+      "tests": [
+        "tests/unit/shared-daily-leaderboard-page.test.tsx",
+        "tests/unit/shared-range-leaderboard-page.test.tsx",
+        "tests/unit/leader-pages.test.tsx"
+      ],
+      "importantPaths": [
+        "src/app/(shared)/leaderboard/groups/page.tsx",
+        "src/server/services/leaderboard-service.ts",
+        "src/server/services/group-leaderboard-service.ts",
+        "src/server/services/leaderboard-cache.ts"
+      ],
+      "coverage": {
+        "estimatedFiles": 4,
+        "scannedFiles": 4,
+        "percent": 100,
+        "gaps": []
+      }
     },
     {
       "name": "Auth Pages",
@@ -71,9 +217,23 @@
       "interfaces": [
         "src/app/(auth)/login/actions.ts"
       ],
-      "tests": "tests/unit/login-*.test.ts",
-      "scannedFiles": 3,
-      "coverage": "FULL"
+      "tests": [
+        "tests/unit/auth.test.ts",
+        "tests/unit/login-actions.test.ts",
+        "tests/e2e/login.spec.ts"
+      ],
+      "importantPaths": [
+        "src/lib/auth.ts",
+        "src/lib/env.ts",
+        "src/lib/rate-limit.ts",
+        "src/proxy.ts"
+      ],
+      "coverage": {
+        "estimatedFiles": 3,
+        "scannedFiles": 3,
+        "percent": 100,
+        "gaps": []
+      }
     },
     {
       "name": "API Routes",
@@ -86,31 +246,19 @@
         "src/app/api/export/range/route.ts",
         "src/app/api/export/settlement/route.ts"
       ],
-      "tests": "tests/unit/export-service.test.ts",
-      "scannedFiles": 4,
-      "coverage": "FULL"
-    },
-    {
-      "name": "Service Layer",
-      "path": "src/server/services",
-      "claudeMd": "src/server/services/CLAUDE.md",
-      "language": "TypeScript",
-      "entry": null,
-      "interfaces": [],
-      "tests": "tests/unit/*.test.ts",
-      "scannedFiles": 24,
-      "coverage": "FULL"
-    },
-    {
-      "name": "Core Library",
-      "path": "src/lib",
-      "claudeMd": "src/lib/CLAUDE.md",
-      "language": "TypeScript",
-      "entry": null,
-      "interfaces": [],
-      "tests": "tests/unit/auth.test.ts",
-      "scannedFiles": 21,
-      "coverage": "FULL"
+      "tests": [
+        "tests/unit/export-service.test.ts"
+      ],
+      "importantPaths": [
+        "src/lib/auth.ts",
+        "src/server/services/export-service.ts"
+      ],
+      "coverage": {
+        "estimatedFiles": 4,
+        "scannedFiles": 4,
+        "percent": 100,
+        "gaps": []
+      }
     },
     {
       "name": "UI Components",
@@ -119,50 +267,125 @@
       "language": "TypeScript/TSX",
       "entry": null,
       "interfaces": [],
-      "tests": "tests/unit/*.test.tsx",
-      "scannedFiles": 58,
-      "coverage": "FULL"
+      "tests": [
+        "tests/unit/app-shell.test.tsx",
+        "tests/unit/leaderboard-table.test.tsx",
+        "tests/unit/admin-daily-review-summary.test.tsx"
+      ],
+      "importantPaths": [
+        "src/components/app-shell.tsx",
+        "src/components/leader/group-leaderboard-table.tsx",
+        "src/components/sales-entry-page-client.tsx"
+      ],
+      "coverage": {
+        "estimatedFiles": 58,
+        "scannedFiles": 58,
+        "percent": 100,
+        "gaps": []
+      }
     },
     {
-      "name": "Database Layer",
+      "name": "Service Layer",
+      "path": "src/server/services",
+      "claudeMd": "src/server/services/CLAUDE.md",
+      "language": "TypeScript",
+      "entry": null,
+      "interfaces": [],
+      "tests": [
+        "tests/unit/leader-workbench-service.test.ts",
+        "tests/unit/admin-code-service.test.ts",
+        "tests/unit/sales-service.test.ts"
+      ],
+      "importantPaths": [
+        "src/server/services/leader-workbench-service.ts",
+        "src/server/services/admin-code-service.ts",
+        "src/server/services/sales-service.ts",
+        "src/server/services/leaderboard-cache.ts"
+      ],
+      "coverage": {
+        "estimatedFiles": 25,
+        "scannedFiles": 25,
+        "percent": 100,
+        "gaps": [
+          "recommend deeper pass on group-leaderboard-service.ts",
+          "recommend deeper pass on member-identifier-sale-service.ts",
+          "recommend deeper pass on daily-rhythm-service.ts"
+        ]
+      }
+    },
+    {
+      "name": "Core Library",
+      "path": "src/lib",
+      "claudeMd": "src/lib/CLAUDE.md",
+      "language": "TypeScript",
+      "entry": null,
+      "interfaces": [],
+      "tests": [
+        "tests/unit/auth.test.ts",
+        "tests/unit/identifier-sale-validation.test.ts",
+        "tests/unit/leader-workbench-validation.test.ts"
+      ],
+      "importantPaths": [
+        "src/lib/auth.ts",
+        "src/lib/env.ts",
+        "src/lib/permissions.ts",
+        "src/lib/rate-limit.ts"
+      ],
+      "coverage": {
+        "estimatedFiles": 21,
+        "scannedFiles": 21,
+        "percent": 100,
+        "gaps": []
+      }
+    },
+    {
+      "name": "Prisma Layer",
       "path": "prisma",
       "claudeMd": "prisma/CLAUDE.md",
-      "language": "Prisma/TypeScript",
+      "language": "Prisma/TypeScript/SQL",
       "entry": "prisma/schema.prisma",
       "interfaces": [],
-      "tests": "tests/unit/prisma-schema-contract.test.ts",
-      "scannedFiles": 9,
-      "coverage": "FULL"
+      "tests": [
+        "tests/unit/prisma-schema-contract.test.ts"
+      ],
+      "importantPaths": [
+        "prisma/schema.prisma",
+        "prisma/seed.ts",
+        "prisma/migrations/20260329183000_add_leader_workbench_and_group_leaderboard/migration.sql"
+      ],
+      "coverage": {
+        "estimatedFiles": 9,
+        "scannedFiles": 9,
+        "percent": 100,
+        "gaps": [
+          "model-count terminology differs between old docs and actual schema; keep docs aligned with source"
+        ]
+      }
     }
   ],
-  "fileStatistics": {
-    "estimatedTotalFiles": 161,
-    "scannedFiles": 161,
-    "coveragePercent": 100,
-    "breakdown": {
-      "sourceTs": 70,
-      "sourceTsx": 80,
-      "unitTests": 71,
-      "e2eTests": 9,
-      "prismaFiles": 9,
-      "configFiles": 8
+  "gaps": [
+    {
+      "scope": "root-doc-sync",
+      "items": [
+        "old docs undercounted migrations",
+        "old docs omitted INVITE_CODE",
+        "old leader module docs lagged behind workbench implementation"
+      ]
+    },
+    {
+      "scope": "optional-deep-scan",
+      "items": [
+        "src/server/services/group-leaderboard-service.ts",
+        "src/server/services/member-identifier-sale-service.ts",
+        "src/server/services/daily-rhythm-service.ts",
+        "src/components/leader/"
+      ]
     }
-  },
-  "ignoreRules": {
-    "source": ".gitignore",
-    "ignoredPatterns": [
-      "node_modules",
-      ".next",
-      "coverage",
-      "test-results",
-      "playwright-report",
-      "build",
-      ".vercel",
-      ".env*"
-    ],
-    "ignoredFileEstimate": "~85000 (node_modules)"
-  },
-  "gaps": [],
+  ],
   "truncated": false,
-  "nextSteps": []
+  "nextSteps": [
+    "If another scan is requested, prioritize service-level deep reads for group leaderboard and identifier-sale workflows.",
+    "Keep root and module docs in sync whenever new migrations, actions, or route groups are added.",
+    "Consider removing or archiving src/components/leaderboard-table.tsx.orig to reduce scan noise."
+  ]
 }

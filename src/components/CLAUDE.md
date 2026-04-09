@@ -1,53 +1,80 @@
-[Root](../../CLAUDE.md) > [src](../) > **components**
+[根目录](../../CLAUDE.md) > [src](../) > **components**
 
 # UI Components Module
 
-## Module Purpose
+## 模块职责
 
-All React components used across the application. Organized into admin-specific (`admin/`), leader-specific (`leader/`), and shared components at the root level.
+集中存放所有 React 组件，分为 Admin、Leader、共享组件与少量通用 UI 组件。页面层负责取数，组件层负责呈现与交互。
 
-## Component Inventory
+## 入口与启动
 
-### Admin Components (25) -- `src/components/admin/`
+无单一入口文件；按页面场景直接导入组件。
 
-**Tables**: `member-table`, `sales-table`, `settlement-table`, `group-table`, `announcement-table`, `banner-table`, `commission-rule-table`, `code-inventory-table`, `prospect-lead-table`
+目录结构：
+- `src/components/admin/`
+- `src/components/leader/`
+- `src/components/ui/`
+- `src/components/*`（共享组件）
 
-**Forms**: `member-form`, `group-form`, `announcement-form`, `banner-form`, `banner-settings-form`, `commission-rule-form`, `admin-reminder-form`, `admin-target-adjust-form`
+## 对外接口
 
-**Panels/Cards**: `admin-insights-overview`, `admin-insight-member-card`, `admin-daily-review-summary`, `admin-cumulative-stats-panel`, `code-assignment-panel`
+高频组件簇：
+- Shell：`app-shell`、`app-shell-client`、`app-monitoring`
+- Entry：`sales-entry-page-client`、`sales-entry-form`、`member-identifier-sale-form`
+- Shared leaderboard：`leaderboard-table`、`daily-top3-strip`、`cumulative-ranking-chart`、`cumulative-trend-chart`
+- Leader：`leader-member-ranking-panel`、`leader-group-ranking-panel`、`leader-follow-up-section`、`leader-code-assignment-section`、`leader-audit-timeline`
+- Admin：表格、表单、统计卡片、导入卡片
 
-**Import Cards**: `code-import-card`, `prospect-import-card`, `banner-import-card`
+## 关键依赖与配置
 
-### Leader Components (6) -- `src/components/leader/`
+- 组件默认遵循 RSC 边界；只有需要浏览器交互时才加 `'use client'`
+- 主题相关：`theme-script.tsx`、`theme-palette.tsx`
+- Vercel 监控：`app-monitoring.tsx`
+- Leader 小组榜复用：`leader/group-leaderboard-table.tsx`
 
-`leader-member-ranking-panel`, `leader-group-ranking-panel`, `leader-follow-up-section`, `leader-code-assignment-section`, `leader-audit-timeline`, `group-leaderboard-table`
+## 数据模型
 
-### Shared Components (27) -- `src/components/`
+组件层不直接操作 Prisma 模型，主要消费 DTO：
+- 榜单行 DTO
+- 组长工作台快照 DTO
+- Admin Insights / Sales Review DTO
+- Member Entry Insights DTO
 
-**Shell**: `app-shell` (server), `app-shell-client` (client), `app-monitoring` (Vercel analytics/speed-insights)
+## 测试与质量
 
-**Entry UI**: `sales-entry-form`, `sales-entry-page-client`, `sales-entry-success-card`, `member-identifier-sale-form`, `member-identifier-sale-history`
+代表性单测：
+- `tests/unit/app-shell.test.tsx`
+- `tests/unit/leaderboard-table.test.tsx`
+- `tests/unit/daily-top3-strip.test.tsx`
+- `tests/unit/cumulative-ranking-chart.test.tsx`
+- `tests/unit/cumulative-trend-chart.test.tsx`
+- `tests/unit/entry-daily-rhythm-summary.test.tsx`
+- `tests/unit/admin-daily-review-summary.test.tsx`
+- `tests/unit/admin-import-cards.test.tsx`
 
-**Insights**: `entry-daily-target-card`, `entry-daily-rhythm-summary`, `entry-self-trend-summary`, `entry-reminder-list`
+## 常见问题 (FAQ)
 
-**Leaderboard**: `leaderboard-table`, `daily-top3-strip`, `cumulative-ranking-chart`, `cumulative-trend-chart`
+### 为什么很多组件没有自己请求数据？
+本项目遵循“页面/服务层取数，组件层展示”的边界，减少客户端数据耦合。
 
-**Content**: `announcement-list`, `banner-rotator`, `page-header`, `metric-card`, `empty-state`, `status-callout`
+### 哪些组件最需要注意 RSC 边界？
+登录表单、主题选择、图表、动画表格、使用 `useActionState` 的表单组件。
 
-**Auth**: `login-form`, `register-form`
+### 为什么 `src/components/leaderboard-table.tsx.orig` 没写进文档？
+它是临时副本，不属于正式组件清单。
 
-**Theme**: `theme-script` (SSR bootstrap), `theme-palette` (theme picker)
+## 相关文件清单
 
-**Records**: `my-records-table`
+- `src/components/app-shell.tsx`
+- `src/components/sales-entry-page-client.tsx`
+- `src/components/leaderboard-table.tsx`
+- `src/components/leader/group-leaderboard-table.tsx`
+- `src/components/admin/admin-cumulative-stats-panel.tsx`
+- `src/components/leader/leader-follow-up-section.tsx`
+- `src/components/theme-script.tsx`
 
-## Key Patterns
+## 变更记录 (Changelog)
 
-- Server components by default; `'use client'` only where interactivity required
-- Form components use `useActionState` for Server Action integration
-- Charts are client components using inline SVG rendering
-- Shell components handle layout (sidebar navigation, breadcrumb, banner, announcements)
-- All data fetching happens in page server components, passed as props to client components
-
-## Tests
-
-Component unit tests: `app-shell`, `app-shell-smoke`, `leaderboard-table`, `daily-top3-strip`, `cumulative-ranking-chart`, `cumulative-trend-chart`, `entry-daily-rhythm-summary`, `entry-daily-target-card`, `entry-reminder-list`, `sales-entry-success-card`, `sales-entry-page-client`, `theme-palette`, `root-layout`, `admin-daily-review-summary`, `admin-import-cards`
+| Date | Description |
+|------|-------------|
+| 2026-04-08T09:29:56.000Z | Refreshed component inventory, leader workbench panels, and skipped temporary `.orig` artifact from module scope. |

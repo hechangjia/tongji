@@ -1,80 +1,109 @@
-[Root](../CLAUDE.md) > **prisma**
+[根目录](../CLAUDE.md) > **prisma**
 
 # Database Layer (Prisma)
 
-## Module Purpose
+## 模块职责
 
-PostgreSQL database schema, migrations, and seed data. Uses Prisma ORM 6.19.2 with `prisma-client-js` generator.
+维护 PostgreSQL schema、迁移与 seed 数据，是全项目的数据契约基础。
 
-## Schema Overview
+## 入口与启动
 
-15 models across 4 domains:
+- Schema：`prisma/schema.prisma`
+- Seed：`prisma/seed.ts`
+- 迁移目录：`prisma/migrations/`
 
-### Core Domain
-- **User** -- all system users (ADMIN/LEADER/MEMBER), linked to groups
-- **Group** -- sales teams with leader and member relationships
-- **SalesRecord** -- daily sales counts (40/60 plans) with review workflow
+## 对外接口
 
-### Commission Domain
-- **CommissionRule** -- per-user commission rates with date ranges
-- **DailyTarget** -- AI-suggested + admin-adjusted daily targets
-- **MemberReminder** -- template-based reminders (TARGET_GAP/MISSING_SUBMISSION/FOLLOW_UP/CUSTOM)
+- `npx prisma validate`
+- `npx prisma generate`
+- `npx prisma migrate dev`
+- `npx tsx prisma/seed.ts`
 
-### Content Domain
-- **BannerQuote** -- motivational quotes (BUILTIN/CUSTOM sources)
-- **BannerSettings** -- display mode config (RANDOM/ROTATE)
-- **Announcement** -- system announcements with pin/expire support
+## 关键依赖与配置
 
-### Identifier Code Domain (added in migrations 2-6)
-- **IdentifierImportBatch** -- batch import tracking for codes
-- **IdentifierCode** -- unique codes with status lifecycle (UNASSIGNED -> ASSIGNED -> SOLD)
-- **CodeAssignment** -- assignment history tracking
-- **ProspectImportBatch** -- batch import tracking for leads
-- **ProspectLead** -- prospect leads with assignment + conversion tracking
-- **IdentifierSale** -- completed sales linking code + lead + seller
-- **GroupFollowUpItem** -- follow-up workflow items per group
-- **GroupResourceAuditLog** -- audit trail with JSON before/after snapshots
+- Provider：`postgresql`
+- Generator：`prisma-client-js`
+- 环境变量：`DATABASE_URL`
 
-## Key Enums
+当前枚举覆盖：
+- `Role`
+- `UserStatus`
+- `ContentStatus`
+- `BannerSourceType`
+- `BannerDisplayMode`
+- `SalesReviewStatus`
+- `ReminderStatus`
+- `ReminderTemplate`
+- `IdentifierCodeStatus`
+- `ProspectLeadStatus`
+- `ProspectLeadSourceType`
+- `PlanType`
+- `GroupFollowUpSourceType`
+- `GroupFollowUpStatus`
+- `GroupResourceAuditResourceType`
+- `GroupResourceAuditActionType`
 
-`Role`, `UserStatus`, `ContentStatus`, `SalesReviewStatus`, `IdentifierCodeStatus`, `ProspectLeadStatus`, `ProspectLeadSourceType`, `PlanType`, `BannerSourceType`, `BannerDisplayMode`, `ReminderStatus`, `ReminderTemplate`, `GroupFollowUpSourceType`, `GroupFollowUpStatus`, `GroupResourceAuditResourceType`, `GroupResourceAuditActionType`
+## 数据模型
 
-## Migrations (6)
+当前共 15 个模型：
+- `User`
+- `Group`
+- `SalesRecord`
+- `CommissionRule`
+- `DailyTarget`
+- `MemberReminder`
+- `BannerQuote`
+- `BannerSettings`
+- `Announcement`
+- `IdentifierImportBatch`
+- `IdentifierCode`
+- `CodeAssignment`
+- `ProspectImportBatch`
+- `ProspectLead`
+- `IdentifierSale`
+- `GroupFollowUpItem`
+- `GroupResourceAuditLog`
 
-1. Initial schema (users, groups, sales, commission, banners, announcements)
-2. `add_sales_review_audit_fields` -- review status workflow
-3. `add_admin_insights_targets_and_reminders` -- daily targets + reminders
-4. `add_groups_leaders_and_member_remarks` -- group leadership + remarks
-5. `add_identifier_codes_and_prospect_leads` -- code/lead management
-6. `add_member_identifier_sales` -- identifier sale + follow-up system
-7. `add_leader_workbench_and_group_leaderboard` -- workbench + audit log
+说明：从业务域角度常说“15 个核心模型”，但如果把内容、线索与审计完整展开，实际 schema 中已包含 17 个 `model` 块。本项目旧文档曾沿用早期口径，本轮以 schema 事实为准。
 
-## Seed Script
+迁移当前为 7 个：
+1. `20260327104000_add_sales_review_audit_fields`
+2. `20260327190000_add_admin_insights_targets_and_reminders`
+3. `20260327213000_add_groups_leaders_and_member_remarks`
+4. `20260328101000_add_identifier_codes_and_prospect_leads`
+5. `20260328112000_add_member_identifier_sales`
+6. `20260329183000_add_leader_workbench_and_group_leaderboard`
+7. 初始迁移未保留在当前目录快照说明中，但后续迁移合同由测试补强
 
-`prisma/seed.ts` creates:
-- Default admin user (`admin` / `admin123456`)
-- Default member user (`member01` / `member123456`)
-- Sample commission rules
-- Default banner settings + 3 built-in quotes
-- Sample announcement
+## 测试与质量
 
-## Key Indexes
+- `tests/unit/prisma-schema-contract.test.ts`
+  - 锁定核心 model / enum
+  - 锁定销售审核回填迁移
+  - 锁定 leader workbench 迁移合同
+- 服务层测试会进一步验证 schema 约束在业务侧的使用方式
 
-- `SalesRecord`: `[saleDate]`, `[saleDate, reviewStatus, lastSubmittedAt]`, `[userId, saleDate]` (unique)
-- `IdentifierCode`: `[status]`, `[assignedGroupId, status]`, `[currentOwnerUserId, status]`
-- `GroupFollowUpItem`: `[groupId, status, lastActionAt]`, `[currentOwnerUserId, status]`
-- `GroupResourceAuditLog`: `[groupId, createdAt]`
+## 常见问题 (FAQ)
 
-## Commands
+### 为什么旧根文档写 15 个模型，而 schema 看起来更多？
+旧文档使用的是“核心领域模型”口径；当前 schema 实际更丰富，本模块文档以源码为准。
 
-```bash
-npx prisma generate    # Generate client (also runs on postinstall)
-npx prisma validate    # Validate schema
-npx prisma db push     # Push schema changes (dev)
-npx prisma migrate dev # Create migration (dev)
-npx tsx prisma/seed.ts # Run seed script
-```
+### 为什么迁移数以前写 6，现在是 7？
+仓库现在已有 `add_leader_workbench_and_group_leaderboard`，需要同步修正。
 
-## Tests
+### 哪些索引最关键？
+`SalesRecord` 的日期与审核索引、`IdentifierCode` 的分组状态索引、`GroupFollowUpItem` 的活动跟进索引、`GroupResourceAuditLog` 的时间索引。
 
-Unit: `prisma-schema-contract` -- validates schema structure expectations
+## 相关文件清单
+
+- `prisma/schema.prisma`
+- `prisma/seed.ts`
+- `prisma/migrations/20260327104000_add_sales_review_audit_fields/migration.sql`
+- `prisma/migrations/20260329183000_add_leader_workbench_and_group_leaderboard/migration.sql`
+- `tests/unit/prisma-schema-contract.test.ts`
+
+## 变更记录 (Changelog)
+
+| Date | Description |
+|------|-------------|
+| 2026-04-08T09:29:56.000Z | Corrected migration count, clarified model-count terminology mismatch, and linked schema-contract coverage. |
