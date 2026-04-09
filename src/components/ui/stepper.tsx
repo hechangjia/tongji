@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, useAnimation } from "framer-motion";
 
 interface StepperProps {
   id: string;
@@ -23,7 +22,6 @@ export function Stepper({
   label,
 }: StepperProps) {
   const [value, setValue] = useState(defaultValue);
-  const controls = useAnimation();
 
   useEffect(() => {
     setValue(defaultValue);
@@ -33,14 +31,12 @@ export function Stepper({
     const newValue = max !== undefined ? Math.min(value + 1, max) : value + 1;
     setValue(newValue);
     onChange?.(newValue);
-    controls.start({ scale: [1, 1.1, 1] });
   };
 
   const handleDecrement = () => {
     const newValue = Math.max(value - 1, min);
     setValue(newValue);
     onChange?.(newValue);
-    controls.start({ scale: [1, 0.9, 1] });
   };
 
   return (
@@ -65,8 +61,7 @@ export function Stepper({
         </button>
         
         <div className="flex-1 text-center">
-          <motion.input
-            animate={controls}
+          <input
             id={id}
             name={name}
             type="number"

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { auth } from "@/lib/auth";
 import { hasAuthSessionCookie } from "@/lib/auth-session-cookie";
 import { AppShell } from "@/components/app-shell";
@@ -20,8 +21,37 @@ type RangeLeaderboardPageProps = {
   }>;
 };
 
+type RangeLeaderboardPersonalizedChartSectionData = {
+  startDate: DateValue;
+  endDate: DateValue;
+  currentUserId: string;
+};
+
 function isDateValue(value?: string): value is DateValue {
   return Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
+}
+
+function RangeLeaderboardPersonalizedChartSkeleton() {
+  return (
+    <CumulativeRankingChart
+      title="本月累计卖卡"
+      rows={[]}
+    />
+  );
+}
+
+export async function RangeLeaderboardPersonalizedChartSection({
+  startDate,
+  endDate,
+  currentUserId,
+}: RangeLeaderboardPersonalizedChartSectionData) {
+  const cumulativeRanking = await getCachedMemberCumulativeRanking({
+    startDate,
+    endDate,
+    currentUserId,
+  });
+
+  return <CumulativeRankingChart title="本月累计卖卡" rows={cumulativeRanking} />;
 }
 
 export default async function RangeLeaderboardPage({
@@ -46,13 +76,6 @@ export default async function RangeLeaderboardPage({
   const champion = rows[0]?.total ?? 0;
   const exportHref = `/api/export/range?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
   const session = await sessionPromise;
-  const cumulativeRanking = session?.user
-    ? await getCachedMemberCumulativeRanking({
-        startDate,
-        endDate,
-        currentUserId: session.user.id,
-      })
-    : null;
 
   const content = (
     <section className="space-y-6">
@@ -115,8 +138,14 @@ export default async function RangeLeaderboardPage({
         </div>
       </form>
 
-      {cumulativeRanking ? (
-        <CumulativeRankingChart title="本月累计卖卡" rows={cumulativeRanking} />
+      {session?.user ? (
+        <Suspense fallback={<RangeLeaderboardPersonalizedChartSkeleton />}>
+          <RangeLeaderboardPersonalizedChartSection
+            startDate={startDate}
+            endDate={endDate}
+            currentUserId={session.user.id}
+          />
+        </Suspense>
       ) : null}
 
       <LeaderboardTable

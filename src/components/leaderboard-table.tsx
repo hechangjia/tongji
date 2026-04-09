@@ -1,8 +1,5 @@
-"use client";
-
 import { EmptyState } from "@/components/empty-state";
 import { ResponsiveTable, type Column } from "@/components/ui/responsive-table";
-import { motion } from "framer-motion";
 
 export type LeaderboardRow = {
   rank: number;
@@ -62,24 +59,20 @@ export function LeaderboardTable({
         <div className="space-y-8">
           <div className="grid gap-4 md:grid-cols-3" role="list" aria-label="前三名荣誉榜">
             {podium.map((row, index) => (
-              <motion.article
+              <article
                 key={`${row.userName}-${row.rank}`}
                 role="listitem"
                 aria-label={`排名第 ${row.rank}：${row.userName}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ y: -5, scale: 1.02 }}
-                className={`group relative overflow-hidden rounded-[24px] border px-6 py-6 shadow-[0_18px_42px_rgba(8,47,73,0.08)] transition-all ${
+                className={`group relative overflow-hidden rounded-[24px] border px-6 py-6 shadow-[0_18px_42px_rgba(8,47,73,0.08)] transition-colors ${
                   index === 0
                     ? "maika-podium-surface border-[var(--maika-accent)]/50 text-white"
                     : "maika-glass bg-[var(--maika-surface)] border-white/40 text-slate-950"
                 }`}
               >
-                {index === 0 && (
-                  <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/10 blur-2xl group-hover:bg-white/20 transition-all" />
-                )}
-                
+                {index === 0 ? (
+                  <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/10 blur-2xl" />
+                ) : null}
+
                 <p
                   className={`text-[0.72rem] font-semibold uppercase tracking-[0.22em] ${
                     index === 0 ? "text-[var(--maika-accent)] opacity-90" : "text-[var(--maika-accent-strong)]"
@@ -115,7 +108,7 @@ export function LeaderboardTable({
                     <p className="mt-2 text-4xl font-display font-semibold">{row.total}</p>
                   </div>
                 </div>
-              </motion.article>
+              </article>
             ))}
           </div>
 

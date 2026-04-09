@@ -5,12 +5,10 @@ import { StatusCallout } from "@/components/status-callout";
 import type { SalesEntryFormState } from "@/app/(member)/entry/form-state";
 import type { SalesEntryDefaults } from "@/server/services/sales-service";
 import { Stepper } from "@/components/ui/stepper";
-import { motion, AnimatePresence } from "framer-motion";
 
 function SubmitButton({ pending }: { pending: boolean }) {
   return (
-    <motion.button
-      whileTap={{ scale: 0.98 }}
+    <button
       type="submit"
       className="inline-flex w-full items-center justify-center rounded-[24px] bg-slate-950 px-4 py-4 text-base font-semibold text-white shadow-[0_18px_36px_rgba(8,47,73,0.16)] transition duration-200 hover:bg-cyan-800 disabled:cursor-not-allowed disabled:bg-slate-400"
       disabled={pending}
@@ -24,7 +22,7 @@ function SubmitButton({ pending }: { pending: boolean }) {
           保存中...
         </span>
       ) : "保存今日记录"}
-    </motion.button>
+    </button>
   );
 }
 
@@ -46,8 +44,7 @@ export function SalesEntryForm({
   saleDateInputRef?: RefObject<HTMLInputElement | null>;
 }) {
   return (
-    <motion.form
-      layout
+    <form
       action={formAction}
       className="space-y-8 rounded-[30px] border border-white/70 bg-white/84 p-6 shadow-[0_22px_60px_rgba(8,47,73,0.08)] backdrop-blur-xl sm:p-8"
     >
@@ -62,23 +59,15 @@ export function SalesEntryForm({
           </p>
         </div>
 
-        <AnimatePresence mode="wait">
-          {hasExistingRecord && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-            >
-              <StatusCallout tone="info" title="检测到当天已有记录">
-                再次保存会直接覆盖当天数据，不会重复新增。
-              </StatusCallout>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {hasExistingRecord ? (
+          <StatusCallout tone="info" title="检测到当天已有记录">
+            再次保存会直接覆盖当天数据，不会重复新增。
+          </StatusCallout>
+        ) : null}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <motion.div layout className="space-y-2">
+        <div className="space-y-2">
           <label htmlFor="saleDate" className="text-sm font-medium text-slate-700">
             业务日期
           </label>
@@ -90,7 +79,7 @@ export function SalesEntryForm({
             ref={saleDateInputRef}
             className="w-full h-[58px] rounded-[24px] border border-slate-200 bg-white/60 px-5 text-base outline-none transition duration-200 focus:border-cyan-400 focus:bg-white focus:ring-2 focus:ring-cyan-100"
           />
-        </motion.div>
+        </div>
 
         <div className="hidden md:block" /> {/* Grid spacer */}
 
@@ -108,7 +97,7 @@ export function SalesEntryForm({
           defaultValue={Number(values.count60) || 0}
         />
 
-        <motion.div layout className="space-y-2 md:col-span-2">
+        <div className="space-y-2 md:col-span-2">
           <label htmlFor="remark" className="text-sm font-medium text-slate-700">
             备注信息
           </label>
@@ -120,24 +109,18 @@ export function SalesEntryForm({
             className="w-full rounded-[24px] border border-slate-200 bg-white/60 px-5 py-4 text-base outline-none transition duration-200 focus:border-cyan-400 focus:bg-white focus:ring-2 focus:ring-cyan-100"
             placeholder="可选，记录渠道、点位或当天异常情况"
           />
-        </motion.div>
+        </div>
       </div>
 
-      <AnimatePresence>
-        {status === "error" && message && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="rounded-[24px] overflow-hidden"
-          >
-            <StatusCallout tone="error" title="保存失败">
-              <p role="alert">{message}</p>
-            </StatusCallout>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {status === "error" && message ? (
+        <div className="rounded-[24px] overflow-hidden">
+          <StatusCallout tone="error" title="保存失败">
+            <p role="alert">{message}</p>
+          </StatusCallout>
+        </div>
+      ) : null}
 
       <SubmitButton pending={pending} />
-    </motion.form>
+    </form>
   );
 }

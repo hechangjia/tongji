@@ -192,7 +192,7 @@
   --color-maika-ink: var(--maika-ink);
   --color-maika-accent: var(--maika-accent);
   --font-sans: var(--font-dm-sans), var(--font-noto-sans-sc), sans-serif;
-  --font-mono: var(--font-geist-mono), monospace;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
   --radius-sm: 18px;
   --radius-md: 24px;
   --radius-lg: 30px;
@@ -237,7 +237,7 @@ body {
 
 /* 核心标识符与金额高亮 - 风险突破点 */
 .mono-accent {
-  font-family: var(--font-geist-mono), monospace;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
