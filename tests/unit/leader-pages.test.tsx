@@ -191,6 +191,7 @@ describe("leader task pages", () => {
       },
     });
     getCachedAdminCumulativeTrendMock.mockResolvedValue({
+      range: { startDate: "2026-03-01", endDate: "2026-03-29", endExclusiveDate: "2026-03-30" },
       granularity: "day",
       series: [],
     });
@@ -327,6 +328,7 @@ describe("leader task pages", () => {
 
   test("admin home page starts both dashboard reads before waiting on the trend response", async () => {
     const cumulativeDeferred = createDeferred<{
+      range: { startDate: string; endDate: string; endExclusiveDate: string };
       granularity: "day";
       series: [];
     }>();
@@ -351,6 +353,7 @@ describe("leader task pages", () => {
     expect(calls).toEqual(["trend", "summary"]);
 
     cumulativeDeferred.resolve({
+      range: { startDate: "2026-03-01", endDate: "2026-03-29", endExclusiveDate: "2026-03-30" },
       granularity: "day",
       series: [],
     });
@@ -361,10 +364,18 @@ describe("leader task pages", () => {
           preset: "MONTH",
           metric: "TOTAL",
           cumulativeStats: {
-            granularity: "day",
+range: { startDate: "2026-03-01", endDate: "2026-03-29", endExclusiveDate: "2026-03-30" },
+granularity: "day",
             series: [],
           },
-          dailyReviewSummary: {},
+          dailyReviewSummary: {
+            message: "今日暂无待审核记录",
+            pendingCount: 0,
+            top3Status: { temporaryTop3: [], formalTop3: [], temporaryCount: 0, formalCount: 0, isFormalTop3Complete: false },
+            top3ConfirmationStatus: "NOT_CONFIRMED",
+            primaryAction: { label: "等待提交", href: "/admin/sales" },
+            secondaryActions: [],
+          },
         }),
       }),
     );

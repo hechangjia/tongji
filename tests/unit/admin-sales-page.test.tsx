@@ -17,8 +17,8 @@ vi.mock("next/navigation", () => ({
   redirect: redirectMock,
 }));
 
-vi.mock("@/server/services/daily-rhythm-service", () => ({
-  getAdminSalesReviewData: getAdminSalesReviewDataMock,
+vi.mock("@/server/services/leaderboard-cache", () => ({
+  getCachedAdminSalesReviewData: getAdminSalesReviewDataMock,
 }));
 
 vi.mock("@/components/app-shell", () => ({

@@ -14,6 +14,7 @@ const getAdminDailyRhythmSummaryMock = vi.hoisted(() => vi.fn());
 const getDailyTop3StatusMock = vi.hoisted(() => vi.fn());
 const getGroupLeaderboardMock = vi.hoisted(() => vi.fn());
 const getLeaderWorkbenchSnapshotMock = vi.hoisted(() => vi.fn());
+const getAdminSalesReviewDataMock = vi.hoisted(() => vi.fn());
 
 vi.mock("next/cache", () => ({
   unstable_cache: unstableCacheMock,
@@ -35,6 +36,7 @@ vi.mock("@/server/services/daily-rhythm-service", () => ({
   getMemberDailyRhythmSummary: getMemberDailyRhythmSummaryMock,
   getAdminDailyRhythmSummary: getAdminDailyRhythmSummaryMock,
   getDailyTop3Status: getDailyTop3StatusMock,
+  getAdminSalesReviewData: getAdminSalesReviewDataMock,
 }));
 
 vi.mock("@/server/services/group-leaderboard-service", () => ({
@@ -46,7 +48,7 @@ vi.mock("@/server/services/leader-workbench-service", () => ({
 }));
 
 import {
-  LEADER_GROUP_CACHE_TAG,
+LEADER_GROUP_CACHE_TAG,
   LEADERBOARD_CACHE_REVALIDATE_SECONDS,
   LEADERBOARD_CACHE_TAG,
   getCachedAdminCumulativeTrend,
@@ -78,7 +80,7 @@ describe("leaderboard cache", () => {
   });
 
   test("wraps leaderboard readers in Next cache with shared tag", () => {
-    expect(unstableCacheMock).toHaveBeenCalledTimes(7);
+    expect(unstableCacheMock).toHaveBeenCalledTimes(8);
     expect(unstableCacheMock).toHaveBeenNthCalledWith(
       1,
       expect.any(Function),
@@ -137,6 +139,15 @@ describe("leaderboard cache", () => {
       7,
       expect.any(Function),
       ["leaderboard-daily-top3-status"],
+      {
+        tags: [LEADERBOARD_CACHE_TAG],
+        revalidate: LEADERBOARD_CACHE_REVALIDATE_SECONDS,
+      },
+    );
+    expect(unstableCacheMock).toHaveBeenNthCalledWith(
+      8,
+      expect.any(Function),
+      ["leaderboard-admin-sales-review-data"],
       {
         tags: [LEADERBOARD_CACHE_TAG],
         revalidate: LEADERBOARD_CACHE_REVALIDATE_SECONDS,
@@ -267,7 +278,7 @@ describe("leaderboard cache", () => {
       todaySaleDate: "2026-03-27",
     });
     expect(unstableCacheMock).toHaveBeenNthCalledWith(
-      8,
+      9,
       expect.any(Function),
       ["leaderboard-groups"],
       {
@@ -276,9 +287,9 @@ describe("leaderboard cache", () => {
       },
     );
     expect(unstableCacheMock).toHaveBeenNthCalledWith(
-      9,
+      10,
       expect.any(Function),
-      ["leader-workbench-snapshot"],
+["leader-workbench-snapshot"],
       {
         tags: [LEADER_GROUP_CACHE_TAG],
         revalidate: LEADERBOARD_CACHE_REVALIDATE_SECONDS,

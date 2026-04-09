@@ -75,6 +75,7 @@ import AdminMembersPage, {
   AdminMembersHeaderMetrics,
   AdminMembersNotice,
 } from "@/app/(admin)/admin/members/page";
+import type { Role, UserStatus } from "@prisma/client";
 
 const baseMembersPageData = {
   members: [
@@ -82,14 +83,14 @@ const baseMembersPageData = {
       id: "member-1",
       username: "member01",
       name: "成员一号",
-      role: "MEMBER",
-      groupId: "group-1",
-      remark: null,
-      status: "ACTIVE",
+      role: "MEMBER" as Role,
+      groupId: "group-1" as string | null,
+      remark: null as string | null,
+      status: "ACTIVE" as UserStatus,
       createdAt: new Date("2026-03-27T00:00:00.000Z"),
       group: {
         name: "北极星组",
-      },
+      } as { name: string } | null,
     },
   ],
   groups: [

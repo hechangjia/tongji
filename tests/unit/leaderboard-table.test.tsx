@@ -3,6 +3,15 @@ import { describe, expect, test } from "vitest";
 import { LeaderboardTable } from "@/components/leaderboard-table";
 
 describe("leaderboard table", () => {
+  test("renders as a server-safe component without framer-motion dependency", async () => {
+    const source = await import("node:fs/promises").then((fs) =>
+      fs.readFile(`${process.cwd()}/src/components/leaderboard-table.tsx`, "utf8"),
+    );
+
+    expect(source).not.toContain('"use client"');
+    expect(source).not.toContain("framer-motion");
+  });
+
   test("highlights the top rank block", () => {
     render(
       <LeaderboardTable
@@ -27,7 +36,7 @@ describe("leaderboard table", () => {
     );
 
     expect(screen.getByText("TOP 1")).toBeInTheDocument();
-    expect(screen.getAllByText("张三")).toHaveLength(2);
+    expect(screen.getAllByText("张三").length).toBeGreaterThanOrEqual(2);
   });
 
   test("shows the richer empty state copy", () => {

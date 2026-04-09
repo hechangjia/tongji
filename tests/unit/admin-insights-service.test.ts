@@ -29,6 +29,7 @@ describe("admin insights service", () => {
       buildAdminInsightMemberCard({
         userId: "member-1",
         userName: "成员1",
+        targetDate: "2026-03-27",
         targetTotal: 8,
         currentTotal: 3,
         recentAverageTotal: 7,

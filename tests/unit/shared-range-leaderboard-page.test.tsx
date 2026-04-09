@@ -81,6 +81,12 @@ async function importPageFromWorkspace(relativePath: string) {
 }
 
 describe("shared range leaderboard page", () => {
+  test("exports a deferred personalized chart section so leaderboard content can render first", async () => {
+    const module = await import("@/app/(shared)/leaderboard/range/page");
+
+    expect(module).toHaveProperty("RangeLeaderboardPersonalizedChartSection");
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();

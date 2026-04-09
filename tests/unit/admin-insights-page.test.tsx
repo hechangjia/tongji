@@ -25,6 +25,8 @@ vi.mock("@/components/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
+import type { AdminInsightMemberCard, AdminInsightsData } from "@/server/services/admin-insights-service";
+
 import AdminInsightsPage, {
   AdminInsightsContent,
   AdminInsightsNotice,
@@ -49,14 +51,15 @@ const baseInsightsData = {
       targetDate: "2026-03-27",
       targetTotal: 8,
       currentTotal: 3,
+      riskScore: 75,
       riskLevel: "HIGH",
       reasonTags: ["结果下滑", "目标偏差过大"],
       recommendedActions: ["ADJUST_TARGET", "SEND_REMINDER"],
       targetGap: 5,
-    },
+    } as AdminInsightMemberCard,
   ],
   processedCards: [],
-} satisfies Awaited<ReturnType<typeof getAdminInsightsDataMock>>;
+} as AdminInsightsData;
 
 describe("admin insights page", () => {
   test("exports a deferred content section so the page shell can stream first", async () => {
@@ -97,7 +100,7 @@ describe("admin insights page", () => {
   test("renders admin insights overview metrics and risk-ranked member cards in the deferred content section", async () => {
     render(
       await AdminInsightsContent({
-        insightsPromise: Promise.resolve(baseInsightsData),
+        insightsPromise: Promise.resolve(baseInsightsData) as Promise<AdminInsightsData>,
       }),
     );
 

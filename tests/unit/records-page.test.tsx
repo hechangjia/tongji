@@ -1,17 +1,17 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-const authMock = vi.hoisted(() => vi.fn());
+const getCachedSessionMock = vi.hoisted(() => vi.fn());
 const redirectMock = vi.hoisted(() =>
   vi.fn((target: string) => {
     throw new Error(`redirect:${target}`);
   }),
 );
 const getCachedMemberRecordsMock = vi.hoisted(() => vi.fn());
-const getIdentifierSalesForUserMock = vi.hoisted(() => vi.fn());
+const getCachedMemberIdentifierSalesMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@/lib/auth", () => ({
-  auth: authMock,
+vi.mock("@/lib/auth-request-cache", () => ({
+  getCachedSession: getCachedSessionMock,
 }));
 
 vi.mock("next/navigation", () => ({
@@ -20,10 +20,7 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/server/services/member-records-cache", () => ({
   getCachedMemberRecords: getCachedMemberRecordsMock,
-}));
-
-vi.mock("@/server/services/member-identifier-sale-service", () => ({
-  getIdentifierSalesForUser: getIdentifierSalesForUserMock,
+  getCachedMemberIdentifierSales: getCachedMemberIdentifierSalesMock,
 }));
 
 vi.mock("@/components/app-shell", () => ({
@@ -82,7 +79,7 @@ import RecordsPage from "@/app/(member)/records/page";
 describe("records page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    authMock.mockResolvedValue({
+    getCachedSessionMock.mockResolvedValue({
       user: {
         id: "member-1",
         role: "MEMBER",
@@ -100,7 +97,7 @@ describe("records page", () => {
         remark: "地推",
       },
     ]);
-    getIdentifierSalesForUserMock.mockResolvedValue([
+    getCachedMemberIdentifierSalesMock.mockResolvedValue([
       {
         id: "sale-1",
         planType: "PLAN_40",
@@ -121,8 +118,9 @@ describe("records page", () => {
   test("uses cached member records for the initial page payload", async () => {
     render(await RecordsPage());
 
+    expect(getCachedSessionMock).toHaveBeenCalledTimes(1);
     expect(getCachedMemberRecordsMock).toHaveBeenCalledWith("member-1");
-    expect(getIdentifierSalesForUserMock).toHaveBeenCalledWith("member-1");
+    expect(getCachedMemberIdentifierSalesMock).toHaveBeenCalledWith("member-1");
     expect(screen.getByText("我的记录")).toBeInTheDocument();
     expect(screen.getByText("my-records-table:1:1")).toBeInTheDocument();
     expect(screen.getByText("记录条数")).toBeInTheDocument();
